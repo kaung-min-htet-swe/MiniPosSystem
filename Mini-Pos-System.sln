@@ -1,0 +1,27 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MiniPos.Backend", "MiniPos.Backend\MiniPos.Backend.csproj", "{9F2C3886-90EC-4883-9669-B2C95EF0DF60}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MiniPos.Shared", "MiniPos.Shared", "{B53424DC-DF47-4C24-BE2E-57242CC38A4B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Database", "Database\Database.csproj", "{D11C985B-30DC-4C08-8812-02009FDA4444}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{9F2C3886-90EC-4883-9669-B2C95EF0DF60}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9F2C3886-90EC-4883-9669-B2C95EF0DF60}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9F2C3886-90EC-4883-9669-B2C95EF0DF60}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9F2C3886-90EC-4883-9669-B2C95EF0DF60}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D11C985B-30DC-4C08-8812-02009FDA4444}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D11C985B-30DC-4C08-8812-02009FDA4444}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D11C985B-30DC-4C08-8812-02009FDA4444}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D11C985B-30DC-4C08-8812-02009FDA4444}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{D11C985B-30DC-4C08-8812-02009FDA4444} = {B53424DC-DF47-4C24-BE2E-57242CC38A4B}
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,38 @@
+## [Visual Studio / JetBrains / VS Code]
+.idea/
+.vscode/
+*.swp
+*.user
+*.userosscache
+*.sln.docstates
+*.suo
+
+## [Build Results]
+[Bb]in/
+[Oo]bj/
+[Tt]est[Cc]onfirmed/
+[Pp]ublish/
+
+## [Tooling]
+.tools/
+.remote/
+.vs/
+
+## [EF Core & Databases]
+# Ignore local connection strings/secrets
+appsettings.Development.json
+appsettings.Local.json
+
+## [Operating System]
+.DS_Store
+Thumbs.db
+
+## [Frontend / Blazor / Node]
+node_modules/
+dist/
+wwwroot/dist/
+.env
+.env.local
+
+## [Docker]
+.dockerignore
