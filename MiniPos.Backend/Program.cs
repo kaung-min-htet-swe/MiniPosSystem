@@ -1,5 +1,6 @@
 using Database.EfAppDbContextModels;
 using Microsoft.EntityFrameworkCore;
+using MiniPos.Backend.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,6 +12,7 @@ builder.Services.AddDbContext<AppDbContext>(
     ServiceLifetime.Transient,
     ServiceLifetime.Transient
 );
+builder.Services.AddErrorMappings();
 
 var app = builder.Build();
 
