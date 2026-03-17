@@ -2,8 +2,8 @@ namespace Common;
 
 public abstract class Error
 {
-    private string Code { get; }
-    private string Message { get; }
+    public string Code { get; }
+    public string Message { get; }
 
     protected Error(string code, string message)
     {
@@ -40,3 +40,9 @@ public class InternalError : Error
     }
 }
 
+public class BadRequestError : Error
+{
+    public BadRequestError(string code, string message) : base(code, message)
+    {
+    }
+}

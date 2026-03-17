@@ -11,6 +11,7 @@ public static class ErrorMappingExtensions
         ErrorHttpMapper.Register<ConflictError>(StatusCodes.Status409Conflict);
         ErrorHttpMapper.Register<InternalError>(StatusCodes.Status500InternalServerError);
         ErrorHttpMapper.Register<ValidationError>(StatusCodes.Status400BadRequest);
+        ErrorHttpMapper.Register<BadRequestError>(StatusCodes.Status400BadRequest);
         
         return services;
     }
