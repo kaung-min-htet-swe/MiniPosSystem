@@ -1,6 +1,7 @@
 using Common;
 using Database.EfAppDbContextModels;
 using Microsoft.EntityFrameworkCore;
+using MiniPos.Backend.Features.Users;
 
 namespace MiniPos.Backend.Features.Orders;
 
@@ -102,32 +103,40 @@ public class OrderService : IOrderService
         const string errCode = "Order.Create";
         try
         {
-            var branchExists = await _db.Branches.AnyAsync(b => b.Id == request.BranchId);
-            if (!branchExists)
-                return Result.Failure(new NotFoundError(errCode, "Branch does not exist"));
+            var user =
+                await _db.Users
+                    .Include(u => u.BranchId)
+                    .Select(u => new { u.Id, u.Role, u.BranchId })
+                    .FirstOrDefaultAsync(u => u.Id == request.ProcessedById && u.Role == nameof(UserRole.Cashier));
+            if (user is null)
+                return Result.Failure(new NotFoundError(errCode, "User does not exist or is not authorized"));
 
-            var userExists = await _db.Users.AnyAsync(u => u.Id == request.ProcessedById);
-            if (!userExists)
-                return Result.Failure(new NotFoundError(errCode, "User does not exist"));
+            if (user.BranchId is null || user.BranchId != request.BranchId)
+                return Result.Failure(new ValidationError(errCode, "User is not associated with the specified branch"));
 
-            var productIds = request.OrderedItems.Select(item => item.ProductId).ToList();
-            var inventories = await _db.BranchInventories.Where(bi => productIds.Contains(bi.ProductId))
-                .Include("Product")
+            var productIds = request.OrderedItems.Select(item => item.ProductId).Distinct().ToList();
+            var inventories = await _db.BranchInventories
+                .Include(bi => bi.Product)
+                .Where(bi => productIds.Contains(bi.Id))
                 .ToListAsync();
-            if (inventories.Count() != productIds.Count())
-                return Result.Failure(new NotFoundError(errCode, "One or more products do not exist"));
+
+            if (inventories.Count != productIds.Count)
+                return Result.Failure(new NotFoundError(errCode,
+                    "One or more products do not exist in this branch's inventory"));
 
             var orderItems = new List<OrderItem>();
             decimal totalOrderAmount = 0;
 
             foreach (var orderedItem in request.OrderedItems)
             {
-                var inventory = inventories.First(p => p.ProductId == orderedItem.ProductId);
+                var inventory = inventories.First(bi => bi.Id == orderedItem.ProductId);
                 var product = inventory.Product;
+                
                 if (inventory.StockQuantity < orderedItem.Quantity)
-                    return Result.Failure(new BadRequestError(errCode, $"Insufficient stock for: {product.Name}"));
+                    return Result.Failure(new ValidationError(errCode, $"Insufficient stock for: {product.Name}"));
 
                 inventory.StockQuantity -= orderedItem.Quantity;
+
                 var calculatedSubTotal = orderedItem.Quantity * product.Price;
                 totalOrderAmount += calculatedSubTotal;
 
@@ -146,15 +155,13 @@ public class OrderService : IOrderService
                 ProcessedById = request.ProcessedById,
                 OrderDate = DateTime.UtcNow,
                 TotalAmount = totalOrderAmount,
-                CreatedAt = DateTime.UtcNow,
                 OrderItems = orderItems
             };
 
-            await _db.Orders.AddAsync(order);
-            var result = await _db.SaveChangesAsync();
-            return result > 0
-                ? Result.Success()
-                : Result.Failure(new InternalError(errCode, "Failed to create order"));
+            _db.Orders.Add(order); // Note: Use Add, not AddAsync, for normal inserts in EF Core
+            await _db.SaveChangesAsync();
+
+            return Result.Success();
         }
         catch (Exception e)
         {

@@ -22,7 +22,7 @@ public class BranchController : ControllerBase
             return Ok(result.Data);
 
         var statusCode = ErrorHttpMapper.GetStatusCode(result.Error!);
-        return StatusCode(statusCode, result.Error?.Message);
+        return StatusCode(statusCode, new { message = result.Error?.Message });
     }
 
     [HttpGet("{id}")]
@@ -33,7 +33,7 @@ public class BranchController : ControllerBase
             return Ok(result.Data);
 
         var statusCode = ErrorHttpMapper.GetStatusCode(result.Error!);
-        return StatusCode(statusCode, result.Error?.Message);
+        return StatusCode(statusCode, new { message = result.Error?.Message });
     }
 
     [HttpPost]
@@ -44,7 +44,7 @@ public class BranchController : ControllerBase
             return Created();
 
         var statusCode = ErrorHttpMapper.GetStatusCode(result.Error!);
-        return StatusCode(statusCode, result.Error?.Message);
+        return StatusCode(statusCode, new { message = result.Error?.Message });
     }
 
     [HttpPut("{id}")]
@@ -55,8 +55,7 @@ public class BranchController : ControllerBase
             return Ok();
 
         var statusCode = ErrorHttpMapper.GetStatusCode(result.Error!);
-        return StatusCode(statusCode, result.Error?.Message);
-
+        return StatusCode(statusCode, new { message = result.Error?.Message });
     }
 
     [HttpDelete("{id}")]
@@ -67,6 +66,6 @@ public class BranchController : ControllerBase
             return NoContent();
 
         var statusCode = ErrorHttpMapper.GetStatusCode(result.Error!);
-        return StatusCode(statusCode, result.Error?.Message);
+        return StatusCode(statusCode, new { message = result.Error?.Message });
     }
 }

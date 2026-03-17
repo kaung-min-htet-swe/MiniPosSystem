@@ -7,10 +7,17 @@ namespace MiniPos.Backend.Features.Users;
 public interface IUserService
 {
     Task<Result<PagedResult<UserListResponseDto>>> GetList(UserListRequestDto request);
-    Task<Result<UserGetByIdResponseDto>> GetById(Guid id);
+    Task<Result<UserGetByIdResponseDto>> GetById(UserGetByIdRequestDto request);
     Task<Result> Create(UserCreateRequestDto request);
     Task<Result> Update(Guid id, UserUpdateRequestDto request);
     Task<Result> Delete(Guid id);
+}
+
+public enum UserRole
+{
+    Admin,
+    Merchant,
+    Cashier
 }
 
 public class UserService : IUserService
@@ -54,24 +61,17 @@ public class UserService : IUserService
         }
     }
 
-    public async Task<Result<UserGetByIdResponseDto>> GetById(Guid id)
+    public async Task<Result<UserGetByIdResponseDto>> GetById(UserGetByIdRequestDto request)
     {
         const string errCode = "User.GetById";
         try
         {
-            var user = await _db.Users.FirstOrDefaultAsync(user => user.Id == id);
-            if (user == null)
-                return Result<UserGetByIdResponseDto>.Failure(new NotFoundError(errCode, "User does not exist"));
-
-            var userDto = new UserGetByIdResponseDto
+            return request.Role switch
             {
-                Id = user.Id,
-                Email = user.Email,
-                Role = user.Role,
-                UserName = user.Username
+                nameof(UserRole.Merchant) => await GetMerchantById(request.Id),
+                nameof(UserRole.Cashier) => await GetCashierById(request.Id),
+                _ => Result<UserGetByIdResponseDto>.Failure(new BadRequestError(errCode, "Invalid user role specified"))
             };
-
-            return Result<UserGetByIdResponseDto>.Success(userDto);
         }
         catch (Exception e)
         {
@@ -88,56 +88,12 @@ public class UserService : IUserService
             if (isExist)
                 return Result.Failure(new ConflictError(errCode, "User already exist"));
 
-            var passwordHash = request.Password;
-            var user = new User
+            return request.Role switch
             {
-                Email = request.Email,
-                Role = request.Role,
-                Username = request.UserName,
-                PasswordHash = passwordHash
+                nameof(UserRole.Merchant) => await CreateMerchant(request),
+                nameof(UserRole.Cashier) => await CreateCashier(request),
+                _ => Result.Failure(new BadRequestError(errCode, "Invalid user role specified"))
             };
-
-            switch (request.Role)
-            {
-                case "Merchant" when request.Merchant == null:
-                    return Result.Failure(new BadRequestError(errCode,
-                        "Merchant details are required for Merchant role"));
-                case "Merchant":
-                {
-                    var merchantDto = request.Merchant;
-                    var merchant = new Merchant
-                    {
-                        Name = merchantDto.Name,
-                        ContactEmail = merchantDto.ContactEmail,
-                        IsActive = true
-                    };
-                    await _db.Merchants.AddAsync(merchant);
-                    if (await _db.SaveChangesAsync() == 0)
-                        return Result.Failure(new InternalError(errCode, "Failed to create merchant for user"));
-
-                    user.MerchantId = merchant.Id;
-                    break;
-                }
-
-                case "Cashier" when request.MerchantId == null:
-                    return Result.Failure(new BadRequestError(errCode, "MerchantId is required for Cashier role"));
-                case "Cashier":
-                {
-                    var merchantId = Guid.Parse(request.MerchantId);
-                    var merchantExists = await _db.Merchants.AnyAsync(m => m.Id == merchantId);
-                    if (!merchantExists)
-                        return Result.Failure(new NotFoundError(errCode, "Merchant does not exist"));
-
-                    user.MerchantId = merchantId;
-                    break;
-                }
-            }
-
-            await _db.Users.AddAsync(user);
-            var result = await _db.SaveChangesAsync();
-            return result > 0
-                ? Result.Success()
-                : Result.Failure(new InternalError("User.Create", "Failed to create user"));
         }
         catch (Exception e)
         {
@@ -189,6 +145,130 @@ public class UserService : IUserService
             return Result.Failure(new InternalError(errCode, e.Message));
         }
     }
+
+    private async Task<Result> CreateMerchant(UserCreateRequestDto request)
+    {
+        const string errCode = "User.CreateMerchant";
+        if (request.ProcessedById is null)
+            return Result.Failure(new NotFoundError(errCode, "Processer is required to create a new merchant"));
+
+        var adminId = Guid.Parse(request.ProcessedById);
+        var isAdminExist = await _db.Users.AnyAsync(u => u.Id == adminId && u.Role == nameof(UserRole.Admin));
+        if (!isAdminExist)
+            return Result.Failure(new NotFoundError("User.Create", "Admin does not exist"));
+
+        var merchantDto = request.Merchant;
+        if (merchantDto == null)
+            return Result.Failure(new BadRequestError("User.Create",
+                "Merchant details are required for Merchant role"));
+
+        var merchant = new Merchant
+        {
+            Name = merchantDto.Name,
+            ContactEmail = merchantDto.ContactEmail,
+            IsActive = true
+        };
+        await _db.Merchants.AddAsync(merchant);
+        if (await _db.SaveChangesAsync() == 0)
+            return Result.Failure(new InternalError(errCode, "Failed to create merchant for user"));
+
+        var passwordHash = request.Password;
+        var user = new User
+        {
+            Email = request.Email,
+            Role = nameof(UserRole.Merchant),
+            Username = request.UserName,
+            PasswordHash = passwordHash,
+            MerchantId = merchant.Id
+        };
+        await _db.Users.AddAsync(user);
+        var result = await _db.SaveChangesAsync();
+        return result > 0
+            ? Result.Success()
+            : Result.Failure(new InternalError("User.Create", "Failed to create user"));
+    }
+
+    private async Task<Result> CreateCashier(UserCreateRequestDto request)
+    {
+        const string errCode = "User.CreateCashier";
+        if (request.BranchId is null || request.ProcessedById is null)
+            return Result.Failure(new BadRequestError(errCode,
+                "Processor and Branch is required to create a new cashier."));
+
+        var branchId = Guid.Parse(request.BranchId);
+        var isBranchExist = await _db.Branches.AnyAsync(b => b.Id == branchId);
+        if (!isBranchExist) return Result.Failure(new NotFoundError(errCode, "Branch does not exist"));
+
+        var merchantAdminId = Guid.Parse(request.ProcessedById);
+        var isAdminExist = await _db.Users.AnyAsync(u => u.BranchId == branchId && u.Role == nameof(UserRole.Merchant));
+        if (!isAdminExist)
+            return Result.Failure(new NotFoundError(errCode, "Merchant admin does not exist with this branch"));
+        
+        var passwordHash = request.Password;
+        var user = new User
+        {
+            Email = request.Email,
+            Role = nameof(UserRole.Cashier),
+            Username = request.UserName,
+            PasswordHash = passwordHash,
+            BranchId = branchId
+        };
+        await _db.Users.AddAsync(user);
+        var result = await _db.SaveChangesAsync();
+        return result > 0
+            ? Result.Success()
+            : Result.Failure(new InternalError(errCode, "Failed to create cashier"));
+    }
+
+    private async Task<Result<UserGetByIdResponseDto>> GetMerchantById(Guid id)
+    {
+        var merchantAdmin = await _db.Users
+            .Include(user => user.Merchant)
+            .Select(u => new UserGetByIdResponseDto
+            {
+                Id = u.Id,
+                Email = u.Email,
+                Role = u.Role,
+                UserName = u.Username,
+                Merchant = new MerchantDto
+                {
+                    Id = u.Merchant.Id,
+                    Name = u.Merchant.Name,
+                    ContactEmail = u.Merchant.ContactEmail
+                }
+            })
+            .FirstOrDefaultAsync(u => u.Id == id && u.Role == nameof(UserRole.Merchant));
+        if (merchantAdmin is null)
+            return Result<UserGetByIdResponseDto>.Failure(new NotFoundError("User.GetMerchantById",
+                "Merchant admin does not exist"));
+
+        return Result<UserGetByIdResponseDto>.Success(merchantAdmin);
+    }
+
+    private async Task<Result<UserGetByIdResponseDto>> GetCashierById(Guid id)
+    {
+        var cashier = await _db.Users
+            .Include(user => user.Branch)
+            .Select(u => new UserGetByIdResponseDto
+            {
+                Id = u.Id,
+                Email = u.Email,
+                Role = u.Role,
+                UserName = u.Username,
+                Branch = new BranchDto
+                {
+                    Id = u.Branch.Id,
+                    Name = u.Branch.Name,
+                    Address = u.Branch.Address,
+                }
+            })
+            .FirstOrDefaultAsync(u => u.Id == id && u.Role == nameof(UserRole.Cashier));
+        if (cashier is null)
+            return Result<UserGetByIdResponseDto>.Failure(new NotFoundError("User.GetCashierById",
+                "Cashier does not exist"));
+
+        return Result<UserGetByIdResponseDto>.Success(cashier);
+    }
 }
 
 public class UserListRequestDto : PaginationFilter
@@ -203,12 +283,35 @@ public class UserListResponseDto
     public string Role { get; set; }
 }
 
+public class MerchantDto
+{
+    public Guid Id { get; set; }
+    public string Name { get; set; }
+    public string? ContactEmail { get; set; }
+}
+
+public class UserGetByIdRequestDto
+{
+    public Guid Id { get; set; }
+    public string Role { get; set; }
+}
+
+public class BranchDto
+{
+    public Guid Id { get; set; }
+    public string Name { get; set; }
+    public string Address { get; set; }
+}
+
 public class UserGetByIdResponseDto
 {
     public Guid Id { get; set; }
     public string UserName { get; set; }
     public string Email { get; set; }
     public string Role { get; set; }
+
+    public MerchantDto? Merchant { get; set; }
+    public BranchDto? Branch { get; set; }
 }
 
 public class MerchantCreateDto
@@ -227,6 +330,8 @@ public class UserCreateRequestDto
     public MerchantCreateDto? Merchant { get; set; }
 
     public string? MerchantId { get; set; }
+    public string? ProcessedById { get; set; }
+    public string? BranchId { get; set; }
 }
 
 public class UserUpdateRequestDto

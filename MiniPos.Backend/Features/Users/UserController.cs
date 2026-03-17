@@ -34,12 +34,12 @@ public class UserController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    public async Task<IActionResult> GetById(Guid id)
+    public async Task<IActionResult> GetById(Guid id, [FromQuery] string role)
     {
-        var result = await _userService.GetById(id);
+        var result = await _userService.GetById(new UserGetByIdRequestDto{Id = id, Role = role});
         if (result.IsSuccess)
             return Ok(result.Data);
-
+        
         var statusCode = ErrorHttpMapper.GetStatusCode(result.Error!);
         return StatusCode(statusCode, new { message = result.Error!.Message });
     }

@@ -119,11 +119,17 @@ public class ProductService : IProductService
             if (!categoryExists)
                 return Result.Failure(new NotFoundError(errCode, "Category does not exist for this merchant"));
 
-            var isExist = await _db.Products.AnyAsync(p => p.Sku == request.Sku && p.MerchantId == request.MerchantId);
-            if (isExist)
+            var productExist = await _db.Products.AnyAsync(p => p.Sku == request.Sku && p.MerchantId == request.MerchantId);
+            if (productExist)
                 return Result.Failure(new ConflictError(errCode,
                     "Product with the same SKU already exists for this merchant"));
 
+            var branch = await _db
+                .Branches
+                .FirstOrDefaultAsync(b => b.Id == request.BranchId && b.MerchantId == request.MerchantId);
+            if (branch == null)
+                return Result.Failure(new NotFoundError(errCode, "Branch does not exist for this merchant"));
+            
             var product = new Product
             {
                 MerchantId = request.MerchantId,
