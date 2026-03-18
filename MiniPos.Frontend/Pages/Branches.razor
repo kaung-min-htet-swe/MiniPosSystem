@@ -1,0 +1,124 @@
+@page "/branches"
+@using MiniPos.Frontend.Models
+@inject HttpClient Http
+
+<PageTitle>MiniPOS:Branches</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-6">
+    <MudTable ServerData="@ServerReload"
+              Dense="true"
+              Hover="true"
+              Elevation="3"
+              @ref="_table">
+
+        <ToolBarContent>
+            <MudText Typo="Typo.h5" Color="Color.Primary">Branches</MudText>
+            <MudSpacer/>
+            <MudTextField T="string"
+                          ValueChanged="@(s => OnSearch(s))"
+                          Placeholder="Search branches..."
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Search"
+                          IconSize="Size.Medium"
+                          Class="mt-0"
+                          Clearable="true"/>
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.Add"
+                       Class="ml-4">
+                Add Branch
+            </MudButton>
+        </ToolBarContent>
+
+        <HeaderContent>
+            <MudTh>
+                <MudTableSortLabel SortLabel="Name" T="BranchResponseDto">Branch Name</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortLabel="Merchant" T="BranchResponseDto">Merchant</MudTableSortLabel>
+            </MudTh>
+            <MudTh>Address</MudTh>
+            <MudTh Style="text-align:right">Actions</MudTh>
+        </HeaderContent>
+
+        <RowTemplate>
+            <MudTd DataLabel="Branch Name">
+                <MudText Typo="Typo.subtitle2">@context.Name</MudText>
+            </MudTd>
+            <MudTd DataLabel="Merchant">
+                <MudChip T="string" Size="Size.Small" Color="Color.Secondary">@context.MerchantName</MudChip>
+            </MudTd>
+            <MudTd DataLabel="Address">@context.Address</MudTd>
+            <MudTd DataLabel="Actions" Style="text-align:right">
+                <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Info" Size="Size.Small"/>
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small"/>
+            </MudTd>
+        </RowTemplate>
+
+        <NoRecordsContent>
+            <MudText>No branches found.</MudText>
+        </NoRecordsContent>
+
+        <LoadingContent>
+            <MudText>Loading data...</MudText>
+        </LoadingContent>
+
+        <PagerContent>
+            <MudTablePager PageSizeOptions="new[] { 10, 25, 50, 100 }"/>
+        </PagerContent>
+    </MudTable>
+</MudContainer>
+
+@code {
+    private MudTable<BranchResponseDto> _table = null!;
+    private string _searchString = string.Empty;
+
+    private async Task<TableData<BranchResponseDto>> ServerReload(TableState state, CancellationToken token)
+    {
+        var pageNumber = state.Page + 1;
+        var pageSize = state.PageSize;
+        var url = $"api/branches?pageNumber={pageNumber}&pageSize={pageSize}";
+
+        if (!string.IsNullOrWhiteSpace(_searchString))
+        {
+            url += $"&searchTerm={Uri.EscapeDataString(_searchString)}";
+        }
+
+        if (!string.IsNullOrEmpty(state.SortLabel))
+        {
+            url += $"&sortBy={state.SortLabel}&isDescending={state.SortDirection == SortDirection.Descending}";
+        }
+
+        // var response = await Http.GetFromJsonAsync<PagedResult<BranchResponseDto>>(url, token);
+        var response = await MockData();
+        if (response != null)
+        {
+            return new TableData<BranchResponseDto>
+            {
+                TotalItems = response.TotalCount,
+                Items = response.Data
+            };
+        }
+
+        return new TableData<BranchResponseDto> { TotalItems = 0, Items = new List<BranchResponseDto>() };
+    }
+
+    private void OnSearch(string text)
+    {
+        _searchString = text;
+        _table.ReloadServerData();
+    }
+
+    private async Task<PagedResult<BranchResponseDto>?> MockData()
+    {
+        await Task.Delay(500);
+        var data = new List<BranchResponseDto>
+        {
+            new() { Id = Guid.NewGuid(), Name = "Main Branch", MerchantName = "Merchant A", Address = "123 Main St" },
+            new() { Id = Guid.NewGuid(), Name = "Secondary Branch", MerchantName = "Merchant B", Address = "456 Secondary St" },
+            new() { Id = Guid.NewGuid(), Name = "Tertiary Branch", MerchantName = "Merchant C", Address = "789 Tertiary St" }
+        };
+        return new PagedResult<BranchResponseDto>(data, data.Count, 1, 10);
+    }
+
+}
