@@ -1,6 +1,9 @@
 @page "/branches"
+@using MiniPos.Frontend.Mocks
 @using MiniPos.Frontend.Models
 @inject HttpClient Http
+@inject IMockBranch MockBranch
+@inject IMockMerchant MockMerchant
 
 <PageTitle>MiniPOS:Branches</PageTitle>
 
@@ -25,6 +28,7 @@
             <MudButton Variant="Variant.Filled"
                        Color="Color.Primary"
                        StartIcon="@Icons.Material.Filled.Add"
+                       Href="/branches/create"
                        Class="ml-4">
                 Add Branch
             </MudButton>
@@ -50,7 +54,6 @@
             </MudTd>
             <MudTd DataLabel="Address">@context.Address</MudTd>
             <MudTd DataLabel="Actions" Style="text-align:right">
-                <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Info" Size="Size.Small"/>
                 <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small"/>
             </MudTd>
         </RowTemplate>
@@ -90,13 +93,14 @@
         }
 
         // var response = await Http.GetFromJsonAsync<PagedResult<BranchResponseDto>>(url, token);
-        var response = await MockData();
+        var merchant = MockMerchant.GetList().Data.FirstOrDefault()?.Id;
+        var response = MockBranch.GetList(merchant!);
         if (response != null)
         {
             return new TableData<BranchResponseDto>
             {
-                TotalItems = response.TotalCount,
-                Items = response.Data
+                TotalItems = response.Data.Count,
+                Items = response.Data,
             };
         }
 
@@ -107,18 +111,6 @@
     {
         _searchString = text;
         _table.ReloadServerData();
-    }
-
-    private async Task<PagedResult<BranchResponseDto>?> MockData()
-    {
-        await Task.Delay(500);
-        var data = new List<BranchResponseDto>
-        {
-            new() { Id = Guid.NewGuid(), Name = "Main Branch", MerchantName = "Merchant A", Address = "123 Main St" },
-            new() { Id = Guid.NewGuid(), Name = "Secondary Branch", MerchantName = "Merchant B", Address = "456 Secondary St" },
-            new() { Id = Guid.NewGuid(), Name = "Tertiary Branch", MerchantName = "Merchant C", Address = "789 Tertiary St" }
-        };
-        return new PagedResult<BranchResponseDto>(data, data.Count, 1, 10);
     }
 
 }
