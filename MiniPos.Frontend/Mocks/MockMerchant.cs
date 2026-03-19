@@ -8,7 +8,7 @@ public interface IMockMerchant
     MerchantResponseDto? GetById(string id);
 }
 
-public class MockMerchant:IMockMerchant
+public class MockMerchant : IMockMerchant
 {
     private readonly List<Merchant> _merchants = new();
 
@@ -19,10 +19,11 @@ public class MockMerchant:IMockMerchant
         _merchants.Add(new Merchant { Id = Guid.NewGuid(), Name = "Merchant 3", ContactEmail = "merchant3@gmail.com" });
         _merchants.Add(new Merchant { Id = Guid.NewGuid(), Name = "Merchant 4", ContactEmail = "merchant4@gmail.com" });
     }
-    
+
     public PagedResult<MerchantResponseDto> GetList()
     {
-        var merchants = _merchants.Select(m => new MerchantResponseDto { Id = m.Id.ToString(), Name = m.Name }).ToList();
+        var merchants = _merchants.Select(m => new MerchantResponseDto { Id = m.Id.ToString(), Name = m.Name })
+            .ToList();
         return new PagedResult<MerchantResponseDto>(merchants, merchants.Count, 1, 10);
     }
 

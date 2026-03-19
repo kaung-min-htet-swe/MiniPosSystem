@@ -16,4 +16,10 @@
         <Folder Include="Components\"/>
     </ItemGroup>
 
+    <ItemGroup>
+        <Compile Update="Pages\CategoryMock.razor.cs">
+            <DependentUpon>Category.razor</DependentUpon>
+        </Compile>
+    </ItemGroup>
+
 </Project>

@@ -1,6 +1,3 @@
-using System.Net;
-using System.Net.Http.Json;
-using System.Runtime.InteropServices.Marshalling;
 using MiniPos.Frontend.Models;
 
 namespace MiniPos.Frontend.Mocks;
@@ -18,23 +15,20 @@ public class MockBranch : IMockBranch
 
     public MockBranch(IMockMerchant merchant)
     {
-        _merchant= merchant;
+        _merchant = merchant;
         var merchants = _merchant.GetList().Data;
         foreach (var m in merchants)
         {
-        _branches.Add(new Branch { Id = Guid.NewGuid(), Name = "Branch 1", Address = "Address 1", Merchant = m });
-        _branches.Add(new Branch { Id = Guid.NewGuid(), Name = "Branch 2", Address = "Address 2", Merchant = m });
-        _branches.Add(new Branch { Id = Guid.NewGuid(), Name = "Branch 3", Address = "Address 3", Merchant = m });
+            _branches.Add(new Branch { Id = Guid.NewGuid(), Name = "Branch 1", Address = "Address 1", Merchant = m });
+            _branches.Add(new Branch { Id = Guid.NewGuid(), Name = "Branch 2", Address = "Address 2", Merchant = m });
+            _branches.Add(new Branch { Id = Guid.NewGuid(), Name = "Branch 3", Address = "Address 3", Merchant = m });
         }
     }
 
     public PagedResult<BranchResponseDto> GetList(string merchantId)
     {
         var m = _merchant.GetById(merchantId);
-        if (m is null)
-        {
-            return new PagedResult<BranchResponseDto>([], 0, 1, 10);
-        }
+        if (m is null) return new PagedResult<BranchResponseDto>([], 0, 1, 10);
 
         var branches = _branches
             .Select(b =>
@@ -51,7 +45,8 @@ public class MockBranch : IMockBranch
 
     public bool Create(BranchCreateRequestDto model)
     {
-        Console.WriteLine($"Creating branch for merchant {model.MerchantId} with name {model.Name} and address {model.Address}");
+        Console.WriteLine(
+            $"Creating branch for merchant {model.MerchantId} with name {model.Name} and address {model.Address}");
         return true;
     }
 }
