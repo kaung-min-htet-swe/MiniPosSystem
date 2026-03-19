@@ -13,12 +13,14 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Folder Include="Components\"/>
-    </ItemGroup>
-
-    <ItemGroup>
         <Compile Update="Pages\CategoryMock.razor.cs">
             <DependentUpon>Category.razor</DependentUpon>
+        </Compile>
+        <Compile Update="Pages\CashierMock.razor.cs">
+            <DependentUpon>Cashier.razor</DependentUpon>
+        </Compile>
+        <Compile Update="Pages\CashierViewMock.razor.cs">
+            <DependentUpon>CashierView.razor</DependentUpon>
         </Compile>
     </ItemGroup>
 

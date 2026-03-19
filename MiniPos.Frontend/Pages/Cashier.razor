@@ -1,15 +1,13 @@
 @page "/cashiers"
-@using MiniPos.Frontend.Mocks
 @using MiniPos.Frontend.Models
 @inject HttpClient Http
-@inject NavigationManager Navigation
-@inject IMockCashier MockCashier
-@inject IMockMerchant MockMerchant
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
 
 <PageTitle>MiniPos:Cashiers</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-6">
-    <MudTable ServerData="@ServerReload"
+    <MudTable ServerData="@MockCashierReload"
               Dense="true"
               Hover="true"
               Elevation="3"
@@ -37,7 +35,7 @@
 
         <HeaderContent>
             <MudTh>
-                <MudTableSortLabel SortLabel="Username" T="CashierResponseDto">Username</MudTableSortLabel>
+                <MudTableSortLabel SortLabel="Username" T="CashierResponseDto">Name</MudTableSortLabel>
             </MudTh>
             <MudTh>
                 <MudTableSortLabel SortLabel="Email" T="CashierResponseDto">Email</MudTableSortLabel>
@@ -61,14 +59,20 @@
                 }
                 else
                 {
-                    <MudChip T="string" Size="Size.Small" Color="Color.Info" Variant="Variant.Text">@context.Branch.Name</MudChip>
+                    <MudChip T="string" Size="Size.Small" Color="Color.Info"
+                             Variant="Variant.Text">@context.Branch.Name</MudChip>
                 }
             </MudTd>
             <MudTd DataLabel="Joined Date">@context.CreatedAt.ToString("MMM dd, yyyy")</MudTd>
             <MudTd DataLabel="Actions" Style="text-align:right">
+                <MudIconButton Icon="@Icons.Material.Filled.RemoveRedEye" Color="Color.Warning" Size="Size.Small"
+                               Href="@($"/cashiers/{context.Id}")"/>
                 <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Warning" Size="Size.Small"
                                Href="@($"/cashiers/edit/{context.Id}")"/>
-                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small"/>
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" 
+                               Color="Color.Error" 
+                               Size="Size.Small" 
+                               OnClick="@(() => PromptDeleteCashier(context.Id, context.Username))" />
             </MudTd>
         </RowTemplate>
 
@@ -85,53 +89,3 @@
         </PagerContent>
     </MudTable>
 </MudContainer>
-
-@code {
-    private MudTable<CashierResponseDto> _table = null!;
-    private string _searchString = string.Empty;
-
-    private async Task<TableData<CashierResponseDto>> ServerReload(TableState state, CancellationToken token)
-    {
-        var pageNumber = state.Page + 1;
-        var pageSize = state.PageSize;
-
-        var url = $"api/users/cashiers?pageNumber={pageNumber}&pageSize={pageSize}";
-
-        if (!string.IsNullOrWhiteSpace(_searchString))
-        {
-            url += $"&searchTerm={Uri.EscapeDataString(_searchString)}";
-        }
-
-        if (!string.IsNullOrEmpty(state.SortLabel))
-        {
-            url += $"&sortBy={state.SortLabel}&isDescending={state.SortDirection == SortDirection.Descending}";
-        }
-
-        try
-        {
-            // var response = await Http.GetFromJsonAsync<PagedResult<CashierResponseDto>>(url);
-            var response = MockCashier.GetList(null);
-
-            if (response != null)
-            {
-                return new TableData<CashierResponseDto>
-                {
-                    TotalItems = response.TotalCount,
-                    Items = response.Data
-                };
-            }
-        }
-        catch (Exception)
-        {
-        }
-
-        return new TableData<CashierResponseDto> { TotalItems = 0, Items = new List<CashierResponseDto>() };
-    }
-
-    private void OnSearch(string text)
-    {
-        _searchString = text;
-        _table.ReloadServerData();
-    }
-
-}
