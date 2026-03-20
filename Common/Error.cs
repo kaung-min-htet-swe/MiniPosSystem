@@ -46,3 +46,10 @@ public class BadRequestError : Error
     {
     }
 }
+
+public class UnAuthorized: Error
+{
+    public UnAuthorized(string code, string message) : base(code, message)
+    {
+    }
+}

@@ -1,5 +1,6 @@
 using Common;
 using Database.EfAppDbContextModels;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace MiniPos.Backend.Features.Users;
@@ -8,7 +9,7 @@ public interface IUserService
 {
     Task<Result<PagedResult<UserListResponseDto>>> GetList(UserListRequestDto request);
     Task<Result<UserGetByIdResponseDto>> GetById(UserGetByIdRequestDto request);
-    Task<Result> Create(UserCreateRequestDto request);
+    Task<Result<UserCreateResponseDto>> Create(UserCreateRequestDto request);
     Task<Result> Update(Guid id, UserUpdateRequestDto request);
     Task<Result> Delete(Guid id);
 }
@@ -23,10 +24,12 @@ public enum UserRole
 public class UserService : IUserService
 {
     private readonly AppDbContext _db;
+    private readonly IPasswordHasher<User> _passwordHasher;
 
-    public UserService(AppDbContext db)
+    public UserService(AppDbContext db, IPasswordHasher<User> passwordHasher)
     {
         _db = db;
+        _passwordHasher = passwordHasher;
     }
 
     public async Task<Result<PagedResult<UserListResponseDto>>> GetList(UserListRequestDto request)
@@ -79,25 +82,25 @@ public class UserService : IUserService
         }
     }
 
-    public async Task<Result> Create(UserCreateRequestDto request)
+    public async Task<Result<UserCreateResponseDto>> Create(UserCreateRequestDto request)
     {
         const string errCode = "User.Create";
         try
         {
             var isExist = await _db.Users.AnyAsync(user => user.Email == request.Email);
             if (isExist)
-                return Result.Failure(new ConflictError(errCode, "User already exist"));
+                return Result<UserCreateResponseDto>.Failure(new ConflictError(errCode, "User already exist"));
 
             return request.Role switch
             {
                 nameof(UserRole.Merchant) => await CreateMerchant(request),
                 nameof(UserRole.Cashier) => await CreateCashier(request),
-                _ => Result.Failure(new BadRequestError(errCode, "Invalid user role specified"))
+                _ => Result<UserCreateResponseDto>.Failure(new BadRequestError(errCode, "Invalid user role specified"))
             };
         }
         catch (Exception e)
         {
-            return Result.Failure(new InternalError(errCode, e.Message));
+            return Result<UserCreateResponseDto>.Failure(new InternalError(errCode, e.Message));
         }
     }
 
@@ -146,20 +149,21 @@ public class UserService : IUserService
         }
     }
 
-    private async Task<Result> CreateMerchant(UserCreateRequestDto request)
+    private async Task<Result<UserCreateResponseDto>> CreateMerchant(UserCreateRequestDto request)
     {
         const string errCode = "User.CreateMerchant";
         if (request.ProcessedById is null)
-            return Result.Failure(new NotFoundError(errCode, "Processer is required to create a new merchant"));
+            return Result<UserCreateResponseDto>.Failure(new NotFoundError(errCode,
+                "Processer is required to create a new merchant"));
 
         var adminId = Guid.Parse(request.ProcessedById);
         var isAdminExist = await _db.Users.AnyAsync(u => u.Id == adminId && u.Role == nameof(UserRole.Admin));
         if (!isAdminExist)
-            return Result.Failure(new NotFoundError("User.Create", "Admin does not exist"));
+            return Result<UserCreateResponseDto>.Failure(new NotFoundError("User.Create", "Admin does not exist"));
 
         var merchantDto = request.Merchant;
         if (merchantDto == null)
-            return Result.Failure(new BadRequestError("User.Create",
+            return Result<UserCreateResponseDto>.Failure(new BadRequestError("User.Create",
                 "Merchant details are required for Merchant role"));
 
         var merchant = new Merchant
@@ -170,54 +174,59 @@ public class UserService : IUserService
         };
         await _db.Merchants.AddAsync(merchant);
         if (await _db.SaveChangesAsync() == 0)
-            return Result.Failure(new InternalError(errCode, "Failed to create merchant for user"));
+            return Result<UserCreateResponseDto>.Failure(new InternalError(errCode,
+                "Failed to create merchant for user"));
 
-        var passwordHash = request.Password;
         var user = new User
         {
             Email = request.Email,
             Role = nameof(UserRole.Merchant),
             Username = request.UserName,
-            PasswordHash = passwordHash,
             MerchantId = merchant.Id
         };
+        var passwordHash = _passwordHasher.HashPassword(user, request.Password);
+        user.PasswordHash = passwordHash;
+
         await _db.Users.AddAsync(user);
         var result = await _db.SaveChangesAsync();
         return result > 0
-            ? Result.Success()
-            : Result.Failure(new InternalError("User.Create", "Failed to create user"));
+            ? Result<UserCreateResponseDto>.Success(new UserCreateResponseDto { Id = user.Id })
+            : Result<UserCreateResponseDto>.Failure(new InternalError("User.Create", "Failed to create user"));
     }
 
-    private async Task<Result> CreateCashier(UserCreateRequestDto request)
+    private async Task<Result<UserCreateResponseDto>> CreateCashier(UserCreateRequestDto request)
     {
         const string errCode = "User.CreateCashier";
         if (request.BranchId is null || request.ProcessedById is null)
-            return Result.Failure(new BadRequestError(errCode,
+            return Result<UserCreateResponseDto>.Failure(new BadRequestError(errCode,
                 "Processor and Branch is required to create a new cashier."));
 
         var branchId = Guid.Parse(request.BranchId);
         var isBranchExist = await _db.Branches.AnyAsync(b => b.Id == branchId);
-        if (!isBranchExist) return Result.Failure(new NotFoundError(errCode, "Branch does not exist"));
+        if (!isBranchExist)
+            return Result<UserCreateResponseDto>.Failure(new NotFoundError(errCode, "Branch does not exist"));
 
         var merchantAdminId = Guid.Parse(request.ProcessedById);
         var isAdminExist = await _db.Users.AnyAsync(u => u.BranchId == branchId && u.Role == nameof(UserRole.Merchant));
         if (!isAdminExist)
-            return Result.Failure(new NotFoundError(errCode, "Merchant admin does not exist with this branch"));
-        
-        var passwordHash = request.Password;
+            return Result<UserCreateResponseDto>.Failure(new NotFoundError(errCode,
+                "Merchant admin does not exist with this branch"));
+
         var user = new User
         {
             Email = request.Email,
             Role = nameof(UserRole.Cashier),
             Username = request.UserName,
-            PasswordHash = passwordHash,
             BranchId = branchId
         };
+        var passwordHash = _passwordHasher.HashPassword(user, request.Password);
+        user.PasswordHash = passwordHash;
+
         await _db.Users.AddAsync(user);
         var result = await _db.SaveChangesAsync();
         return result > 0
-            ? Result.Success()
-            : Result.Failure(new InternalError(errCode, "Failed to create cashier"));
+            ? Result<UserCreateResponseDto>.Success(new UserCreateResponseDto { Id = user.Id })
+            : Result<UserCreateResponseDto>.Failure(new InternalError(errCode, "Failed to create cashier"));
     }
 
     private async Task<Result<UserGetByIdResponseDto>> GetMerchantById(Guid id)
@@ -259,7 +268,7 @@ public class UserService : IUserService
                 {
                     Id = u.Branch.Id,
                     Name = u.Branch.Name,
-                    Address = u.Branch.Address,
+                    Address = u.Branch.Address
                 }
             })
             .FirstOrDefaultAsync(u => u.Id == id && u.Role == nameof(UserRole.Cashier));
@@ -332,6 +341,11 @@ public class UserCreateRequestDto
     public string? MerchantId { get; set; }
     public string? ProcessedById { get; set; }
     public string? BranchId { get; set; }
+}
+
+public class UserCreateResponseDto
+{
+    public Guid Id { get; set; }
 }
 
 public class UserUpdateRequestDto

@@ -50,7 +50,6 @@ public class UserController : ControllerBase
         var result = await _userService.Create(request);
         if (result.IsSuccess)
         {
-            Console.WriteLine("User created successfully.");
             return Created();
         }
 

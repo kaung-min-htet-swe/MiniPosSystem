@@ -28,10 +28,7 @@ public class BranchService : IBranchService
         {
             var query = _db.Branches.AsNoTracking().AsQueryable();
 
-            if (request.MerchantId.HasValue)
-            {
-                query = query.Where(b => b.MerchantId == request.MerchantId.Value);
-            }
+            if (request.MerchantId.HasValue) query = query.Where(b => b.MerchantId == request.MerchantId.Value);
 
             var skip = (request.PageNumber - 1) * request.PageSize;
             var take = request.PageSize;
@@ -39,19 +36,19 @@ public class BranchService : IBranchService
             var items = await query
                 .Skip(skip)
                 .Take(take)
-                .Include("Merchant")
+                .Include(b => b.Merchant)
                 .OrderByDescending(branch => branch.CreatedAt)
+                .Select(b => new BranchListResponseDto
+                {
+                    Id = b.Id,
+                    MerchantId = b.MerchantId,
+                    Name = b.Name,
+                    Address = b.Address
+                })
                 .ToListAsync();
-            var dtos = items.Select(branch => new BranchListResponseDto
-            {
-                Id = branch.Id,
-                MerchantId = branch.MerchantId,
-                Name = branch.Name,
-                Address = branch.Address,
-            }).ToList();
 
             var result =
-                new PagedResult<BranchListResponseDto>(dtos, totalCount, request.PageNumber, request.PageSize);
+                new PagedResult<BranchListResponseDto>(items, totalCount, request.PageNumber, request.PageSize);
             return Result<PagedResult<BranchListResponseDto>>.Success(result);
         }
         catch (Exception e)
@@ -67,14 +64,14 @@ public class BranchService : IBranchService
         {
             var branch = await _db.Branches.FirstOrDefaultAsync(b => b.Id == id);
             if (branch == null)
-                return Result<BranchGetByIdResponseDto>.Failure(new NotFoundError(errCode, $"Branch does not exist"));
+                return Result<BranchGetByIdResponseDto>.Failure(new NotFoundError(errCode, "Branch does not exist"));
 
             var dto = new BranchGetByIdResponseDto
             {
                 Id = branch.Id,
                 MerchantId = branch.MerchantId,
                 Name = branch.Name,
-                Address = branch.Address,
+                Address = branch.Address
             };
 
             return Result<BranchGetByIdResponseDto>.Success(dto);
@@ -92,12 +89,12 @@ public class BranchService : IBranchService
         {
             var isMerchantExist = await _db.Merchants.AnyAsync(m => m.Id == request.MerchantId);
             if (!isMerchantExist)
-                return Result.Failure(new NotFoundError(errCode, $"Merchant does not exist"));
+                return Result.Failure(new NotFoundError(errCode, "Merchant does not exist"));
 
             var isExist =
                 await _db.Branches.AnyAsync(b => b.Name == request.Name && b.MerchantId == request.MerchantId);
             if (isExist)
-                return Result.Failure(new ConflictError(errCode, $"Branch already exist for this merchant"));
+                return Result.Failure(new ConflictError(errCode, "Branch already exist for this merchant"));
 
             var branch = new Branch
             {
@@ -133,7 +130,7 @@ public class BranchService : IBranchService
                 var isMerchantExist =
                     await _db.Merchants.AnyAsync(m => m.Id == request.MerchantId && m.DeletedAt == null);
                 if (!isMerchantExist)
-                    return Result.Failure(new NotFoundError(errCode, $"Merchant does not exist"));
+                    return Result.Failure(new NotFoundError(errCode, "Merchant does not exist"));
             }
 
             branch.MerchantId = request.MerchantId;

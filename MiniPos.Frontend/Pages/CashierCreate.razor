@@ -1,5 +1,4 @@
 @page "/cashiers/create"
-@using System.Net.Http.Json
 @inject HttpClient Http
 @inject NavigationManager Navigation
 @inject ISnackbar Snackbar
@@ -9,7 +8,8 @@
         <MudCardHeader>
             <CardHeaderContent>
                 <MudText Typo="Typo.h5" Color="Color.Primary">Register New Cashier</MudText>
-                <MudText Typo="Typo.body2" Color="Color.Secondary">Create a new account and assign them to a branch.</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary">Create a new account and assign them to a branch.
+                </MudText>
             </CardHeaderContent>
         </MudCardHeader>
 
@@ -17,13 +17,13 @@
             @if (_isLoadingMerchants)
             {
                 <div class="d-flex justify-center my-4">
-                    <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+                    <MudProgressCircular Color="Color.Primary" Indeterminate="true"/>
                 </div>
             }
             else
             {
                 <MudForm @ref="_form" Model="@_cashierModel">
-                    
+
                     <MudGrid>
                         <MudItem xs="12">
                             <MudText Typo="Typo.subtitle2" Color="Color.Primary">Account Credentials</MudText>
@@ -31,33 +31,33 @@
                         </MudItem>
 
                         <MudItem xs="12" sm="6">
-                            <MudTextField @bind-Value="_cashierModel.Username" 
-                                          Label="Username" 
-                                          Required="true" 
+                            <MudTextField @bind-Value="_cashierModel.Username"
+                                          Label="Username"
+                                          Required="true"
                                           RequiredError="Username is required."
-                                          Variant="Variant.Outlined" />
+                                          Variant="Variant.Outlined"/>
                         </MudItem>
-                        
+
                         <MudItem xs="12" sm="6">
-                            <MudTextField @bind-Value="_cashierModel.Email" 
-                                          Label="Email Address" 
-                                          Required="true" 
+                            <MudTextField @bind-Value="_cashierModel.Email"
+                                          Label="Email Address"
+                                          Required="true"
                                           RequiredError="Email is required."
                                           InputType="InputType.Email"
-                                          Variant="Variant.Outlined" />
+                                          Variant="Variant.Outlined"/>
                         </MudItem>
 
                         <MudItem xs="12">
-                            <MudTextField @bind-Value="_cashierModel.Password" 
-                                          Label="Temporary Password" 
-                                          Required="true" 
+                            <MudTextField @bind-Value="_cashierModel.Password"
+                                          Label="Temporary Password"
+                                          Required="true"
                                           RequiredError="Password is required."
                                           InputType="@_passwordInput"
                                           Variant="Variant.Outlined"
-                                          Adornment="Adornment.End" 
-                                          AdornmentIcon="@_passwordInputIcon" 
-                                          OnAdornmentClick="TogglePasswordVisibility" 
-                                          AdornmentAriaLabel="Show Password" />
+                                          Adornment="Adornment.End"
+                                          AdornmentIcon="@_passwordInputIcon"
+                                          OnAdornmentClick="TogglePasswordVisibility"
+                                          AdornmentAriaLabel="Show Password"/>
                         </MudItem>
 
                         <MudItem xs="12" Class="mt-4">
@@ -66,13 +66,13 @@
                         </MudItem>
 
                         <MudItem xs="12" sm="6">
-                            <MudSelect T="string" 
-                                       Label="Merchant" 
-                                       Value="_cashierModel.MerchantId" 
+                            <MudSelect T="string"
+                                       Label="Merchant"
+                                       Value="_cashierModel.MerchantId"
                                        ValueChanged="OnMerchantChanged"
                                        Required="true"
                                        RequiredError="Please select a Merchant."
-                                       Variant="Variant.Outlined" 
+                                       Variant="Variant.Outlined"
                                        AnchorOrigin="Origin.BottomCenter"
                                        Clearable="true">
                                 @foreach (var merchant in _availableMerchants)
@@ -83,22 +83,24 @@
                         </MudItem>
 
                         <MudItem xs="12" sm="6">
-                            <MudSelect T="string" 
-                                       Label="Branch" 
-                                       @bind-Value="_cashierModel.BranchId" 
+                            <MudSelect T="string"
+                                       Label="Branch"
+                                       @bind-Value="_cashierModel.BranchId"
                                        Required="true"
                                        RequiredError="Please assign a specific Branch."
-                                       Variant="Variant.Outlined" 
+                                       Variant="Variant.Outlined"
                                        AnchorOrigin="Origin.BottomCenter"
                                        Disabled="@(_cashierModel.MerchantId == null || _isLoadingBranches)"
                                        Clearable="true">
                                 @if (_isLoadingBranches)
                                 {
-                                    <MudSelectItem T="Guid?" Value="null" Disabled="true">Loading branches...</MudSelectItem>
+                                    <MudSelectItem T="Guid?" Value="null" Disabled="true">Loading branches...
+                                    </MudSelectItem>
                                 }
                                 else if (!_availableBranches.Any() && _cashierModel.MerchantId != null)
                                 {
-                                    <MudSelectItem T="Guid?" Value="null" Disabled="true">No branches available.</MudSelectItem>
+                                    <MudSelectItem T="Guid?" Value="null" Disabled="true">No branches available.
+                                    </MudSelectItem>
                                 }
                                 else
                                 {
@@ -116,14 +118,14 @@
 
         <MudCardActions Class="pb-4 pl-4 pr-4 d-flex justify-end">
             <MudButton Variant="Variant.Text" OnClick="Cancel" Class="mr-2">Cancel</MudButton>
-            
-            <MudButton Variant="Variant.Filled" 
-                       Color="Color.Primary" 
-                       OnClick="SubmitForm" 
+
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       OnClick="SubmitForm"
                        Disabled="@(_isLoadingMerchants || _isSaving)">
                 @if (_isSaving)
                 {
-                    <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                    <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
                     <MudText Class="ms-2">Creating...</MudText>
                 }
                 else

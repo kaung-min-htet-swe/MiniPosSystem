@@ -6,28 +6,23 @@ namespace MiniPos.Frontend.Pages;
 
 public partial class CashierCreate
 {
-    private MudForm _form = null!;
-    private CashierCreateRequestDto _cashierModel = new();
-    private List<LookupItemDto> _availableMerchants = new();
     private List<LookupItemDto> _availableBranches = new();
+    private List<LookupItemDto> _availableMerchants = new();
+    private readonly CashierCreateRequestDto _cashierModel = new();
+    private MudForm _form = null!;
+    private bool _isLoadingBranches;
     private bool _isLoadingMerchants = true;
-    private bool _isLoadingBranches = false;
-    private bool _isSaving = false;
-    private bool _showPassword;
+    private bool _isSaving;
     private InputType _passwordInput = InputType.Password;
     private string _passwordInputIcon = Icons.Material.Filled.VisibilityOff;
-
-    public record LookupItemDto(Guid Id, string Name);
+    private bool _showPassword;
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
             var response = await Http.GetFromJsonAsync<List<LookupItemDto>>("api/merchants/lookup");
-            if (response != null)
-            {
-                _availableMerchants = response;
-            }
+            if (response != null) _availableMerchants = response;
         }
         catch (Exception)
         {
@@ -72,10 +67,7 @@ public partial class CashierCreate
         {
             var response =
                 await Http.GetFromJsonAsync<List<LookupItemDto>>($"api/branches/lookup?merchantId={merchantId}");
-            if (response != null)
-            {
-                _availableBranches = response;
-            }
+            if (response != null) _availableBranches = response;
         }
         catch
         {
@@ -124,4 +116,6 @@ public partial class CashierCreate
     {
         Navigation.NavigateTo("/cashiers");
     }
+
+    public record LookupItemDto(Guid Id, string Name);
 }
