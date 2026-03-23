@@ -1,0 +1,196 @@
+@page "/"
+
+<PageTitle>Dashboard - MiniPOS</PageTitle>
+
+<div class="animate-slide-down">
+    <!-- Header Area -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+        <div>
+            <h1 class="text-3xl font-bold tracking-tight text-foreground">Dashboard Overview</h1>
+            <p class="text-muted-foreground mt-1 text-sm">Welcome back, here's what's happening with your store today.</p>
+        </div>
+        <div class="flex items-center gap-3">
+            <button class="btn btn-outline bg-white hover:bg-muted shadow-sm rounded-lg">
+                <i data-lucide="calendar" class="w-4 h-4 mr-2"></i>
+                Today
+                <i data-lucide="chevron-down" class="w-4 h-4 ml-2 text-muted-foreground"></i>
+            </button>
+            <button class="btn btn-primary rounded-lg shadow-primary">
+                <i data-lucide="download" class="w-4 h-4 mr-2"></i>
+                Export Report
+            </button>
+        </div>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <!-- Stat Card 1 -->
+        <div class="pos-card relative overflow-hidden group">
+            <div class="absolute -right-6 -top-6 w-24 h-24 bg-primary/5 rounded-full blur-2xl group-hover:bg-primary/10 transition-colors"></div>
+            <div class="pos-card-header">
+                <h3 class="pos-card-title">Total Revenue</h3>
+                <div class="pos-card-icon bg-primary/10 text-primary">
+                    <i data-lucide="dollar-sign" class="w-5 h-5"></i>
+                </div>
+            </div>
+            <div class="pos-card-value">$24,592.50</div>
+            <div class="pos-card-trend trend-up">
+                <i data-lucide="trending-up" class="w-4 h-4"></i>
+                <span>+14.5% from last month</span>
+            </div>
+        </div>
+
+        <!-- Stat Card 2 -->
+        <div class="pos-card relative overflow-hidden group">
+            <div class="absolute -right-6 -top-6 w-24 h-24 bg-success/5 rounded-full blur-2xl group-hover:bg-success/10 transition-colors"></div>
+            <div class="pos-card-header">
+                <h3 class="pos-card-title">Transactions</h3>
+                <div class="pos-card-icon bg-success bg-opacity-10 text-success">
+                    <i data-lucide="credit-card" class="w-5 h-5"></i>
+                </div>
+            </div>
+            <div class="pos-card-value">+1,249</div>
+            <div class="pos-card-trend trend-up">
+                <i data-lucide="trending-up" class="w-4 h-4"></i>
+                <span>+8.2% from last month</span>
+            </div>
+        </div>
+
+        <!-- Stat Card 3 -->
+        <div class="pos-card relative overflow-hidden group">
+            <div class="absolute -right-6 -top-6 w-24 h-24 bg-warning/5 rounded-full blur-2xl group-hover:bg-warning/10 transition-colors"></div>
+            <div class="pos-card-header">
+                <h3 class="pos-card-title">Active Orders</h3>
+                <div class="pos-card-icon bg-warning bg-opacity-10 text-warning">
+                    <i data-lucide="shopping-bag" class="w-5 h-5"></i>
+                </div>
+            </div>
+            <div class="pos-card-value">42</div>
+            <div class="pos-card-trend text-muted-foreground">
+                <i data-lucide="clock" class="w-4 h-4"></i>
+                <span>Processing in kitchen</span>
+            </div>
+        </div>
+
+        <!-- Stat Card 4 -->
+        <div class="pos-card relative overflow-hidden group">
+            <div class="absolute -right-6 -top-6 w-24 h-24 bg-destructive/5 rounded-full blur-2xl group-hover:bg-destructive/10 transition-colors"></div>
+            <div class="pos-card-header">
+                <h3 class="pos-card-title">Refunds</h3>
+                <div class="pos-card-icon bg-destructive/10 text-destructive">
+                    <i data-lucide="arrow-down-circle" class="w-5 h-5"></i>
+                </div>
+            </div>
+            <div class="pos-card-value">$420.00</div>
+            <div class="pos-card-trend trend-down">
+                <i data-lucide="trending-down" class="w-4 h-4"></i>
+                <span>-2.1% from last month</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Revenue Chart Section -->
+        <div class="pos-card lg:col-span-2 flex flex-col">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h3 class="text-lg font-bold">Revenue Analytics</h3>
+                    <p class="text-sm text-muted-foreground">Sales performance over the last 7 days</p>
+                </div>
+                <button class="btn btn-ghost p-2 rounded-full hidden sm:flex">
+                    <i data-lucide="more-horizontal" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="flex-1 min-h-[300px] w-full relative bg-primary/5 rounded-xl border border-primary/10 overflow-hidden flex items-end">
+                <!-- Artificial SVG Chart representing high-end analytics -->
+                <svg viewBox="0 0 800 300" class="w-full h-full absolute bottom-0 drop-shadow-lg" preserveAspectRatio="none">
+                    <defs>
+                        <linearGradient id="chartGlow" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="hsl(var(--primary))" stop-opacity="0.3" />
+                            <stop offset="100%" stop-color="hsl(var(--primary))" stop-opacity="0.0" />
+                        </linearGradient>
+                    </defs>
+                    <path d="M0,300 L0,200 C100,200 150,150 250,120 C350,90 400,180 500,150 C600,120 700,50 800,20 L800,300 Z" fill="url(#chartGlow)" />
+                    <path d="M0,200 C100,200 150,150 250,120 C350,90 400,180 500,150 C600,120 700,50 800,20" fill="none" stroke="hsl(var(--primary))" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+                    <!-- Data points -->
+                    <circle cx="250" cy="120" r="6" fill="white" stroke="hsl(var(--primary))" stroke-width="3" />
+                    <circle cx="500" cy="150" r="6" fill="white" stroke="hsl(var(--primary))" stroke-width="3" />
+                    <circle cx="800" cy="20" r="6" fill="white" stroke="hsl(var(--primary))" stroke-width="3" />
+                </svg>
+            </div>
+        </div>
+
+        <!-- Recent Orders Section -->
+        <div class="pos-card flex flex-col">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-lg font-bold">Recent Orders</h3>
+                <a href="/orders" class="text-sm text-primary font-medium hover:underline">View All</a>
+            </div>
+            
+            <div class="flex flex-col gap-4">
+                <!-- Order Item -->
+                <div class="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors border border-transparent hover:border-border/50 cursor-pointer">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">JS</div>
+                        <div>
+                            <p class="text-sm font-semibold">John Smith</p>
+                            <p class="text-xs text-muted-foreground">ORD-8923 • 2 mins ago</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-sm font-bold">$124.50</p>
+                        <span class="badge badge-success mt-1">Paid</span>
+                    </div>
+                </div>
+
+                <!-- Order Item -->
+                <div class="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors border border-transparent hover:border-border/50 cursor-pointer">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-accent text-accent-foreground flex items-center justify-center font-bold text-sm">AW</div>
+                        <div>
+                            <p class="text-sm font-semibold">Alice Wong</p>
+                            <p class="text-xs text-muted-foreground">ORD-8922 • 15 mins ago</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-sm font-bold">$42.00</p>
+                        <span class="badge badge-warning mt-1">Pending</span>
+                    </div>
+                </div>
+
+                <!-- Order Item -->
+                <div class="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors border border-transparent hover:border-border/50 cursor-pointer">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-success-bg text-success flex items-center justify-center font-bold text-sm">MR</div>
+                        <div>
+                            <p class="text-sm font-semibold">Mike Ross</p>
+                            <p class="text-xs text-muted-foreground">ORD-8921 • 1 hour ago</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-sm font-bold">$210.75</p>
+                        <span class="badge badge-success mt-1">Paid</span>
+                    </div>
+                </div>
+
+                <!-- Order Item -->
+                <div class="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors border border-transparent hover:border-border/50 cursor-pointer">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-muted text-muted-foreground flex items-center justify-center font-bold text-sm">
+                            <i data-lucide="user" class="w-4 h-4"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm font-semibold">Guest User</p>
+                            <p class="text-xs text-muted-foreground">ORD-8920 • 2 hours ago</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-sm font-bold">$18.99</p>
+                        <span class="badge badge-success mt-1">Paid</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

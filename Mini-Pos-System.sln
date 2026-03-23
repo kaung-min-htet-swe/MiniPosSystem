@@ -10,7 +10,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common", "Common\Common.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mapper", "MiniPos.Shared\Mapper\Mapper.csproj", "{54A91E4E-1E1C-40AE-B63A-DC0C1C0D6121}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MiniPos.Fronted", "MiniPos.Fronted\MiniPos.Fronted.csproj", "{F4048FB9-F8D4-4138-BC95-1A4D79249235}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MiniPos.Frontend", "MiniPos.Frontend\MiniPos.Frontend.csproj", "{F4048FB9-F8D4-4138-BC95-1A4D79249235}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

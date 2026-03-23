@@ -1,0 +1,80 @@
+@inherits LayoutComponentBase
+@inject IJSRuntime JSRuntime
+
+<div class="dashboard-layout animate-fade-in">
+    <!-- Premium Glass Sidebar -->
+    <aside class="dashboard-sidebar shadow-lg">
+        <div class="logo-container">
+            <div class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center mr-3">
+                <i data-lucide="store" class="w-5 h-5 text-primary"></i>
+            </div>
+            <span class="tracking-tight font-bold text-foreground">MiniPOS</span>
+            <span class="text-primary ml-1">.</span>
+        </div>
+
+        <div class="p-4 flex-1 overflow-y-auto">
+            <NavMenu />
+        </div>
+
+        <!-- Premium Footer Profile in Sidebar -->
+        <div class="p-4 border-t border-border/50 bg-white/50 m-4 rounded-xl shadow-sm">
+            <div class="flex items-center gap-3">
+                <div class="avatar shadow-md shrink-0">
+                    <i data-lucide="user" class="w-4 h-4 text-white"></i>
+                </div>
+                <div class="flex-col overflow-hidden">
+                    <span class="text-sm font-semibold truncate block">Metro Branch 1</span>
+                    <span class="text-xs text-muted-foreground truncate block">admin@minipos.app</span>
+                </div>
+            </div>
+            <button class="w-full mt-3 btn btn-outline border-border/50 bg-white hover:bg-destructive hover:text-white hover:border-destructive text-xs justify-between group">
+                Logout
+                <i data-lucide="log-out" class="w-3 h-3 text-muted-foreground group-hover:text-white transition-colors"></i>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <div class="dashboard-main">
+        <!-- Floating App Bar -->
+        <header class="dashboard-header animate-slide-down">
+            <div class="flex items-center gap-4">
+                <button class="btn btn-ghost p-2 sm:hidden rounded-full" aria-label="Toggle Sidebar">
+                    <i data-lucide="menu" class="w-5 h-5"></i>
+                </button>
+                <div class="hidden sm:flex relative">
+                    <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"></i>
+                    <input type="text" placeholder="Search orders, products..." class="pl-9 pr-4 py-2 bg-white/60 backdrop-blur-sm border border-border/60 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 w-64 transition-all hover:bg-white focus:bg-white" />
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <button class="relative btn btn-ghost p-2 rounded-full">
+                    <i data-lucide="bell" class="w-5 h-5"></i>
+                    <span class="absolute top-1 right-1 w-2 h-2 bg-destructive rounded-full border-2 border-white"></span>
+                </button>
+                <button class="btn btn-primary rounded-full px-4 shadow-primary">
+                    <i data-lucide="plus" class="w-4 h-4 mr-1"></i>
+                    New Sale
+                </button>
+            </div>
+        </header>
+
+        <!-- Dynamic Page Content -->
+        <main class="dashboard-content">
+            <div class="max-w-7xl mx-auto">
+                @Body
+            </div>
+        </main>
+    </div>
+</div>
+
+@code {
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JSRuntime.InvokeVoidAsync("initIcons");
+        }
+    }
+}
