@@ -1,0 +1,174 @@
+@page "/products"
+
+<PageTitle>Products & Inventory - MiniPOS</PageTitle>
+
+<div class="animate-slide-down">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-12 gap-4">
+        <div>
+            <h1 class="text-3xl font-bold tracking-tight text-foreground">Product Catalog</h1>
+            <p class="text-muted-foreground mt-1 text-sm">Manage inventory levels, SKUs, and pricing across branches.</p>
+        </div>
+        <div class="flex items-center gap-3">
+            <div class="hidden sm:flex relative mr-2">
+                <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"></i>
+                <input type="text" placeholder="Search by name, SKU..." class="pl-9 pr-4 py-2 bg-white/60 backdrop-blur-sm border border-border/60 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 w-56 transition-all hover:bg-white" />
+            </div>
+            <button class="btn btn-primary rounded-lg shadow-primary">
+                <i data-lucide="package-plus" class="w-4 h-4 mr-2"></i>
+                Add Product
+            </button>
+        </div>
+    </div>
+
+    <!-- Stunning Products Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+
+        <!-- Product 1 -->
+        <div class="pos-card p-0 overflow-hidden group hover:-translate-y-1 transition-transform border-border/40 hover:border-primary/20">
+            <!-- Simulated Image Block using Jaw-Dropping CSS -->
+            <div class="h-48 w-full bg-gradient-to-br from-indigo-500 to-purple-600 relative overflow-hidden flex items-center justify-center">
+                <div class="absolute inset-0 bg-white/10 backdrop-blur-3xl"></div>
+                <!-- Abstract glowing orbs -->
+                <div class="absolute -top-10 -right-10 w-32 h-32 bg-white/20 rounded-full blur-2xl"></div>
+                <div class="absolute -bottom-10 -left-10 w-32 h-32 bg-black/10 rounded-full blur-2xl"></div>
+                
+                <i data-lucide="coffee" class="w-16 h-16 text-white/90 drop-shadow-lg relative z-10 group-hover:scale-110 transition-transform duration-500 delay-75"></i>
+                
+                <span class="absolute top-3 left-3 badge bg-white text-primary text-[10px] font-bold shadow-md rounded-full px-2">Coffee Beans</span>
+            </div>
+            
+            <div class="p-5">
+                <div class="flex justify-between items-start mb-1">
+                    <h3 class="font-bold text-lg text-foreground line-clamp-1">Espresso Dark Roast</h3>
+                </div>
+                <div class="flex items-center gap-2 mb-4">
+                    <span class="text-xs font-medium text-muted-foreground uppercase tracking-widest">SKU: BEAN-01</span>
+                </div>
+                
+                <div class="flex justify-between items-end border-t border-border/50 pt-4">
+                    <div>
+                        <div class="text-[10px] uppercase font-bold text-muted-foreground tracking-widest mb-0.5">Stock</div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-success"></span>
+                            <span class="text-sm font-semibold">142 Units</span>
+                        </div>
+                    </div>
+                    <div class="text-xl font-bold font-outfit text-primary">$24.00</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Product 2 -->
+        <div class="pos-card p-0 overflow-hidden group hover:-translate-y-1 transition-transform border-border/40 hover:border-primary/20">
+            <div class="h-48 w-full bg-gradient-to-br from-emerald-400 to-teal-600 relative overflow-hidden flex items-center justify-center">
+                <div class="absolute inset-0 bg-white/10 backdrop-blur-3xl"></div>
+                <div class="absolute -top-10 -right-10 w-32 h-32 bg-white/20 rounded-full blur-2xl"></div>
+                <div class="absolute -bottom-10 -left-10 w-32 h-32 bg-black/10 rounded-full blur-2xl"></div>
+                
+                <i data-lucide="leaf" class="w-16 h-16 text-white/90 drop-shadow-lg relative z-10 group-hover:scale-110 transition-transform duration-500 delay-75"></i>
+                
+                <span class="absolute top-3 left-3 badge bg-white text-emerald-600 text-[10px] font-bold shadow-md rounded-full px-2">Tea</span>
+            </div>
+            
+            <div class="p-5">
+                <div class="flex justify-between items-start mb-1">
+                    <h3 class="font-bold text-lg text-foreground line-clamp-1">Matcha Premium Powder</h3>
+                </div>
+                <div class="flex items-center gap-2 mb-4">
+                    <span class="text-xs font-medium text-muted-foreground uppercase tracking-widest">SKU: TEA-MA-02</span>
+                </div>
+                
+                <div class="flex justify-between items-end border-t border-border/50 pt-4">
+                    <div>
+                        <div class="text-[10px] uppercase font-bold text-muted-foreground tracking-widest mb-0.5">Stock</div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-warning"></span>
+                            <span class="text-sm font-semibold">18 Units</span>
+                        </div>
+                    </div>
+                    <div class="text-xl font-bold font-outfit text-primary">$32.50</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Product 3 -->
+        <div class="pos-card p-0 overflow-hidden group hover:-translate-y-1 transition-transform border-border/40 hover:border-primary/20">
+            <div class="h-48 w-full bg-gradient-to-br from-amber-400 to-orange-500 relative overflow-hidden flex items-center justify-center">
+                <div class="absolute inset-0 bg-white/10 backdrop-blur-3xl"></div>
+                <div class="absolute -top-10 -right-10 w-32 h-32 bg-white/20 rounded-full blur-2xl"></div>
+                <div class="absolute -bottom-10 -left-10 w-32 h-32 bg-black/10 rounded-full blur-2xl"></div>
+                
+                <i data-lucide="croissant" class="w-16 h-16 text-white/90 drop-shadow-lg relative z-10 group-hover:scale-110 transition-transform duration-500 delay-75"></i>
+                
+                <span class="absolute top-3 left-3 badge bg-white text-orange-600 text-[10px] font-bold shadow-md rounded-full px-2">Pastries</span>
+            </div>
+            
+            <div class="p-5">
+                <div class="flex justify-between items-start mb-1">
+                    <h3 class="font-bold text-lg text-foreground line-clamp-1">Almond Butter Croissant</h3>
+                </div>
+                <div class="flex items-center gap-2 mb-4">
+                    <span class="text-xs font-medium text-muted-foreground uppercase tracking-widest">SKU: BAK-03</span>
+                </div>
+                
+                <div class="flex justify-between items-end border-t border-border/50 pt-4">
+                    <div>
+                        <div class="text-[10px] uppercase font-bold text-muted-foreground tracking-widest mb-0.5">Stock</div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-success"></span>
+                            <span class="text-sm font-semibold">45 Units</span>
+                        </div>
+                    </div>
+                    <div class="text-xl font-bold font-outfit text-primary">$5.50</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Product 4 -->
+        <div class="pos-card p-0 overflow-hidden group hover:-translate-y-1 transition-transform border-border/40 hover:border-primary/20 bg-muted/20">
+            <div class="h-48 w-full bg-gradient-to-br from-slate-400 to-slate-600 relative overflow-hidden flex items-center justify-center grayscale">
+                <div class="absolute inset-0 bg-white/10 backdrop-blur-3xl"></div>
+                <div class="absolute -top-10 -right-10 w-32 h-32 bg-white/20 rounded-full blur-2xl"></div>
+                <div class="absolute -bottom-10 -left-10 w-32 h-32 bg-black/10 rounded-full blur-2xl"></div>
+                
+                <i data-lucide="cup-soda" class="w-16 h-16 text-white/90 drop-shadow-lg relative z-10 group-hover:scale-110 transition-transform duration-500 delay-75"></i>
+                
+                <span class="absolute top-3 left-3 badge bg-white text-slate-700 text-[10px] font-bold shadow-md rounded-full px-2">Merchandise</span>
+            </div>
+            
+            <div class="p-5">
+                <div class="flex justify-between items-start mb-1">
+                    <h3 class="font-bold text-lg text-foreground line-clamp-1">Ceramic Logo Mug</h3>
+                </div>
+                <div class="flex items-center gap-2 mb-4">
+                    <span class="text-xs font-medium text-muted-foreground uppercase tracking-widest">SKU: MERCH-04</span>
+                </div>
+                
+                <div class="flex justify-between items-end border-t border-border/50 pt-4">
+                    <div>
+                        <div class="text-[10px] uppercase font-bold text-destructive tracking-widest mb-0.5">Stock</div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-destructive animate-pulse"></span>
+                            <span class="text-sm font-semibold text-destructive">Out of Stock</span>
+                        </div>
+                    </div>
+                    <div class="text-xl font-bold font-outfit text-muted-foreground">$12.00</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+@code {
+    [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JSRuntime.InvokeVoidAsync("initIcons");
+        }
+    }
+}

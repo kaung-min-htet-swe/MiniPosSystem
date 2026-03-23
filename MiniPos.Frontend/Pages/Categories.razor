@@ -1,0 +1,84 @@
+@page "/categories"
+
+<PageTitle>Categories - MiniPOS</PageTitle>
+
+<div class="animate-slide-down">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-12 gap-4">
+        <div>
+            <h1 class="text-3xl font-bold tracking-tight text-foreground">Categories</h1>
+            <p class="text-muted-foreground mt-1 text-sm">Organize your menu and product catalog effectively.</p>
+        </div>
+        <button class="btn btn-primary rounded-lg shadow-primary">
+            <i data-lucide="folder-plus" class="w-4 h-4 mr-2"></i>
+            Create Category
+        </button>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        
+        <!-- Category 1 -->
+        <div class="pos-card overflow-hidden group hover:shadow-lg transition-all border-border hover:border-primary/30 flex flex-col h-48 cursor-pointer pl-8">
+            <div class="absolute -left-6 top-1/2 -translate-y-1/2 w-4 h-32 bg-primary/20 rounded-full blur-xl group-hover:bg-primary/40 transition-colors"></div>
+            <div class="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-4 mt-2">
+                <i data-lucide="coffee" class="w-6 h-6"></i>
+            </div>
+            <h3 class="font-bold text-xl text-foreground mb-1">Coffee Beans</h3>
+            <p class="text-xs text-muted-foreground line-clamp-2 pr-6 mb-auto">Freshly roasted whole beans sourced from premium farms worldwide.</p>
+            <div class="mt-4 pt-3 border-t border-border/50 text-xs font-bold uppercase tracking-widest text-primary flex items-center">
+                12 Items <i data-lucide="arrow-right" class="w-3 h-3 ml-2 group-hover:translate-x-1 transition-transform"></i>
+            </div>
+        </div>
+
+        <!-- Category 2 -->
+        <div class="pos-card overflow-hidden group hover:shadow-lg transition-all border-border hover:border-emerald-500/30 flex flex-col h-48 cursor-pointer pl-8">
+            <div class="absolute -left-6 top-1/2 -translate-y-1/2 w-4 h-32 bg-emerald-500/20 rounded-full blur-xl group-hover:bg-emerald-500/40 transition-colors"></div>
+            <div class="w-12 h-12 rounded-full bg-emerald-500/10 text-emerald-600 flex items-center justify-center mb-4 mt-2">
+                <i data-lucide="leaf" class="w-6 h-6"></i>
+            </div>
+            <h3 class="font-bold text-xl text-foreground mb-1">Tea</h3>
+            <p class="text-xs text-muted-foreground line-clamp-2 pr-6 mb-auto">Organic matcha, chamomile, and premium loose leaf selections.</p>
+            <div class="mt-4 pt-3 border-t border-border/50 text-xs font-bold uppercase tracking-widest text-emerald-600 flex items-center">
+                24 Items <i data-lucide="arrow-right" class="w-3 h-3 ml-2 group-hover:translate-x-1 transition-transform"></i>
+            </div>
+        </div>
+
+        <!-- Category 3 -->
+        <div class="pos-card overflow-hidden group hover:shadow-lg transition-all border-border hover:border-orange-500/30 flex flex-col h-48 cursor-pointer pl-8">
+            <div class="absolute -left-6 top-1/2 -translate-y-1/2 w-4 h-32 bg-orange-500/20 rounded-full blur-xl group-hover:bg-orange-500/40 transition-colors"></div>
+            <div class="w-12 h-12 rounded-full bg-orange-500/10 text-orange-600 flex items-center justify-center mb-4 mt-2">
+                <i data-lucide="croissant" class="w-6 h-6"></i>
+            </div>
+            <h3 class="font-bold text-xl text-foreground mb-1">Pastries</h3>
+            <p class="text-xs text-muted-foreground line-clamp-2 pr-6 mb-auto">Freshly baked croissants, muffins, and sweet daily delicacies.</p>
+            <div class="mt-4 pt-3 border-t border-border/50 text-xs font-bold uppercase tracking-widest text-orange-600 flex items-center">
+                18 Items <i data-lucide="arrow-right" class="w-3 h-3 ml-2 group-hover:translate-x-1 transition-transform"></i>
+            </div>
+        </div>
+
+        <!-- Category 4 -->
+        <div class="pos-card overflow-hidden group hover:shadow-lg transition-all border-border hover:border-slate-500/30 flex flex-col h-48 cursor-pointer pl-8">
+            <div class="absolute -left-6 top-1/2 -translate-y-1/2 w-4 h-32 bg-slate-500/20 rounded-full blur-xl group-hover:bg-slate-500/40 transition-colors"></div>
+            <div class="w-12 h-12 rounded-full bg-slate-500/10 text-slate-600 flex items-center justify-center mb-4 mt-2">
+                <i data-lucide="shopping-bag" class="w-6 h-6"></i>
+            </div>
+            <h3 class="font-bold text-xl text-foreground mb-1">Merchandise</h3>
+            <p class="text-xs text-muted-foreground line-clamp-2 pr-6 mb-auto">Branded mugs, filters, and at-home brewing equipment.</p>
+            <div class="mt-4 pt-3 border-t border-border/50 text-xs font-bold uppercase tracking-widest text-slate-600 flex items-center">
+                6 Items <i data-lucide="arrow-right" class="w-3 h-3 ml-2 group-hover:translate-x-1 transition-transform"></i>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+@code {
+    [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JSRuntime.InvokeVoidAsync("initIcons");
+        }
+    }
+}

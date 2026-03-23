@@ -1,3 +1,17 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: hsl(220 33% 98%);
+  --color-foreground: hsl(222.2 84% 4.9%);
+  --color-primary: hsl(250 84% 54%);
+  --color-success: hsl(142 71% 45%);
+  --color-warning: hsl(38 92% 50%);
+  --color-destructive: hsl(0 84.2% 60.2%);
+  --color-muted: hsl(210 40% 96.1%);
+  --color-muted-foreground: hsl(215.4 16.3% 46.9%);
+  --color-border: hsl(214.3 31.8% 91.4%);
+}
+
 /* Premium Modern POS CSS Variables & Design System */
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap');
 
@@ -520,3 +534,10 @@ a { text-decoration: none; color: inherit; }
 .badge-success { background-color: hsl(var(--success-bg)); color: hsl(var(--success)); }
 .badge-warning { background-color: hsl(var(--warning-bg)); color: hsl(var(--warning)); }
 .badge-primary { background-color: hsl(var(--primary) / 0.1); color: hsl(var(--primary)); }
+
+/* Search bar alignments & Extended Spacing */
+.top-1\/2 { top: 50%; }
+.-translate-y-1\/2 { transform: translateY(-50%); }
+.left-3 { left: 0.75rem; }
+.pl-9 { padding-left: 2.25rem; }
+.mb-12 { margin-bottom: 3rem; }
