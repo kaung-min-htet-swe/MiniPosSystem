@@ -1,23 +1,23 @@
 using Mapper;
 using Microsoft.AspNetCore.Mvc;
 
-namespace MiniPos.Backend.Features.Products;
+namespace MiniPos.Backend.Features.BranchInventories;
 
 [ApiController]
 [Route("api/products")]
-public class ProductController : ControllerBase
+public class BranchInventoryController : ControllerBase
 {
-    private readonly IProductService _productService;
+    private readonly IBranchInventoryService _branchInventoryService;
 
-    public ProductController(IProductService productService)
+    public BranchInventoryController(IBranchInventoryService branchInventoryService)
     {
-        _productService = productService;
+        _branchInventoryService = branchInventoryService;
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetList([FromQuery] ProductListRequestDto filter)
+    public async Task<IActionResult> GetList([FromQuery] BranchInventoryListRequestDto filter)
     {
-        var result = await _productService.GetList(filter);
+        var result = await _branchInventoryService.GetList(filter);
         if (result.IsSuccess)
             return Ok(result.Data);
 
@@ -28,7 +28,7 @@ public class ProductController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(Guid id)
     {
-        var result = await _productService.GetById(id);
+        var result = await _branchInventoryService.GetById(id);
         if (result.IsSuccess)
             return Ok(result.Data);
 
@@ -37,9 +37,9 @@ public class ProductController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> CreateProduct([FromBody] ProductCreateRequestDto request)
+    public async Task<IActionResult> CreateProduct([FromBody] BranchInventoryCreateRequestDto request)
     {
-        var result = await _productService.Create(request);
+        var result = await _branchInventoryService.Create(request);
         if (result.IsSuccess)
             return Created();
 
@@ -48,9 +48,9 @@ public class ProductController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> Update(Guid id, [FromBody] ProductUpdateRequestDto request)
+    public async Task<IActionResult> Update(Guid id, [FromBody] BranchInventoryUpdateRequestDto request)
     {
-        var result = await _productService.Update(id, request);
+        var result = await _branchInventoryService.Update(id, request);
         if (result.IsSuccess)
             return Ok();
 
@@ -61,7 +61,7 @@ public class ProductController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(Guid id)
     {
-        var result = await _productService.Delete(id);
+        var result = await _branchInventoryService.Delete(id);
         if (result.IsSuccess)
             return NoContent();
 
