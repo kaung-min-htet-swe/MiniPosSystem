@@ -201,16 +201,15 @@ public class UserService : IUserService
             return Result<UserCreateResponseDto>.Failure(new BadRequestError(errCode,
                 "Processor and Branch is required to create a new cashier."));
 
+        var merchantId = Guid.Parse(request.ProcessedById);
         var branchId = Guid.Parse(request.BranchId);
-        var isBranchExist = await _db.Branches.AnyAsync(b => b.Id == branchId);
+        var isBranchExist = await _db.Branches
+            .AsNoTracking()
+            .Include(b => b.Merchant)
+            .Select(b => new { b.Id, MerchantId = b.Merchant.Id })
+            .AnyAsync(b => b.Id == branchId && b.MerchantId == merchantId);
         if (!isBranchExist)
-            return Result<UserCreateResponseDto>.Failure(new NotFoundError(errCode, "Branch does not exist"));
-
-        var merchantAdminId = Guid.Parse(request.ProcessedById);
-        var isAdminExist = await _db.Users.AnyAsync(u => u.BranchId == branchId && u.Role == nameof(UserRole.Merchant));
-        if (!isAdminExist)
-            return Result<UserCreateResponseDto>.Failure(new NotFoundError(errCode,
-                "Merchant admin does not exist with this branch"));
+            return Result<UserCreateResponseDto>.Failure(new NotFoundError(errCode, "Branch does not exist with this merchant"));
 
         var user = new User
         {
@@ -257,7 +256,8 @@ public class UserService : IUserService
     private async Task<Result<UserGetByIdResponseDto>> GetCashierById(Guid id)
     {
         var cashier = await _db.Users
-            .Include(user => user.Branch)
+            .Include(u => u.Branch)
+            .ThenInclude(b => b!.Merchant)
             .Select(u => new UserGetByIdResponseDto
             {
                 Id = u.Id,
@@ -266,9 +266,15 @@ public class UserService : IUserService
                 UserName = u.Username,
                 Branch = new BranchDto
                 {
-                    Id = u.Branch.Id,
+                    Id = u.Branch!.Id,
                     Name = u.Branch.Name,
-                    Address = u.Branch.Address
+                    Address = u.Branch!.Address
+                },
+                Merchant = new MerchantDto
+                {
+                    Id = u.Branch.Merchant.Id,
+                    Name = u.Branch.Merchant.Name,
+                    ContactEmail = u.Branch.Merchant.ContactEmail
                 }
             })
             .FirstOrDefaultAsync(u => u.Id == id && u.Role == nameof(UserRole.Cashier));

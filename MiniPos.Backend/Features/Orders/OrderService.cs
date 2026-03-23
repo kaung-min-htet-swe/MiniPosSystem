@@ -105,13 +105,13 @@ public class OrderService : IOrderService
         {
             var user =
                 await _db.Users
-                    .Include(u => u.BranchId)
-                    .Select(u => new { u.Id, u.Role, u.BranchId })
+                    .Include(u => u.Branch)
+                    .Select(u => new { u.Id, u.Role, u.Branch })
                     .FirstOrDefaultAsync(u => u.Id == request.ProcessedById && u.Role == nameof(UserRole.Cashier));
             if (user is null)
                 return Result.Failure(new NotFoundError(errCode, "User does not exist or is not authorized"));
 
-            if (user.BranchId is null || user.BranchId != request.BranchId)
+            if (user.Branch!.Id != request.BranchId)
                 return Result.Failure(new ValidationError(errCode, "User is not associated with the specified branch"));
 
             var productIds = request.OrderedItems.Select(item => item.ProductId).Distinct().ToList();
