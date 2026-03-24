@@ -20,7 +20,7 @@
             <button class="btn btn-outline border-border h-9">
                 <i data-lucide="filter" class="w-4 h-4 mr-2"></i> Filter
             </button>
-            <button class="btn btn-primary rounded-lg shadow-primary">
+            <button class="btn btn-primary rounded-lg shadow-primary" @onclick="GoToAddMerchant">
                 <i data-lucide="plus" class="w-4 h-4 mr-2"></i>
                 New Merchant
             </button>
@@ -109,6 +109,11 @@
     private void GoToMerchantDetail(Guid id)
     {
         Navigation.NavigateTo($"/merchants/{id}");
+    }
+
+    private void GoToAddMerchant()
+    {
+        Navigation.NavigateTo("/merchants/add");
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
