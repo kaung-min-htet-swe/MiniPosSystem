@@ -27,7 +27,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             @foreach (var branch in _pagedBranches.Data)
             {
-                <div class="pos-card relative overflow-hidden group hover:-translate-y-1 transition-transform border border-border hover:border-primary/30 min-h-[220px]">
+                <div class="pos-card relative overflow-hidden group hover:-translate-y-1 transition-transform border border-border hover:border-primary/30 min-h-[220px] cursor-pointer" @onclick="() => GoToBranchDetail(branch.Id)">
                     <div class="absolute inset-0 z-0 opacity-10 grayscale group-hover:grayscale-0 group-hover:opacity-30 transition-all duration-700 pointer-events-none" style="background-image: radial-gradient(hsl(var(--primary)) 1px, transparent 1px); background-size: 20px 20px;"></div>
                     <div class="relative z-10 flex flex-col h-full">
                         <div class="flex justify-between items-start mb-4">
@@ -35,7 +35,7 @@
                                 <i data-lucide="store" class="w-6 h-6"></i>
                             </div>
                             <span class="flex items-center gap-1.5 badge badge-success text-[10px] px-2 shadow-sm">
-                                <span class="w-1.5 h-1.5 rounded-full bg-success animate-pulse"></span> Online
+                                <span class="w-1.5 h-1.5 rounded-full bg-success animate-pulse"></span> Active
                             </span>
                         </div>
                         <h3 class="font-bold text-xl text-foreground mb-1">@branch.Name</h3>
@@ -44,8 +44,8 @@
                         </p>
                         <div class="mt-6 pt-4 border-t border-border/50 grid grid-cols-2 gap-4">
                             <div>
-                                <div class="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Registers</div>
-                                <div class="font-bold text-foreground font-outfit">@(new Random().Next(2, 6)) connected</div>
+                                <div class="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Staffs</div>
+                                <div class="font-bold text-foreground font-outfit">@(new Random().Next(2, 6)) assigned</div>
                             </div>
                             <div class="text-right">
                                 <button class="text-xs font-bold text-primary hover:underline uppercase tracking-wide">Manage Settings</button>
@@ -61,6 +61,7 @@
 @code {
     [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
     [Inject] private HttpClient Http { get; set; } = default!;
+    [Inject] private NavigationManager Navigation { get; set; } = default!;
 
     private PagedResult<Branch>? _pagedBranches;
 
@@ -75,5 +76,9 @@
         {
             await JSRuntime.InvokeVoidAsync("initIcons");
         }
+    }
+    private void GoToBranchDetail(Guid branchId)
+    {
+        Navigation.NavigateTo($"/branches/{branchId}");
     }
 }

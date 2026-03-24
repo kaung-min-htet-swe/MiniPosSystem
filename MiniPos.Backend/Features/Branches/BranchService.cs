@@ -41,7 +41,12 @@ public class BranchService : IBranchService
                 .Select(b => new BranchListResponseDto
                 {
                     Id = b.Id,
-                    MerchantId = b.MerchantId,
+                    Merchant = new MerchantDto
+                    {
+                        Id = b.Merchant.Id,
+                        Name = b.Merchant.Name,
+                        ContactEmail = b.Merchant.ContactEmail
+                    },
                     Name = b.Name,
                     Address = b.Address
                 })
@@ -177,10 +182,17 @@ public class BranchListRequestDto : PaginationFilter
     public Guid? MerchantId { get; set; }
 }
 
+public class MerchantDto
+{
+    public Guid Id { get; set; }
+    public string Name { get; set; }
+    public string? ContactEmail { get; set; }
+}
+
 public class BranchListResponseDto
 {
     public Guid Id { get; set; }
-    public Guid MerchantId { get; set; }
+    public MerchantDto Merchant { get; set; } = null!;
     public string Name { get; set; } = null!;
     public string? Address { get; set; }
 }
