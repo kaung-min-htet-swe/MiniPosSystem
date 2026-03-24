@@ -1,0 +1,531 @@
+@page "/users/{UserId}"
+@using MiniPos.Frontend.Models
+@using System.Net.Http.Json
+
+<PageTitle>User Details - MiniPOS</PageTitle>
+
+<div class="animate-slide-down max-w-4xl mx-auto pb-12">
+    <!-- Header with Back Navigation -->
+    <div class="mb-10">
+        <button class="flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors mb-6 group" @onclick="GoBack">
+            <i data-lucide="arrow-left" class="w-4 h-4 group-hover:-translate-x-1 transition-transform"></i>
+            Back to Staff Directory
+        </button>
+    </div>
+
+    @if (_user == null)
+    {
+        <div class="flex flex-col items-center justify-center p-24 relative">
+            <div class="absolute w-24 h-24 bg-primary/20 blur-xl rounded-full animate-ping"></div>
+            <div class="animate-spin rounded-full h-12 w-12 border-4 border-t-primary border-primary/20 relative z-10"></div>
+            <span class="mt-6 text-sm font-bold text-muted-foreground tracking-widest uppercase">Loading Profile...</span>
+        </div>
+    }
+    else
+    {
+        var nameParts = _user.UserName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        var initials = nameParts.Length > 1
+            ? $"{nameParts[0][0]}{nameParts[nameParts.Length - 1][0]}".ToUpper()
+            : _user.UserName.Substring(0, Math.Min(2, _user.UserName.Length)).ToUpper();
+
+        <!-- Profile Hero Card -->
+        <div class="pos-card p-0 overflow-hidden bg-white/60 shadow-xl border-border/40 mb-8">
+            <!-- Hero Banner -->
+            <div class="relative h-40 bg-gradient-to-br @_ui.BannerGradient overflow-hidden">
+                <div class="absolute inset-0 bg-white/10 backdrop-blur-3xl"></div>
+                <div class="absolute -top-10 -right-10 w-48 h-48 bg-white/15 rounded-full blur-2xl"></div>
+                <div class="absolute -bottom-10 -left-10 w-48 h-48 bg-black/10 rounded-full blur-2xl"></div>
+                <!-- Decorative pattern -->
+                <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(circle, rgba(255,255,255,0.3) 1px, transparent 1px); background-size: 20px 20px;"></div>
+
+                <!-- Edit button -->
+                <div class="absolute top-4 right-4 z-20">
+                    <button class="w-9 h-9 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-white hover:bg-white/40 transition-all" @onclick="OpenEditProfileModal">
+                        <i data-lucide="pencil" class="w-4 h-4"></i>
+                    </button>
+                </div>
+
+                <!-- Role Badge -->
+                <div class="absolute top-4 left-6 z-20">
+                    <span class="badge @_ui.BadgeClass px-3 py-1.5 uppercase tracking-widest text-[10px] shadow-md flex items-center font-black">
+                        <i data-lucide="@_ui.Icon" class="w-3.5 h-3.5 mr-1.5"></i> @_user.Role
+                    </span>
+                </div>
+            </div>
+
+            <!-- Profile Info (overlapping avatar) -->
+            <div class="px-8 pb-8 relative">
+                <!-- Avatar -->
+                <div class="relative -mt-14 mb-4 flex items-end gap-6">
+                    <div class="relative shrink-0">
+                        <div class="w-28 h-28 rounded-full bg-gradient-to-tr @_ui.AvatarGradient shadow-xl flex items-center justify-center text-white text-4xl font-bold font-outfit border-4 border-white ring-4 ring-white/50">
+                            @initials
+                        </div>
+                        <div class="absolute bottom-2 right-2 w-5 h-5 @(_ui.IsOnline ? "bg-success" : "bg-muted") border-[3px] border-white rounded-full shadow-sm" title="@(_ui.IsOnline ? "Online" : "Offline")"></div>
+                    </div>
+                    <div class="pb-2 flex-1 min-w-0">
+                        <h1 class="text-2xl font-black text-foreground tracking-tight truncate">@_user.UserName</h1>
+                        <p class="text-sm text-muted-foreground font-medium flex items-center gap-1.5 mt-0.5">
+                            <i data-lucide="mail" class="w-3.5 h-3.5"></i> @_user.Email
+                        </p>
+                    </div>
+                    <div class="pb-2 shrink-0 hidden sm:flex items-center gap-2">
+                        <span class="flex items-center gap-1.5 text-xs font-bold @(_ui.IsOnline ? "text-success" : "text-muted-foreground")">
+                            <span class="w-2 h-2 rounded-full @(_ui.IsOnline ? "bg-success animate-pulse" : "bg-muted")"></span>
+                            @(_ui.IsOnline ? "Online Now" : "Offline")
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Details Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+            <!-- Left Column: Account & Assignment -->
+            <div class="lg:col-span-2 flex flex-col gap-6">
+
+                <!-- Account Information -->
+                <div class="pos-card bg-white/60 shadow-lg border-border/40">
+                    <div class="flex items-center gap-2 mb-6">
+                        <div class="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+                            <i data-lucide="user" class="w-4 h-4"></i>
+                        </div>
+                        <h2 class="text-lg font-bold text-foreground">Account Information</h2>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                        <div class="bg-muted/20 rounded-xl p-4 border border-border/30">
+                            <div class="text-[10px] uppercase font-black tracking-widest text-muted-foreground mb-1">Full Name</div>
+                            <div class="text-sm font-semibold text-foreground">@_user.UserName</div>
+                        </div>
+                        <div class="bg-muted/20 rounded-xl p-4 border border-border/30">
+                            <div class="text-[10px] uppercase font-black tracking-widest text-muted-foreground mb-1">Email</div>
+                            <div class="text-sm font-semibold text-foreground">@_user.Email</div>
+                        </div>
+                        <div class="bg-muted/20 rounded-xl p-4 border border-border/30">
+                            <div class="text-[10px] uppercase font-black tracking-widest text-muted-foreground mb-1">Role</div>
+                            <div class="text-sm font-semibold text-foreground flex items-center gap-2">
+                                <i data-lucide="@_ui.Icon" class="w-3.5 h-3.5 @_ui.RoleColorClass"></i> @_user.Role
+                            </div>
+                        </div>
+                        <div class="bg-muted/20 rounded-xl p-4 border border-border/30">
+                            <div class="text-[10px] uppercase font-black tracking-widest text-muted-foreground mb-1">User ID</div>
+                            <div class="text-xs font-mono text-muted-foreground truncate">@_user.Id</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Merchant Info (for Merchant role) -->
+                @if (_user.Role is "Merchant" or "Admin")
+                {
+                    <div class="pos-card bg-white/60 shadow-lg border-border/40 animate-fade-in">
+                        <div class="flex items-center gap-2 mb-6">
+                            <div class="w-8 h-8 rounded-lg bg-warning/10 text-warning flex items-center justify-center">
+                                <i data-lucide="building" class="w-4 h-4"></i>
+                            </div>
+                            <h2 class="text-lg font-bold text-foreground">Merchant Details</h2>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                            <div class="bg-muted/20 rounded-xl p-4 border border-border/30">
+                                <div class="text-[10px] uppercase font-black tracking-widest text-muted-foreground mb-1">Business Name</div>
+                                <div class="text-sm font-semibold text-foreground">@(_merchantName ?? "—")</div>
+                            </div>
+                            <div class="bg-muted/20 rounded-xl p-4 border border-border/30">
+                                <div class="text-[10px] uppercase font-black tracking-widest text-muted-foreground mb-1">Business Email</div>
+                                <div class="text-sm font-semibold text-foreground">@(_merchantEmail ?? "—")</div>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                <!-- Branch Info (for Cashier role) -->
+                @if (_user.Role == "Cashier")
+                {
+                    <div class="pos-card bg-white/60 shadow-lg border-border/40 animate-fade-in">
+                        <div class="flex items-center gap-2 mb-6">
+                            <div class="w-8 h-8 rounded-lg bg-success/10 text-success flex items-center justify-center">
+                                <i data-lucide="store" class="w-4 h-4"></i>
+                            </div>
+                            <h2 class="text-lg font-bold text-foreground">Branch Assignment</h2>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                            <div class="bg-muted/20 rounded-xl p-4 border border-border/30">
+                                <div class="text-[10px] uppercase font-black tracking-widest text-muted-foreground mb-1">Branch Name</div>
+                                <div class="text-sm font-semibold text-foreground">@(_branchName ?? "Unassigned")</div>
+                            </div>
+                            <div class="bg-muted/20 rounded-xl p-4 border border-border/30">
+                                <div class="text-[10px] uppercase font-black tracking-widest text-muted-foreground mb-1">Branch Address</div>
+                                <div class="text-sm font-semibold text-foreground">@(_branchAddress ?? "—")</div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Right Column: Quick Stats & Actions -->
+            <div class="flex flex-col gap-6">
+
+                <!-- Quick Stats -->
+                <div class="pos-card bg-white/60 shadow-lg border-border/40">
+                    <div class="flex items-center gap-2 mb-6">
+                        <div class="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+                            <i data-lucide="bar-chart-3" class="w-4 h-4"></i>
+                        </div>
+                        <h2 class="text-lg font-bold text-foreground">Activity</h2>
+                    </div>
+                    <div class="flex flex-col gap-4">
+                        <div class="flex justify-between items-center p-3 bg-muted/20 rounded-xl border border-border/30">
+                            <div class="flex items-center gap-3">
+                                <div class="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+                                    <i data-lucide="shopping-cart" class="w-4 h-4"></i>
+                                </div>
+                                <div class="text-xs font-bold uppercase tracking-wider text-muted-foreground">Total Sales</div>
+                            </div>
+                            <div class="font-black text-xl font-outfit text-foreground">@_ui.TotalSales</div>
+                        </div>
+                        <div class="flex justify-between items-center p-3 bg-muted/20 rounded-xl border border-border/30">
+                            <div class="flex items-center gap-3">
+                                <div class="w-9 h-9 rounded-lg bg-success/10 text-success flex items-center justify-center">
+                                    <i data-lucide="clock" class="w-4 h-4"></i>
+                                </div>
+                                <div class="text-xs font-bold uppercase tracking-wider text-muted-foreground">Shift Today</div>
+                            </div>
+                            <div class="font-black text-xl font-outfit text-foreground">@_ui.ShiftToday</div>
+                        </div>
+                        <div class="flex justify-between items-center p-3 bg-muted/20 rounded-xl border border-border/30">
+                            <div class="flex items-center gap-3">
+                                <div class="w-9 h-9 rounded-lg bg-warning/10 text-warning flex items-center justify-center">
+                                    <i data-lucide="calendar-days" class="w-4 h-4"></i>
+                                </div>
+                                <div class="text-xs font-bold uppercase tracking-wider text-muted-foreground">Joined</div>
+                            </div>
+                            <div class="font-bold text-sm text-foreground">@_ui.JoinedDate</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="pos-card bg-white/60 shadow-lg border-border/40">
+                    <div class="flex items-center gap-2 mb-5">
+                        <div class="w-8 h-8 rounded-lg bg-muted/30 text-muted-foreground flex items-center justify-center">
+                            <i data-lucide="settings" class="w-4 h-4"></i>
+                        </div>
+                        <h2 class="text-lg font-bold text-foreground">Actions</h2>
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <button class="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-primary/5 text-primary hover:bg-primary/10 transition-colors font-semibold text-sm text-left" @onclick="OpenEditProfileModal">
+                            <i data-lucide="pencil" class="w-4 h-4"></i> Edit Profile
+                        </button>
+                        <button class="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-muted/50 transition-colors font-semibold text-sm text-left text-foreground" @onclick="() => _showResetPasswordModal = true">
+                            <i data-lucide="key" class="w-4 h-4"></i> Reset Password
+                        </button>
+                        @if (_user.Role == "Cashier")
+                        {
+                            <button class="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-muted/50 transition-colors font-semibold text-sm text-left text-foreground" @onclick="() => _showReassignModal = true">
+                                <i data-lucide="arrow-right-left" class="w-4 h-4"></i> Reassign Branch
+                            </button>
+                        }
+                        <div class="h-px bg-border/40 my-1"></div>
+                        <button class="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-destructive/10 transition-colors font-semibold text-sm text-left text-destructive" @onclick="() => _showDeactivateModal = true">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i> Deactivate Account
+                        </button>
+                    </div>
+                </div>
+            </div>
+            </div>
+
+            <!-- --- Action Modals --- -->
+
+            <!-- Edit Profile Modal -->
+            @if (_showEditModal)
+            {
+                <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
+                    <div class="bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-border/40 w-full max-w-md p-6 animate-scale-up space-y-5">
+                        <div class="flex items-center gap-2 text-primary">
+                            <i data-lucide="pencil" class="w-5 h-5"></i>
+                            <h3 class="text-lg font-bold">Edit Profile</h3>
+                        </div>
+                        <div class="space-y-4">
+                            <div class="space-y-1">
+                                <label class="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Full Name</label>
+                                <input type="text" @bind="_editUserName" class="w-full px-4 py-2.5 bg-white border border-border/60 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary/40 focus:outline-none font-medium" />
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Email Address</label>
+                                <input type="email" @bind="_editEmail" class="w-full px-4 py-2.5 bg-white border border-border/60 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary/40 focus:outline-none font-medium" />
+                            </div>
+                        </div>
+                        <div class="flex justify-end gap-3 pt-2">
+                            <button class="btn btn-ghost rounded-xl px-5 text-sm" @onclick='() => _showEditModal = false' disabled="@_isActionSubmitting">Cancel</button>
+                            <button class="btn btn-primary rounded-xl px-6 text-sm shadow-primary disabled:opacity-50 flex items-center gap-2" @onclick="HandleEditProfile" disabled="@_isActionSubmitting">
+                                @if (_isActionSubmitting) { <div class="animate-spin rounded-full h-3.5 w-3.5 border-2 border-white/20 border-t-white"></div> }
+                                <span>Save Changes</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <!-- Reset Password Modal -->
+            @if (_showResetPasswordModal)
+            {
+                <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
+                    <div class="bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-border/40 w-full max-w-md p-6 animate-scale-up space-y-5">
+                        <div class="flex items-center gap-2 text-primary">
+                            <i data-lucide="key" class="w-5 h-5"></i>
+                            <h3 class="text-lg font-bold">Reset Password</h3>
+                        </div>
+                        <div class="space-y-4">
+                            <div class="space-y-1">
+                                <label class="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">New Password</label>
+                                <input type="password" @bind="_newPassword" class="w-full px-4 py-2.5 bg-white border border-border/60 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary/40 focus:outline-none font-medium" />
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Confirm Password</label>
+                                <input type="password" @bind="_confirmPassword" class="w-full px-4 py-2.5 bg-white border border-border/60 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary/40 focus:outline-none font-medium" />
+                            </div>
+                        </div>
+                        <div class="flex justify-end gap-3 pt-2">
+                            <button class="btn btn-ghost rounded-xl px-5 text-sm" @onclick='() => _showResetPasswordModal = false' disabled="@_isActionSubmitting">Cancel</button>
+                            <button class="btn btn-primary rounded-xl px-6 text-sm shadow-primary disabled:opacity-50 flex items-center gap-2" @onclick="HandleResetPassword" disabled="@_isActionSubmitting">
+                                @if (_isActionSubmitting) { <div class="animate-spin rounded-full h-3.5 w-3.5 border-2 border-white/20 border-t-white"></div> }
+                                <span>Reset Password</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <!-- Reassign Branch Modal -->
+            @if (_showReassignModal)
+            {
+                <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
+                    <div class="bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-border/40 w-full max-w-md p-6 animate-scale-up space-y-5">
+                        <div class="flex items-center gap-2 text-primary">
+                            <i data-lucide="store" class="w-5 h-5"></i>
+                            <h3 class="text-lg font-bold">Reassign Branch</h3>
+                        </div>
+                        <div class="space-y-4">
+                            <div class="space-y-1">
+                                <label class="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Select Target Branch</label>
+                                <select @bind="_selectedBranchId" class="w-full px-4 py-2.5 bg-white border border-border/60 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary/40 focus:outline-none font-medium appearance-none cursor-pointer">
+                                    <option value="">Choose a branch...</option>
+                                    @if (_branches != null)
+                                    {
+                                        @foreach (var b in _branches)
+                                        {
+                                            <option value="@b.Id.ToString()">@b.Name</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="flex justify-end gap-3 pt-2">
+                            <button class="btn btn-ghost rounded-xl px-5 text-sm" @onclick='() => _showReassignModal = false' disabled="@_isActionSubmitting">Cancel</button>
+                            <button class="btn btn-primary rounded-xl px-6 text-sm shadow-primary disabled:opacity-50 flex items-center gap-2" @onclick="HandleReassignBranch" disabled="@_isActionSubmitting">
+                                @if (_isActionSubmitting) { <div class="animate-spin rounded-full h-3.5 w-3.5 border-2 border-white/20 border-t-white"></div> }
+                                <span>Reassign</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <!-- Deactivate Modal -->
+            @if (_showDeactivateModal)
+            {
+                <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
+                    <div class="bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-border/40 w-full max-w-md p-6 animate-scale-up space-y-5">
+                        <div class="flex items-center gap-2 text-destructive">
+                            <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+                            <h3 class="text-lg font-bold">Deactivate Account</h3>
+                        </div>
+                        <p class="text-sm text-muted-foreground">Are you sure you want to deactivate <b>@_user.UserName</b>? This actor will lose full access systems permissions immediately.</p>
+                        <div class="flex justify-end gap-3 pt-2">
+                            <button class="btn btn-ghost rounded-xl px-5 text-sm" @onclick='() => _showDeactivateModal = false' disabled="@_isActionSubmitting">Cancel</button>
+                            <button class="btn btn-destructive rounded-xl px-6 text-sm disabled:opacity-50 flex items-center gap-2" @onclick="HandleDeactivateAccount" disabled="@_isActionSubmitting">
+                                @if (_isActionSubmitting) { <div class="animate-spin rounded-full h-3.5 w-3.5 border-2 border-white/20 border-t-white"></div> }
+                                <span>Deactivate</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+    }
+</div>
+
+@code {
+    [Parameter] public string UserId { get; set; } = "";
+
+    [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
+    [Inject] private HttpClient Http { get; set; } = default!;
+    [Inject] private NavigationManager Navigation { get; set; } = default!;
+
+    private User? _user;
+    private DetailUI _ui = new();
+
+    // --- Action Modal State ---
+    private bool _showEditModal = false;
+    private bool _showResetPasswordModal = false;
+    private bool _showReassignModal = false;
+    private bool _showDeactivateModal = false;
+
+    // Form inputs
+    private string _editUserName = "";
+    private string _editEmail = "";
+    private string _newPassword = "";
+    private string _confirmPassword = "";
+    private string _selectedBranchId = "";
+    private List<Branch>? _branches; 
+
+    private bool _isActionSubmitting = false;
+
+    // Simulated related data
+    private string? _merchantName;
+    private string? _merchantEmail;
+    private string? _branchName;
+    private string? _branchAddress;
+
+    private class DetailUI
+    {
+        public string BadgeClass { get; set; } = "bg-muted text-muted-foreground";
+        public string Icon { get; set; } = "user";
+        public string AvatarGradient { get; set; } = "from-slate-400 to-slate-500";
+        public string BannerGradient { get; set; } = "from-slate-400 to-slate-600";
+        public string RoleColorClass { get; set; } = "text-muted-foreground";
+        public bool IsOnline { get; set; }
+        public string TotalSales { get; set; } = "—";
+        public string ShiftToday { get; set; } = "—";
+        public string JoinedDate { get; set; } = "—";
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var pagedUsers = await Http.GetFromJsonAsync<PagedResult<User>>("sample-data/users.json");
+        if (pagedUsers != null && Guid.TryParse(UserId, out var id))
+        {
+            _user = pagedUsers.Data.FirstOrDefault(u => u.Id == id);
+        }
+
+        if (_user != null)
+        {
+            // Set UI based on role
+            _ui = _user.Role switch
+            {
+                "Admin" => new DetailUI
+                {
+                    BadgeClass = "badge-primary", Icon = "shield-check",
+                    AvatarGradient = "from-primary to-purple-500",
+                    BannerGradient = "from-primary via-purple-600 to-indigo-700",
+                    RoleColorClass = "text-primary", IsOnline = true,
+                    TotalSales = "1.2k", ShiftToday = "8 hrs", JoinedDate = "Jan 2023"
+                },
+                "Cashier" => new DetailUI
+                {
+                    BadgeClass = "badge-success", Icon = "calculator",
+                    AvatarGradient = "from-success to-emerald-400",
+                    BannerGradient = "from-emerald-500 via-teal-500 to-green-600",
+                    RoleColorClass = "text-success", IsOnline = true,
+                    TotalSales = "42", ShiftToday = "6 hrs", JoinedDate = "Mar 2024"
+                },
+                "Merchant" or "Manager" => new DetailUI
+                {
+                    BadgeClass = "badge-warning", Icon = "briefcase",
+                    AvatarGradient = "from-warning to-yellow-400",
+                    BannerGradient = "from-amber-500 via-orange-500 to-yellow-600",
+                    RoleColorClass = "text-warning", IsOnline = false,
+                    TotalSales = "1.9k", ShiftToday = "—", JoinedDate = "Jun 2023"
+                },
+                _ => new DetailUI()
+            };
+
+            // Simulate related data based on role
+            if (_user.Role is "Admin" or "Merchant" or "Manager")
+            {
+                // Load merchant data
+                var merchantData = await Http.GetFromJsonAsync<PagedResult<Merchant>>("sample-data/merchants.json");
+                var merchant = merchantData?.Data?.FirstOrDefault();
+                _merchantName = merchant?.Name ?? "—";
+                _merchantEmail = merchant?.ContactEmail ?? "—";
+            }
+
+            if (_user.Role == "Cashier")
+            {
+                // Load branch data
+                var branchData = await Http.GetFromJsonAsync<PagedResult<Branch>>("sample-data/branches.json");
+                _branches = branchData?.Data;
+                var branch = _branches?.FirstOrDefault();
+                _branchName = branch?.Name;
+                _branchAddress = branch?.Address;
+            }
+
+            _editUserName = _user.UserName;
+            _editEmail = _user.Email;
+        }
+    }
+
+    private void OpenEditProfileModal()
+    {
+        _editUserName = _user?.UserName ?? "";
+        _editEmail = _user?.Email ?? "";
+        _showEditModal = true;
+        
+        // Re-init icons just in case any dynamic triggers were missed
+        _ = ReinitIcons();
+    }
+
+    private async Task HandleEditProfile()
+    {
+        if (string.IsNullOrWhiteSpace(_editUserName) || string.IsNullOrWhiteSpace(_editEmail)) return;
+        _isActionSubmitting = true;
+        await Task.Delay(1200);
+        if (_user != null) { _user.UserName = _editUserName; _user.Email = _editEmail; }
+        _isActionSubmitting = false; _showEditModal = false;
+        StateHasChanged();
+    }
+
+    private async Task HandleResetPassword()
+    {
+        if (string.IsNullOrWhiteSpace(_newPassword) || _newPassword != _confirmPassword) return;
+        _isActionSubmitting = true;
+        await Task.Delay(1200);
+        _isActionSubmitting = false; _showResetPasswordModal = false; _newPassword = _confirmPassword = "";
+    }
+
+    private async Task HandleReassignBranch()
+    {
+        if (string.IsNullOrWhiteSpace(_selectedBranchId)) return;
+        _isActionSubmitting = true;
+        await Task.Delay(1200);
+        var branch = _branches?.FirstOrDefault(b => b.Id.ToString() == _selectedBranchId);
+        if (branch != null) { _branchName = branch.Name; _branchAddress = branch.Address; }
+        _isActionSubmitting = false; _showReassignModal = false;
+    }
+
+    private async Task HandleDeactivateAccount()
+    {
+        _isActionSubmitting = true;
+        await Task.Delay(1200);
+        _isActionSubmitting = false; _showDeactivateModal = false;
+        Navigation.NavigateTo("/users");
+    }
+
+    private async Task ReinitIcons()
+    {
+        await Task.Delay(100);
+        await JSRuntime.InvokeVoidAsync("initIcons");
+    }
+
+    private void GoBack()
+    {
+        Navigation.NavigateTo("/users");
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JSRuntime.InvokeVoidAsync("initIcons");
+        }
+    }
+}

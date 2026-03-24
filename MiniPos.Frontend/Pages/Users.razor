@@ -43,7 +43,7 @@
                 var initials = nameParts.Length > 1 
                     ? $"{nameParts[0][0]}{nameParts[nameParts.Length - 1][0]}".ToUpper() 
                     : user.UserName.Substring(0, Math.Min(2, user.UserName.Length)).ToUpper();
-                <div class="pos-card relative overflow-visible group hover:-translate-y-1 transition-transform bg-white/40 @(user.Role == "Admin" ? "border-primary/20" : "")">
+                <div class="pos-card relative overflow-visible group hover:-translate-y-1 transition-transform bg-white/40 cursor-pointer @(user.Role == "Admin" ? "border-primary/20" : "")" @onclick="() => GoToUserDetail(user.Id)">
                     <!-- Top Role Badge & Actions -->
                     <div class="flex justify-between items-start w-full">
                         <span class="badge @ui.BadgeClass px-2.5 py-1 uppercase tracking-widest text-[9px] shadow-sm flex items-center">
@@ -185,5 +185,10 @@
     private void GoToAddStaff()
     {
         Navigation.NavigateTo("/users/add");
+    }
+
+    private void GoToUserDetail(Guid userId)
+    {
+        Navigation.NavigateTo($"/users/{userId}");
     }
 }
