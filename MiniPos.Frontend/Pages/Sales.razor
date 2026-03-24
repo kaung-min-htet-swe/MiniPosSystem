@@ -1,0 +1,293 @@
+@page "/sales"
+@using MiniPos.Frontend.Models
+@using System.Net.Http.Json
+
+<PageTitle>Sales - MiniPOS</PageTitle>
+
+<!-- Seamless Animated Background -->
+<div class="fixed inset-0 z-[-1] overflow-hidden bg-slate-50">
+    <div class="absolute inset-0 bg-gradient-to-br from-blue-50/80 via-white/80 to-indigo-50/80 backdrop-blur-3xl"></div>
+    <div class="absolute top-[-20%] right-[-10%] w-[60%] h-[60%] bg-blue-400/10 blur-[120px] rounded-full animate-pulse mix-blend-multiply"></div>
+    <div class="absolute bottom-[-20%] left-[-10%] w-[60%] h-[60%] bg-indigo-500/10 blur-[120px] rounded-full animate-pulse delay-700 mix-blend-multiply"></div>
+</div>
+
+<div class="animate-slide-down h-full flex flex-col p-6 max-h-screen">
+    
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 shrink-0">
+        <div>
+            <h1 class="text-4xl font-black tracking-tight text-foreground bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 drop-shadow-sm">Sales</h1>
+            <p class="text-muted-foreground mt-2 text-sm font-medium">Review past transactions, filter by date ranges, and search for specific product sales.</p>
+        </div>
+        <div class="flex items-center gap-3">
+            <button class="bg-white/60 hover:bg-white backdrop-blur-xl border border-white/80 text-foreground font-bold py-2.5 px-5 rounded-2xl shadow-sm hover:shadow-md transition-all flex items-center gap-2 text-sm" @onclick="ResetFilters">
+                <i data-lucide="refresh-cw" class="w-4 h-4 text-muted-foreground"></i> Reset Filters
+            </button>
+        </div>
+    </div>
+
+    <!-- Advanced Filter Bar (Glassmorphic) -->
+    <div class="bg-white/60 backdrop-blur-2xl border border-white/80 rounded-[2rem] p-5 shadow-lg shadow-black/5 mb-6 shrink-0 flex flex-col xl:flex-row gap-4 items-end xl:items-center relative z-20">
+        
+        <!-- Date Filters -->
+        <div class="flex flex-wrap md:flex-nowrap gap-4 w-full xl:w-auto">
+            <div class="flex flex-col gap-1.5 w-full md:w-auto">
+                <label class="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2">Start Date</label>
+                <input type="date" @bind="_startDate" class="bg-white/80 border border-border/50 text-foreground text-sm rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 shadow-sm font-medium transition-all" />
+            </div>
+            <div class="flex flex-col gap-1.5 w-full md:w-auto">
+                <label class="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2">End Date</label>
+                <input type="date" @bind="_endDate" class="bg-white/80 border border-border/50 text-foreground text-sm rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 shadow-sm font-medium transition-all" />
+            </div>
+        </div>
+
+        <!-- Divider -->
+        <div class="hidden xl:block w-px h-12 bg-border/60 mx-2"></div>
+
+        <!-- Product Filter -->
+        <div class="flex flex-col gap-1.5 w-full xl:w-auto flex-1">
+            <label class="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2">Product Search (In Orders)</label>
+            <div class="relative">
+                <div class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none">
+                    <i data-lucide="search" class="w-4 h-4 text-muted-foreground"></i>
+                </div>
+                <input type="text" @bind="_productSearch" @bind:event="oninput" @onkeyup="ApplyFilters" placeholder="e.g. Latte, Croissant..." class="bg-white/80 border border-border/50 text-foreground text-sm rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5 shadow-sm font-medium transition-all placeholder:text-muted-foreground/60" />
+            </div>
+        </div>
+
+        <!-- Action Base -->
+        <div class="w-full xl:w-auto flex shrink-0">
+            <button class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-black py-2.5 px-8 rounded-2xl shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 transition-all hover:-translate-y-0.5 active:scale-95 flex items-center justify-center gap-2 w-full" @onclick="ApplyFilters">
+                <i data-lucide="filter" class="w-4 h-4"></i> Apply Filters
+            </button>
+        </div>
+    </div>
+
+    <!-- Data Table Container -->
+    <div class="flex-1 bg-white/70 backdrop-blur-2xl border border-white/80 rounded-[2rem] shadow-xl shadow-black/5 overflow-hidden flex flex-col relative z-10">
+        
+        @if (_isLoading)
+        {
+            <div class="flex-1 flex flex-col items-center justify-center p-12 relative">
+                <div class="absolute w-24 h-24 bg-blue-500/20 blur-xl rounded-full animate-ping"></div>
+                <div class="animate-spin rounded-full h-12 w-12 border-4 border-t-blue-600 border-blue-200 relative z-10"></div>
+                <span class="mt-6 text-sm font-bold text-muted-foreground tracking-widest uppercase">Fetching Sales History...</span>
+            </div>
+        }
+        else if (_filteredOrders == null || !_filteredOrders.Any())
+        {
+            <div class="flex-1 flex flex-col items-center justify-center p-12 text-center">
+                <div class="w-20 h-20 bg-muted/50 rounded-full flex items-center justify-center mb-4">
+                    <i data-lucide="file-question" class="w-10 h-10 text-muted-foreground/50"></i>
+                </div>
+                <h3 class="text-xl font-black text-foreground mb-2">No Transactions Found</h3>
+                <p class="text-muted-foreground text-sm max-w-md">No orders match your current date range and product filters. Try adjusting your parameters.</p>
+            </div>
+        }
+        else
+        {
+            <div class="overflow-x-auto overflow-y-auto flex-1 stylish-scrollbar">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-white/80 backdrop-blur-md sticky top-0 z-20 border-b border-border/60 shadow-sm">
+                        <tr>
+                            <th class="p-4 pl-6 text-[10px] font-black uppercase tracking-widest text-muted-foreground whitespace-nowrap">Order Ref</th>
+                            <th class="p-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground whitespace-nowrap">Date & Time</th>
+                            <th class="p-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground whitespace-nowrap">Customer</th>
+                            <th class="p-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground whitespace-nowrap">Items Sold</th>
+                            <th class="p-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground whitespace-nowrap text-right">Total Amount</th>
+                            <th class="p-4 pr-6 text-[10px] font-black uppercase tracking-widest text-muted-foreground whitespace-nowrap text-center">Receipt</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-border/40">
+                        @foreach (var order in _filteredOrders)
+                        {
+                            <tr class="hover:bg-primary/5 transition-colors group">
+                                <!-- Order Ref -->
+                                <td class="p-4 pl-6 align-middle">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-9 h-9 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center shadow-inner">
+                                            <i data-lucide="receipt" class="w-4 h-4"></i>
+                                        </div>
+                                        <div>
+                                            <div class="font-bold text-foreground font-outfit text-sm">#@order.Id.ToString().Substring(0, 8).ToUpper()</div>
+                                            <div class="text-[10px] font-semibold text-muted-foreground uppercase">Cashier: @(order.ProcessedBy?.Username ?? "System")</div>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <!-- Date -->
+                                <td class="p-4 align-middle">
+                                    <div class="font-bold text-sm text-foreground">@order.OrderDate.ToString("MMM dd, yyyy")</div>
+                                    <div class="text-xs text-muted-foreground font-medium">@order.OrderDate.ToString("hh:mm tt")</div>
+                                </td>
+
+                                <!-- Customer -->
+                                <td class="p-4 align-middle">
+                                    @if(order.Customer != null)
+                                    {
+                                        <div class="font-bold text-sm text-foreground">@order.Customer.Name</div>
+                                        <div class="text-[10px] text-muted-foreground uppercase font-semibold">Registered Client</div>
+                                    }
+                                    else
+                                    {
+                                        <span class="px-2 py-1 bg-muted/50 rounded-full text-xs font-semibold text-muted-foreground">Walk-in</span>
+                                    }
+                                </td>
+
+                                <!-- Items -->
+                                <td class="p-4 align-middle">
+                                    <div class="flex items-center gap-2">
+                                        <div class="flex -space-x-2">
+                                            @foreach(var item in order.OrderItems.Take(3))
+                                            {
+                                                <!-- Tiny icon mock for product type -->
+                                                <div class="w-7 h-7 rounded-full bg-white border-2 border-slate-50 flex items-center justify-center shadow-sm text-xs font-black text-slate-400" title="@item.Product.Name">
+                                                    @(item.Product.Name.Substring(0,1))
+                                                </div>
+                                            }
+                                            @if(order.OrderItems.Count > 3)
+                                            {
+                                                <div class="w-7 h-7 rounded-full bg-slate-100 border-2 border-slate-50 flex items-center justify-center shadow-sm text-[10px] font-black text-slate-500">
+                                                    +@(order.OrderItems.Count - 3)
+                                                </div>
+                                            }
+                                        </div>
+                                        <span class="text-xs font-bold text-muted-foreground">(@order.OrderItems.Sum(i => i.Quantity) items)</span>
+                                    </div>
+                                </td>
+
+                                <!-- Total Amount -->
+                                <td class="p-4 align-middle text-right">
+                                    <div class="font-black font-outfit text-base text-foreground">$@order.TotalAmount.ToString("F2")</div>
+                                    <div class="text-[10px] font-bold text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-full inline-block mt-1">Paid</div>
+                                </td>
+
+                                <!-- Actions -->
+                                <td class="p-4 pr-6 align-middle text-center">
+                                    <button class="w-8 h-8 rounded-full bg-white shadow-sm border border-border flex items-center justify-center text-muted-foreground hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 transition-all mx-auto active:scale-95 group-hover:shadow-md">
+                                        <i data-lucide="printer" class="w-4 h-4"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            
+             <!-- Footer Summary -->
+            <div class="p-4 px-6 bg-white/50 border-t border-border/50 flex justify-between items-center backdrop-blur-md">
+                <div class="text-sm font-semibold text-muted-foreground">
+                    Showing <span class="font-black text-foreground">@_filteredOrders.Count</span> matching transactions
+                </div>
+                <div class="text-sm font-semibold text-muted-foreground flex gap-4">
+                    <span>Total Revenue (Filtered):</span>
+                    <span class="font-black font-outfit text-lg text-blue-600">$@_filteredOrders.Sum(o => o.TotalAmount).ToString("F2")</span>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .stylish-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+    .stylish-scrollbar::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.02); }
+    .stylish-scrollbar::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.1); border-radius: 10px; }
+    .stylish-scrollbar:hover::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.2); }
+</style>
+
+@code {
+    [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
+    [Inject] private HttpClient Http { get; set; } = default!;
+
+    private bool _isLoading = true;
+    private List<Order> _allOrders = new();
+    private List<Order> _filteredOrders = new();
+
+    // Filters
+    private DateTime? _startDate;
+    private DateTime? _endDate;
+    private string _productSearch = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        _isLoading = true;
+        
+        try
+        {
+            var data = await Http.GetFromJsonAsync<List<Order>>("sample-data/orders.json");
+            if (data != null)
+            {
+                _allOrders = data;
+                
+                // Set default dates based on the dummy data (which spans last 30 days usually)
+                if (_allOrders.Any())
+                {
+                    // Let's default to viewing all available data but set the inputs
+                    _endDate = DateTime.Today;
+                    _startDate = DateTime.Today.AddDays(-30);
+                }
+                
+                ApplyFilters();
+            }
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private void ApplyFilters()
+    {
+        var query = _allOrders.AsQueryable();
+
+        // 1. Date Range Filter
+        if (_startDate.HasValue)
+        {
+            query = query.Where(o => o.OrderDate.Date >= _startDate.Value.Date);
+        }
+        if (_endDate.HasValue)
+        {
+            // Include entire end date day
+            query = query.Where(o => o.OrderDate.Date <= _endDate.Value.Date);
+        }
+
+        // 2. Product Text Filter (Searches inside nested OrderItems)
+        if (!string.IsNullOrWhiteSpace(_productSearch))
+        {
+            var term = _productSearch.Trim();
+            query = query.Where(o => o.OrderItems.Any(i => 
+                i.Product != null && 
+                i.Product.Name.Contains(term, StringComparison.OrdinalIgnoreCase)));
+        }
+
+        // Sort by newest first
+        _filteredOrders = query.OrderByDescending(o => o.OrderDate).ToList();
+
+        // Re-init icons when list changes
+        StateHasChanged();
+        _ = ReRenderIconsAsync();
+    }
+
+    private void ResetFilters()
+    {
+        _startDate = DateTime.Today.AddDays(-30);
+        _endDate = DateTime.Today;
+        _productSearch = "";
+        ApplyFilters();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JSRuntime.InvokeVoidAsync("initIcons");
+        }
+    }
+
+    private async Task ReRenderIconsAsync()
+    {
+        // Give DOM time to update before painting lucide icons
+        await Task.Delay(50);
+        await JSRuntime.InvokeVoidAsync("initIcons");
+    }
+}
