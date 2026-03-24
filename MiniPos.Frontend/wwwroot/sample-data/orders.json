@@ -1,0 +1,65 @@
+[
+  {
+    "Id": "00000000-0000-0000-0000-00000000991A",
+    "OrderDate": "2024-03-24T10:00:00Z",
+    "TotalAmount": 44.82,
+    "Customer": { "Name": "Dina Smith" },
+    "ProcessedBy": { "Username": "Alice S.", "Role": "Admin" },
+    "OrderItems": [
+      { "Quantity": 2, "SubTotal": 24.00, "Product": { "Name": "Espresso Roast", "Sku": "BEAN-01" } },
+      { "Quantity": 1, "SubTotal": 5.50, "Product": { "Name": "Almond Croissant", "Sku": "BAK-03" } },
+      { "Quantity": 1, "SubTotal": 12.00, "Product": { "Name": "Ceramic Mug", "Sku": "MERCH-04" } }
+    ]
+  },
+  {
+    "Id": "00000000-0000-0000-0000-000000009919",
+    "OrderDate": "2024-03-24T09:45:00Z",
+    "TotalAmount": 18.00,
+    "ProcessedBy": { "Username": "Alice S.", "Role": "Admin" },
+    "OrderItems": [
+      { "Quantity": 1, "SubTotal": 18.00, "Product": { "Name": "House Blend", "Sku": "BEAN-02" } }
+    ]
+  },
+  {
+    "Id": "00000000-0000-0000-0000-000000009918",
+    "OrderDate": "2024-03-24T09:15:00Z",
+    "TotalAmount": 114.25,
+    "Customer": { "Name": "John D." },
+    "ProcessedBy": { "Username": "Alice S.", "Role": "Admin" },
+    "OrderItems": [
+      { "Quantity": 6, "SubTotal": 114.25, "Product": { "Name": "Bulk Order Mix", "Sku": "MIX-01" } }
+    ]
+  },
+  {
+    "Id": "00000000-0000-0000-0000-000000009917",
+    "OrderDate": "2024-03-24T08:30:00Z",
+    "TotalAmount": 24.00,
+    "ProcessedBy": { "Username": "Alice S.", "Role": "Admin" },
+    "OrderItems": [
+      { "Quantity": 2, "SubTotal": 24.00, "Product": { "Name": "Matcha Latte", "Sku": "DRNK-05" } }
+    ]
+  },
+  {
+    "Id": "00000000-0000-0000-0000-000000008923",
+    "OrderDate": "2024-03-24T09:40:00Z",
+    "TotalAmount": 124.50,
+    "Customer": { "Name": "John Smith" }
+  },
+  {
+    "Id": "00000000-0000-0000-0000-000000008922",
+    "OrderDate": "2024-03-24T09:27:00Z",
+    "TotalAmount": 42.00,
+    "Customer": { "Name": "Alice Wong" }
+  },
+  {
+    "Id": "00000000-0000-0000-0000-000000008921",
+    "OrderDate": "2024-03-24T08:42:00Z",
+    "TotalAmount": 210.75,
+    "Customer": { "Name": "Mike Ross" }
+  },
+  {
+    "Id": "00000000-0000-0000-0000-000000008920",
+    "OrderDate": "2024-03-24T07:42:00Z",
+    "TotalAmount": 18.99
+  }
+]

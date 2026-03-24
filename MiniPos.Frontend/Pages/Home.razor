@@ -1,4 +1,6 @@
 @page "/"
+@using MiniPos.Frontend.Models
+@using System.Net.Http.Json
 
 <PageTitle>Dashboard - MiniPOS</PageTitle>
 
@@ -123,74 +125,114 @@
 
         <!-- Recent Orders Section -->
         <div class="pos-card flex flex-col">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-lg font-bold">Recent Orders</h3>
-                <a href="/orders" class="text-sm text-primary font-medium hover:underline">View All</a>
+            <div class="p-6 pb-2 border-b border-border/40">
+                <h2 class="font-bold text-lg text-foreground flex items-center">
+                    <i data-lucide="clock" class="w-4 h-4 mr-2 text-primary"></i> Recent Orders
+                </h2>
             </div>
             
-            <div class="flex flex-col gap-4">
-                <!-- Order Item -->
-                <div class="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors border border-transparent hover:border-border/50 cursor-pointer">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">JS</div>
-                        <div>
-                            <p class="text-sm font-semibold">John Smith</p>
-                            <p class="text-xs text-muted-foreground">ORD-8923 • 2 mins ago</p>
-                        </div>
+            <div class="p-4 flex flex-col gap-3">
+                @if (_recentOrders == null)
+                {
+                    <div class="flex items-center justify-center p-8">
+                        <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
                     </div>
-                    <div class="text-right">
-                        <p class="text-sm font-bold">$124.50</p>
-                        <span class="badge badge-success mt-1">Paid</span>
-                    </div>
-                </div>
+                }
+                else
+                {
+                    @foreach (var order in _recentOrders.Take(4))
+                {
+                    var ui = _orderUIs.GetValueOrDefault(order.Id, new OrderUI { Initials = "GU", BgClass = "bg-muted text-muted-foreground", StatusText = "Paid", StatusClass = "badge-success" });
+                    var customerName = order.Customer?.Name ?? "Guest User";
+                    var timeAgo = GetTimeAgo(order.OrderDate);
+                    var orderNumber = GetFormattedOrderNumber(order.Id);
 
-                <!-- Order Item -->
-                <div class="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors border border-transparent hover:border-border/50 cursor-pointer">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-full bg-accent text-accent-foreground flex items-center justify-center font-bold text-sm">AW</div>
-                        <div>
-                            <p class="text-sm font-semibold">Alice Wong</p>
-                            <p class="text-xs text-muted-foreground">ORD-8922 • 15 mins ago</p>
+                    <div class="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors border border-transparent hover:border-border/50 cursor-pointer">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full @ui.BgClass flex items-center justify-center font-bold text-sm">
+                                @if (customerName == "Guest User")
+                                {
+                                    <i data-lucide="user" class="w-4 h-4"></i>
+                                }
+                                else
+                                {
+                                    @ui.Initials
+                                }
+                            </div>
+                            <div>
+                                <p class="text-sm font-semibold">@customerName</p>
+                                <p class="text-xs text-muted-foreground">@orderNumber • @timeAgo</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-sm font-bold">$@order.TotalAmount.ToString("F2")</p>
+                            <span class="badge @ui.StatusClass mt-1">@ui.StatusText</span>
                         </div>
                     </div>
-                    <div class="text-right">
-                        <p class="text-sm font-bold">$42.00</p>
-                        <span class="badge badge-warning mt-1">Pending</span>
-                    </div>
-                </div>
-
-                <!-- Order Item -->
-                <div class="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors border border-transparent hover:border-border/50 cursor-pointer">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-full bg-success-bg text-success flex items-center justify-center font-bold text-sm">MR</div>
-                        <div>
-                            <p class="text-sm font-semibold">Mike Ross</p>
-                            <p class="text-xs text-muted-foreground">ORD-8921 • 1 hour ago</p>
-                        </div>
-                    </div>
-                    <div class="text-right">
-                        <p class="text-sm font-bold">$210.75</p>
-                        <span class="badge badge-success mt-1">Paid</span>
-                    </div>
-                </div>
-
-                <!-- Order Item -->
-                <div class="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors border border-transparent hover:border-border/50 cursor-pointer">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-full bg-muted text-muted-foreground flex items-center justify-center font-bold text-sm">
-                            <i data-lucide="user" class="w-4 h-4"></i>
-                        </div>
-                        <div>
-                            <p class="text-sm font-semibold">Guest User</p>
-                            <p class="text-xs text-muted-foreground">ORD-8920 • 2 hours ago</p>
-                        </div>
-                    </div>
-                    <div class="text-right">
-                        <p class="text-sm font-bold">$18.99</p>
-                        <span class="badge badge-success mt-1">Paid</span>
-                    </div>
-                </div>
+                    }
+                }
             </div>
         </div>
     </div>
 </div>
+
+@code {
+    [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
+    [Inject] private HttpClient Http { get; set; } = default!;
+
+    public class OrderUI
+    {
+        public string Initials { get; set; } = "";
+        public string BgClass { get; set; } = "";
+        public string StatusText { get; set; } = "";
+        public string StatusClass { get; set; } = "";
+    }
+
+    private List<Order>? _recentOrders;
+    private Dictionary<Guid, OrderUI> _orderUIs = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var allOrders = await Http.GetFromJsonAsync<List<Order>>("sample-data/orders.json");
+        
+        if (allOrders != null)
+        {
+            // Just take the later 4 orders for the dashboard mapping
+            _recentOrders = allOrders.Where(o => o.Id.ToString().StartsWith("00000000-0000-0000-0000-0000000089")).ToList();
+            if(!_recentOrders.Any()) _recentOrders = allOrders.Take(4).ToList();
+
+            var id1 = Guid.Parse("00000000-0000-0000-0000-000000008923");
+            var id2 = Guid.Parse("00000000-0000-0000-0000-000000008922");
+            var id3 = Guid.Parse("00000000-0000-0000-0000-000000008921");
+            var id4 = Guid.Parse("00000000-0000-0000-0000-000000008920");
+
+            _orderUIs[id1] = new OrderUI { Initials = "JS", BgClass = "bg-primary/10 text-primary", StatusText = "Paid", StatusClass = "badge-success" };
+            _orderUIs[id2] = new OrderUI { Initials = "AW", BgClass = "bg-accent text-accent-foreground", StatusText = "Pending", StatusClass = "badge-warning" };
+            _orderUIs[id3] = new OrderUI { Initials = "MR", BgClass = "bg-success/20 text-success", StatusText = "Paid", StatusClass = "badge-success" };
+            _orderUIs[id4] = new OrderUI { Initials = "GU", BgClass = "bg-muted text-muted-foreground", StatusText = "Paid", StatusClass = "badge-success" };
+        }
+    }
+
+    private string GetTimeAgo(DateTime date)
+    {
+        var ts = DateTime.Now - date;
+        if (ts.TotalMinutes < 60) return $"{(int)ts.TotalMinutes} mins ago";
+        if (ts.TotalHours < 24) return $"{(int)ts.TotalHours} hour{(ts.TotalHours >= 2 ? "s" : "")} ago";
+        return date.ToString("MMM dd");
+    }
+
+    private string GetFormattedOrderNumber(Guid id)
+    {
+        var idStr = id.ToString().Split('-').Last().ToUpper();
+        if (idStr.Length > 4) idStr = idStr.Substring(idStr.Length - 4);
+        return $"ORD-{idStr}";
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JSRuntime.InvokeVoidAsync("initIcons");
+        }
+    }
+}

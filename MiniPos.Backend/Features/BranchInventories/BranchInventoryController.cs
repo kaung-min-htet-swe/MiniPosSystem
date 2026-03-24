@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace MiniPos.Backend.Features.BranchInventories;
 
 [ApiController]
-[Route("api/products")]
+[Route("api/inventories")]
 public class BranchInventoryController : ControllerBase
 {
     private readonly IBranchInventoryService _branchInventoryService;

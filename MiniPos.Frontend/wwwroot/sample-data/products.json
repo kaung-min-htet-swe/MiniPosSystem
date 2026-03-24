@@ -1,0 +1,30 @@
+[
+  {
+    "Id": "00000000-0000-0000-0000-00000000881A",
+    "Name": "Espresso Dark Roast",
+    "Sku": "BEAN-01",
+    "Price": 24.00,
+    "BranchInventories": [ { "StockQuantity": 142 } ]
+  },
+  {
+    "Id": "00000000-0000-0000-0000-000000008819",
+    "Name": "Matcha Premium Powder",
+    "Sku": "TEA-MA-02",
+    "Price": 32.50,
+    "BranchInventories": [ { "StockQuantity": 18 } ]
+  },
+  {
+    "Id": "00000000-0000-0000-0000-000000008818",
+    "Name": "Almond Butter Croissant",
+    "Sku": "BAK-03",
+    "Price": 5.50,
+    "BranchInventories": [ { "StockQuantity": 45 } ]
+  },
+  {
+    "Id": "00000000-0000-0000-0000-000000008817",
+    "Name": "Ceramic Logo Mug",
+    "Sku": "MERCH-04",
+    "Price": 12.00,
+    "BranchInventories": [ { "StockQuantity": 0 } ]
+  }
+]

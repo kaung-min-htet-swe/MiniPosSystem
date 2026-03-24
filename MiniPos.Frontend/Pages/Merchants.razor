@@ -1,21 +1,24 @@
 @page "/merchants"
+@using MiniPos.Frontend.Models
+@using System.Net.Http.Json
 
 <PageTitle>Merchants - MiniPOS</PageTitle>
 
 <div class="animate-slide-down">
     <!-- Header -->
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-12 gap-4">
+    <div class="mt-8 mb-6 flex justify-between items-end">
         <div>
-            <h1 class="text-3xl font-bold tracking-tight text-foreground">Merchants & Franchises</h1>
-            <p class="text-muted-foreground mt-1 text-sm">Monitor performance and manage all your connected stores.</p>
+            <h2 class="text-2xl font-bold tracking-tight">Active Merchants</h2>
+            <p class="text-sm text-muted-foreground mt-1">Manage and monitor all point-of-sale operators.</p>
         </div>
+
         <div class="flex items-center gap-3">
-            <div class="hidden sm:flex relative mr-2">
-                <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"></i>
-                <input type="text" placeholder="Search merchants..." class="pl-9 pr-4 py-4 bg-white/60 backdrop-blur-sm border border-border/60 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 w-48 transition-all hover:bg-white" />
+            <div class="relative max-w-sm">
+                <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground"></i>
+                <input type="text" placeholder="Search merchants..." class="bg-background border border-input rounded-md pl-9 pr-4 py-2 text-sm max-w-[200px] focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-colors" />
             </div>
-            <button class="btn btn-outline bg-white hover:bg-muted shadow-sm rounded-lg p-2">
-                <i data-lucide="filter" class="w-4 h-4"></i>
+            <button class="btn btn-outline border-border h-9">
+                <i data-lucide="filter" class="w-4 h-4 mr-2"></i> Filter
             </button>
             <button class="btn btn-primary rounded-lg shadow-primary">
                 <i data-lucide="plus" class="w-4 h-4 mr-2"></i>
@@ -24,156 +27,185 @@
         </div>
     </div>
 
-    <!-- Stunning Grid Layout for Merchants -->
-    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-        
-        <!-- Merchant Card 1 -->
-        <div class="pos-card relative overflow-hidden group hover:border-primary/30 transition-all p-0 flex flex-col">
-            <div class="absolute -right-12 -top-12 w-32 h-32 bg-primary/10 rounded-full blur-2xl group-hover:bg-primary/20 transition-colors"></div>
-            
-            <div class="p-6 pb-4">
-                <div class="flex justify-between items-start mb-4">
-                    <div class="flex items-center gap-3">
-                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 text-primary flex items-center justify-center font-bold font-outfit text-lg shadow-sm">
-                            SM
-                        </div>
-                        <div>
-                            <h3 class="font-bold text-lg text-foreground -mb-1">Super Mart LLC</h3>
-                            <span class="text-xs text-muted-foreground">ID: 8A9B-2F34</span>
-                        </div>
-                    </div>
-                    <button class="btn btn-ghost p-1 text-muted-foreground hover:text-foreground">
-                        <i data-lucide="more-vertical" class="w-4 h-4"></i>
-                    </button>
-                </div>
-
-                <div class="grid grid-cols-2 gap-4 mt-6">
-                    <div>
-                        <div class="text-xs text-muted-foreground uppercase font-semibold tracking-wider mb-1">Today's Sales</div>
-                        <div class="font-bold text-xl font-outfit">$4,290</div>
-                    </div>
-                    <div>
-                        <div class="text-xs text-muted-foreground uppercase font-semibold tracking-wider mb-1">Active Branches</div>
-                        <div class="font-bold text-lg">12 / 12</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Mini Trend Chart (SVG) -->
-            <div class="w-full h-16 relative bg-muted/10 mt-auto border-t border-border/30">
-                <div class="absolute inset-0 flex items-center justify-between px-4 pb-2 z-10 text-[10px] font-bold text-success">
-                    <span class="flex items-center"><i data-lucide="trending-up" class="w-3 h-3 mr-1"></i> +8.4%</span>
-                </div>
-                <!-- Artificial SVG Chart -->
-                <svg viewBox="0 0 400 64" class="w-full h-full pt-2" preserveAspectRatio="none">
-                    <defs>
-                        <linearGradient id="chartGlowSM" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stop-color="hsl(var(--success))" stop-opacity="0.2" />
-                            <stop offset="100%" stop-color="hsl(var(--success))" stop-opacity="0.0" />
-                        </linearGradient>
-                    </defs>
-                    <path d="M0,64 L0,40 C50,45 100,20 150,30 C200,40 250,10 300,25 C350,40 380,15 400,5 L400,64 Z" fill="url(#chartGlowSM)" />
-                    <path d="M0,40 C50,45 100,20 150,30 C200,40 250,10 300,25 C350,40 380,15 400,5" fill="none" stroke="hsl(var(--success))" stroke-width="2" />
-                </svg>
-            </div>
+    @if (_merchants == null)
+    {
+        <div class="flex items-center justify-center p-12">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
+    }
+    else
+    {
+        <!-- Overview Statistics -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            @foreach (var merchant in _merchants)
+            {
+                var stats = _merchantStats.GetValueOrDefault(merchant.Id, new MerchantStats { TotalSales = 0, ActiveBranches = 0, Trend = 0, TrendUp = true, SvgId = "chartGlowSM" });
+                var colorClass = merchant.IsActive ? (stats.TrendUp ? "primary" : "warning") : "border";
+                var textGlowOrMuted = merchant.IsActive ? $"text-{colorClass}" : "text-muted-foreground";
+                var bgGradient = merchant.IsActive ? $"from-{colorClass}/20 to-{colorClass}/5" : "bg-muted";
+                var glowClass = merchant.IsActive ? $"bg-{colorClass}/10 group-hover:bg-{colorClass}/20" : "";
+                var opacityClass = merchant.IsActive ? "" : "bg-muted/30 opacity-80 backdrop-blur-none grayscale";
+                var idOrEmail = merchant.ContactEmail != null ? merchant.ContactEmail : $"ID: {merchant.Id.ToString().Substring(0,8).ToUpper()}";
+                var initials = GetInitials(merchant.Name);
 
-        <!-- Merchant Card 2 -->
-        <div class="pos-card relative overflow-hidden group hover:border-warning/30 transition-all p-0 flex flex-col">
-            <div class="absolute -right-12 -top-12 w-32 h-32 bg-warning/10 rounded-full blur-2xl group-hover:bg-warning/20 transition-colors"></div>
-            
-            <div class="p-6 pb-4">
-                <div class="flex justify-between items-start mb-4">
-                    <div class="flex items-center gap-3">
-                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-warning/20 to-warning/5 text-warning flex items-center justify-center font-bold font-outfit text-lg shadow-sm">
-                            CF
-                        </div>
-                        <div>
-                            <h3 class="font-bold text-lg text-foreground -mb-1">Coffee Fusion</h3>
-                            <span class="text-xs text-muted-foreground">hello@coffeefusion.io</span>
-                        </div>
-                    </div>
-                    <button class="btn btn-ghost p-1 text-muted-foreground hover:text-foreground">
-                        <i data-lucide="more-vertical" class="w-4 h-4"></i>
-                    </button>
-                </div>
-
-                <div class="grid grid-cols-2 gap-4 mt-6">
-                    <div>
-                        <div class="text-xs text-muted-foreground uppercase font-semibold tracking-wider mb-1">Today's Sales</div>
-                        <div class="font-bold text-xl font-outfit">$1,850</div>
-                    </div>
-                    <div>
-                        <div class="text-xs text-muted-foreground uppercase font-semibold tracking-wider mb-1">Active Branches</div>
-                        <div class="font-bold text-lg">3 / 4 <span class="text-xs text-destructive font-normal ml-1">(1 Offline)</span></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Mini Trend Chart (SVG) -->
-            <div class="w-full h-16 relative bg-muted/10 mt-auto border-t border-border/30">
-                <div class="absolute inset-0 flex items-center justify-between px-4 pb-2 z-10 text-[10px] font-bold text-primary">
-                    <span class="flex items-center"><i data-lucide="trending-up" class="w-3 h-3 mr-1"></i> +2.1%</span>
-                </div>
-                <!-- Artificial SVG Chart -->
-                <svg viewBox="0 0 400 64" class="w-full h-full pt-2" preserveAspectRatio="none">
-                    <defs>
-                        <linearGradient id="chartGlowCF" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stop-color="hsl(var(--primary))" stop-opacity="0.2" />
-                            <stop offset="100%" stop-color="hsl(var(--primary))" stop-opacity="0.0" />
-                        </linearGradient>
-                    </defs>
-                    <path d="M0,64 L0,20 C50,15 100,40 150,30 C200,20 250,50 300,35 C350,20 380,35 400,25 L400,64 Z" fill="url(#chartGlowCF)" />
-                    <path d="M0,20 C50,15 100,40 150,30 C200,20 250,50 300,35 C350,20 380,35 400,25" fill="none" stroke="hsl(var(--primary))" stroke-width="2" />
-                </svg>
-            </div>
-        </div>
-
-        <!-- Merchant Card 3 (Inactive) -->
-        <div class="pos-card relative overflow-hidden group hover:border-border transition-all p-0 flex flex-col bg-muted/30 opacity-80 backdrop-blur-none">
-            
-            <div class="p-6 pb-4">
-                <div class="flex justify-between items-start mb-4">
-                    <div class="flex items-center gap-3">
-                        <div class="w-12 h-12 rounded-xl bg-muted border border-border text-muted-foreground flex items-center justify-center font-bold font-outfit text-lg shadow-sm grayscale">
-                            BR
-                        </div>
-                        <div>
-                            <div class="flex items-center gap-2">
-                                <h3 class="font-bold text-lg text-foreground -mb-1">Bakers & Roasters</h3>
-                                <span class="badge bg-muted-foreground text-white text-[9px] px-1.5 py-0">Inactive</span>
+                <div class="pos-card relative overflow-hidden group hover:border-@colorClass/30 transition-all p-0 flex flex-col @opacityClass">
+                    @if (merchant.IsActive)
+                    {
+                        <div class="absolute -right-12 -top-12 w-32 h-32 @glowClass rounded-full blur-2xl transition-colors"></div>
+                    }
+                    
+                    <div class="p-6 pb-4">
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-12 h-12 rounded-xl bg-gradient-to-br @bgGradient @textGlowOrMuted border @(!merchant.IsActive ? "border-border" : "border-transparent") flex items-center justify-center font-bold font-outfit text-lg shadow-sm">
+                                    @initials
+                                </div>
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <h3 class="font-bold text-lg text-foreground -mb-1">@merchant.Name</h3>
+                                        @if (!merchant.IsActive)
+                                        {
+                                            <span class="badge bg-muted-foreground text-white text-[9px] px-1.5 py-0">Inactive</span>
+                                        }
+                                    </div>
+                                    <span class="text-xs text-muted-foreground">@idOrEmail</span>
+                                </div>
                             </div>
-                            <span class="text-xs text-muted-foreground">admin@bakers.com</span>
+                            <button class="btn btn-ghost p-1 text-muted-foreground hover:text-foreground">
+                                <i data-lucide="more-vertical" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4 mt-6">
+                            <div>
+                                <div class="text-xs text-muted-foreground uppercase font-semibold tracking-wider mb-1">Today's Sales</div>
+                                <div class="font-bold text-xl font-outfit @(!merchant.IsActive ? "text-muted-foreground" : "")">$@stats.TotalSales.ToString("N0")</div>
+                            </div>
+                            <div>
+                                <div class="text-xs text-muted-foreground uppercase font-semibold tracking-wider mb-1">Active Branches</div>
+                                <div class="font-bold text-lg @(!merchant.IsActive ? "text-muted-foreground" : "")">
+                                    @stats.ActiveBranches / @merchant.Branches.Count
+                                    @if (stats.ActiveBranches < merchant.Branches.Count && merchant.IsActive)
+                                    {
+                                        <span class="text-xs text-destructive font-normal ml-1">(@(merchant.Branches.Count - stats.ActiveBranches) Offline)</span>
+                                    }
+                                    else if (!merchant.IsActive)
+                                    {
+                                        <span class="text-xs font-normal ml-1">Closed</span>
+                                    }
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <button class="btn btn-ghost p-1 text-muted-foreground hover:text-foreground">
-                        <i data-lucide="more-vertical" class="w-4 h-4"></i>
-                    </button>
-                </div>
 
-                <div class="grid grid-cols-2 gap-4 mt-6">
-                    <div>
-                        <div class="text-xs text-muted-foreground uppercase font-semibold tracking-wider mb-1">Today's Sales</div>
-                        <div class="font-bold text-xl font-outfit text-muted-foreground">$0</div>
-                    </div>
-                    <div>
-                        <div class="text-xs text-muted-foreground uppercase font-semibold tracking-wider mb-1">Active Branches</div>
-                        <div class="font-bold text-lg text-muted-foreground">0 / 2 <span class="text-xs font-normal ml-1">Closed</span></div>
-                    </div>
+                    @if (merchant.IsActive)
+                    {
+                        <!-- Mini Trend Chart (SVG) -->
+                        <div class="w-full h-16 relative bg-muted/10 mt-auto border-t border-border/30">
+                            <div class="absolute inset-0 flex items-center justify-between px-4 pb-2 z-10 text-[10px] font-bold @(stats.TrendUp ? "text-success" : "text-primary")">
+                                <span class="flex items-center"><i data-lucide="trending-up" class="w-3 h-3 mr-1"></i> +@stats.Trend%</span>
+                            </div>
+                            <!-- Artificial SVG Chart -->
+                            <svg viewBox="0 0 400 64" class="w-full h-full pt-2" preserveAspectRatio="none">
+                                <defs>
+                                    <linearGradient id="@stats.SvgId" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stop-color="hsl(var(--@(stats.TrendUp ? "success" : "primary")))" stop-opacity="0.2" />
+                                        <stop offset="100%" stop-color="hsl(var(--@(stats.TrendUp ? "success" : "primary")))" stop-opacity="0.0" />
+                                    </linearGradient>
+                                </defs>
+                                <path d="@stats.SvgPathFill" fill="url(#@stats.SvgId)" />
+                                <path d="@stats.SvgPathStroke" fill="none" stroke="hsl(var(--@(stats.TrendUp ? "success" : "primary")))" stroke-width="2" />
+                            </svg>
+                        </div>
+                    }
+                    else
+                    {
+                        <!-- Empty Chart Area -->
+                        <div class="w-full h-16 relative bg-muted/50 mt-auto border-t border-border flex items-center justify-center">
+                            <span class="text-xs font-semibold text-muted-foreground"><i data-lucide="minus-circle" class="w-3 h-3 inline mr-1"></i> No Activity</span>
+                        </div>
+                    }
                 </div>
-            </div>
-
-            <!-- Empty Chart Area -->
-            <div class="w-full h-16 relative bg-muted/50 mt-auto border-t border-border flex items-center justify-center">
-                <span class="text-xs font-semibold text-muted-foreground"><i data-lucide="minus-circle" class="w-3 h-3 inline mr-1"></i> No Activity</span>
-            </div>
+            }
         </div>
-
-    </div>
+    }
 </div>
 
 @code {
     [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
+    [Inject] private HttpClient Http { get; set; } = default!;
+
+    private List<Merchant>? _merchants;
+    private Dictionary<Guid, MerchantStats> _merchantStats = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _merchants = await Http.GetFromJsonAsync<List<Merchant>>("sample-data/merchants.json");
+
+        if (_merchants != null)
+        {
+            var sm = _merchants.FirstOrDefault(m => m.Name == "Super Mart LLC");
+            if (sm != null)
+            {
+                _merchantStats[sm.Id] = new MerchantStats
+                {
+                    TotalSales = 4290,
+                    ActiveBranches = 12,
+                    Trend = 8.4,
+                    TrendUp = true,
+                    SvgId = "chartGlowSM",
+                    SvgPathFill = "M0,64 L0,40 C50,45 100,20 150,30 C200,40 250,10 300,25 C350,40 380,15 400,5 L400,64 Z",
+                    SvgPathStroke = "M0,40 C50,45 100,20 150,30 C200,40 250,10 300,25 C350,40 380,15 400,5"
+                };
+            }
+
+            var cf = _merchants.FirstOrDefault(m => m.Name == "Coffee Fusion");
+            if (cf != null)
+            {
+                _merchantStats[cf.Id] = new MerchantStats
+                {
+                    TotalSales = 1850,
+                    ActiveBranches = 3,
+                    Trend = 2.1,
+                    TrendUp = false,
+                    SvgId = "chartGlowCF",
+                    SvgPathFill = "M0,64 L0,20 C50,15 100,40 150,30 C200,20 250,50 300,35 C350,20 380,35 400,25 L400,64 Z",
+                    SvgPathStroke = "M0,20 C50,15 100,40 150,30 C200,20 250,50 300,35 C350,20 380,35 400,25"
+                };
+            }
+
+            var br = _merchants.FirstOrDefault(m => m.Name == "Bakers & Roasters");
+            if (br != null)
+            {
+                _merchantStats[br.Id] = new MerchantStats
+                {
+                    TotalSales = 0,
+                    ActiveBranches = 0,
+                    Trend = 0,
+                    TrendUp = true
+                };
+            }
+        }
+    }
+
+    private class MerchantStats
+    {
+        public decimal TotalSales { get; set; }
+        public int ActiveBranches { get; set; }
+        public double Trend { get; set; }
+        public bool TrendUp { get; set; }
+        public string SvgPathFill { get; set; } = "";
+        public string SvgPathStroke { get; set; } = "";
+        public string SvgId { get; set; } = "";
+    }
+
+    private string GetInitials(string name)
+    {
+        var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length == 0) return "M";
+        if (parts.Length == 1) return parts[0][0].ToString().ToUpper();
+        return $"{parts[0][0]}{parts[parts.Length - 1][0]}".ToUpper();
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {

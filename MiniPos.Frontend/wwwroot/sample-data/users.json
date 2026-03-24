@@ -1,0 +1,30 @@
+[
+  {
+    "Id": "00000000-0000-0000-0000-00000000771A",
+    "Username": "Alice Smith",
+    "Email": "alice@example.com",
+    "Role": "Admin",
+    "DeletedAt": null
+  },
+  {
+    "Id": "00000000-0000-0000-0000-000000007719",
+    "Username": "John Doe",
+    "Email": "john.doe@example.com",
+    "Role": "Cashier",
+    "DeletedAt": null
+  },
+  {
+    "Id": "00000000-0000-0000-0000-000000007718",
+    "Username": "Emily Wong",
+    "Email": "ewong@minipos.app",
+    "Role": "Manager",
+    "DeletedAt": null
+  },
+  {
+    "Id": "00000000-0000-0000-0000-000000007717",
+    "Username": "Robert Taylor",
+    "Email": "robert.t@example.com",
+    "Role": "Cashier",
+    "DeletedAt": "2024-03-24T00:00:00Z"
+  }
+]

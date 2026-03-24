@@ -1,6 +1,8 @@
 @page "/products"
+@using MiniPos.Frontend.Models
+@using System.Net.Http.Json
 
-<PageTitle>Products & Inventory - MiniPOS</PageTitle>
+<PageTitle>Products - MiniPOS</PageTitle>
 
 <div class="animate-slide-down">
     <!-- Header -->
@@ -21,148 +23,100 @@
         </div>
     </div>
 
-    <!-- Stunning Products Grid -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-
-        <!-- Product 1 -->
-        <div class="pos-card p-0 overflow-hidden group hover:-translate-y-1 transition-transform border-border/40 hover:border-primary/20">
-            <!-- Simulated Image Block using Jaw-Dropping CSS -->
-            <div class="h-48 w-full bg-gradient-to-br from-indigo-500 to-purple-600 relative overflow-hidden flex items-center justify-center">
-                <div class="absolute inset-0 bg-white/10 backdrop-blur-3xl"></div>
-                <!-- Abstract glowing orbs -->
-                <div class="absolute -top-10 -right-10 w-32 h-32 bg-white/20 rounded-full blur-2xl"></div>
-                <div class="absolute -bottom-10 -left-10 w-32 h-32 bg-black/10 rounded-full blur-2xl"></div>
-                
-                <i data-lucide="coffee" class="w-16 h-16 text-white/90 drop-shadow-lg relative z-10 group-hover:scale-110 transition-transform duration-500 delay-75"></i>
-                
-                <span class="absolute top-3 left-3 badge bg-white text-primary text-[10px] font-bold shadow-md rounded-full px-2">Coffee Beans</span>
-            </div>
+    @if (_products == null)
+    {
+        <div class="flex items-center justify-center p-12">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+    }
+    else
+    {
+        <!-- Beautiful Product Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             
-            <div class="p-5">
-                <div class="flex justify-between items-start mb-1">
-                    <h3 class="font-bold text-lg text-foreground line-clamp-1">Espresso Dark Roast</h3>
-                </div>
-                <div class="flex items-center gap-2 mb-4">
-                    <span class="text-xs font-medium text-muted-foreground uppercase tracking-widest">SKU: BEAN-01</span>
-                </div>
+            @foreach (var product in _products)
+            {
+                var ui = _productUIs.GetValueOrDefault(product.Id, new ProductUI { Icon = "package", Gradient = "from-primary to-primary", BadgeClass = "text-primary", BadgeText = "General", StatusClass = "bg-success", StatusText = "In Stock" });
+                var isOutOfStock = ui.StatusText == "Out of Stock";
+                var cardExtraClass = isOutOfStock ? "bg-muted/20" : "";
+                var imageExtraClass = isOutOfStock ? "grayscale" : "";
+                var stockColorClass = isOutOfStock ? "text-destructive" : "text-foreground";
+                var stockLabelColorClass = isOutOfStock ? "text-destructive" : "text-muted-foreground";
                 
-                <div class="flex justify-between items-end border-t border-border/50 pt-4">
-                    <div>
-                        <div class="text-[10px] uppercase font-bold text-muted-foreground tracking-widest mb-0.5">Stock</div>
-                        <div class="flex items-center gap-1.5">
-                            <span class="w-2 h-2 rounded-full bg-success"></span>
-                            <span class="text-sm font-semibold">142 Units</span>
+                <div class="pos-card p-0 overflow-hidden group hover:-translate-y-1 transition-transform border-border/40 hover:border-primary/20 @cardExtraClass">
+                    <!-- Simulated Image Block using Jaw-Dropping CSS -->
+                    <div class="h-48 w-full bg-gradient-to-br @ui.Gradient relative overflow-hidden flex items-center justify-center @imageExtraClass">
+                        <div class="absolute inset-0 bg-white/10 backdrop-blur-3xl"></div>
+                        <!-- Abstract glowing orbs -->
+                        <div class="absolute -top-10 -right-10 w-32 h-32 bg-white/20 rounded-full blur-2xl"></div>
+                        <div class="absolute -bottom-10 -left-10 w-32 h-32 bg-black/10 rounded-full blur-2xl"></div>
+                        
+                        <i data-lucide="@ui.Icon" class="w-16 h-16 text-white/90 drop-shadow-lg relative z-10 group-hover:scale-110 transition-transform duration-500 delay-75"></i>
+                        
+                        <span class="absolute top-3 left-3 badge bg-white @ui.BadgeClass text-[10px] font-bold shadow-md rounded-full px-2">@ui.BadgeText</span>
+                    </div>
+                    
+                    <div class="p-5">
+                        <div class="flex justify-between items-start mb-1">
+                            <h3 class="font-bold text-lg text-foreground line-clamp-1">@product.Name</h3>
+                        </div>
+                        <div class="flex items-center gap-2 mb-4">
+                            <span class="text-xs font-medium text-muted-foreground uppercase tracking-widest">SKU: @product.Sku</span>
+                        </div>
+                        
+                        <div class="flex justify-between items-end border-t border-border/50 pt-4">
+                            <div>
+                                <div class="text-[10px] uppercase font-bold @stockLabelColorClass tracking-widest mb-0.5">Stock</div>
+                                <div class="flex items-center gap-1.5">
+                                    <span class="w-2 h-2 rounded-full @ui.StatusClass @(isOutOfStock ? "animate-pulse" : "")"></span>
+                                    <span class="text-sm font-semibold @stockColorClass">
+                                        @(isOutOfStock ? "Out of Stock" : $"{product.BranchInventories.FirstOrDefault()?.StockQuantity ?? 0} Units")
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="text-xl font-bold font-outfit @(isOutOfStock ? "text-muted-foreground" : "text-primary")">$@product.Price.ToString("F2")</div>
                         </div>
                     </div>
-                    <div class="text-xl font-bold font-outfit text-primary">$24.00</div>
                 </div>
-            </div>
+            }
         </div>
-
-        <!-- Product 2 -->
-        <div class="pos-card p-0 overflow-hidden group hover:-translate-y-1 transition-transform border-border/40 hover:border-primary/20">
-            <div class="h-48 w-full bg-gradient-to-br from-emerald-400 to-teal-600 relative overflow-hidden flex items-center justify-center">
-                <div class="absolute inset-0 bg-white/10 backdrop-blur-3xl"></div>
-                <div class="absolute -top-10 -right-10 w-32 h-32 bg-white/20 rounded-full blur-2xl"></div>
-                <div class="absolute -bottom-10 -left-10 w-32 h-32 bg-black/10 rounded-full blur-2xl"></div>
-                
-                <i data-lucide="leaf" class="w-16 h-16 text-white/90 drop-shadow-lg relative z-10 group-hover:scale-110 transition-transform duration-500 delay-75"></i>
-                
-                <span class="absolute top-3 left-3 badge bg-white text-emerald-600 text-[10px] font-bold shadow-md rounded-full px-2">Tea</span>
-            </div>
-            
-            <div class="p-5">
-                <div class="flex justify-between items-start mb-1">
-                    <h3 class="font-bold text-lg text-foreground line-clamp-1">Matcha Premium Powder</h3>
-                </div>
-                <div class="flex items-center gap-2 mb-4">
-                    <span class="text-xs font-medium text-muted-foreground uppercase tracking-widest">SKU: TEA-MA-02</span>
-                </div>
-                
-                <div class="flex justify-between items-end border-t border-border/50 pt-4">
-                    <div>
-                        <div class="text-[10px] uppercase font-bold text-muted-foreground tracking-widest mb-0.5">Stock</div>
-                        <div class="flex items-center gap-1.5">
-                            <span class="w-2 h-2 rounded-full bg-warning"></span>
-                            <span class="text-sm font-semibold">18 Units</span>
-                        </div>
-                    </div>
-                    <div class="text-xl font-bold font-outfit text-primary">$32.50</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Product 3 -->
-        <div class="pos-card p-0 overflow-hidden group hover:-translate-y-1 transition-transform border-border/40 hover:border-primary/20">
-            <div class="h-48 w-full bg-gradient-to-br from-amber-400 to-orange-500 relative overflow-hidden flex items-center justify-center">
-                <div class="absolute inset-0 bg-white/10 backdrop-blur-3xl"></div>
-                <div class="absolute -top-10 -right-10 w-32 h-32 bg-white/20 rounded-full blur-2xl"></div>
-                <div class="absolute -bottom-10 -left-10 w-32 h-32 bg-black/10 rounded-full blur-2xl"></div>
-                
-                <i data-lucide="croissant" class="w-16 h-16 text-white/90 drop-shadow-lg relative z-10 group-hover:scale-110 transition-transform duration-500 delay-75"></i>
-                
-                <span class="absolute top-3 left-3 badge bg-white text-orange-600 text-[10px] font-bold shadow-md rounded-full px-2">Pastries</span>
-            </div>
-            
-            <div class="p-5">
-                <div class="flex justify-between items-start mb-1">
-                    <h3 class="font-bold text-lg text-foreground line-clamp-1">Almond Butter Croissant</h3>
-                </div>
-                <div class="flex items-center gap-2 mb-4">
-                    <span class="text-xs font-medium text-muted-foreground uppercase tracking-widest">SKU: BAK-03</span>
-                </div>
-                
-                <div class="flex justify-between items-end border-t border-border/50 pt-4">
-                    <div>
-                        <div class="text-[10px] uppercase font-bold text-muted-foreground tracking-widest mb-0.5">Stock</div>
-                        <div class="flex items-center gap-1.5">
-                            <span class="w-2 h-2 rounded-full bg-success"></span>
-                            <span class="text-sm font-semibold">45 Units</span>
-                        </div>
-                    </div>
-                    <div class="text-xl font-bold font-outfit text-primary">$5.50</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Product 4 -->
-        <div class="pos-card p-0 overflow-hidden group hover:-translate-y-1 transition-transform border-border/40 hover:border-primary/20 bg-muted/20">
-            <div class="h-48 w-full bg-gradient-to-br from-slate-400 to-slate-600 relative overflow-hidden flex items-center justify-center grayscale">
-                <div class="absolute inset-0 bg-white/10 backdrop-blur-3xl"></div>
-                <div class="absolute -top-10 -right-10 w-32 h-32 bg-white/20 rounded-full blur-2xl"></div>
-                <div class="absolute -bottom-10 -left-10 w-32 h-32 bg-black/10 rounded-full blur-2xl"></div>
-                
-                <i data-lucide="cup-soda" class="w-16 h-16 text-white/90 drop-shadow-lg relative z-10 group-hover:scale-110 transition-transform duration-500 delay-75"></i>
-                
-                <span class="absolute top-3 left-3 badge bg-white text-slate-700 text-[10px] font-bold shadow-md rounded-full px-2">Merchandise</span>
-            </div>
-            
-            <div class="p-5">
-                <div class="flex justify-between items-start mb-1">
-                    <h3 class="font-bold text-lg text-foreground line-clamp-1">Ceramic Logo Mug</h3>
-                </div>
-                <div class="flex items-center gap-2 mb-4">
-                    <span class="text-xs font-medium text-muted-foreground uppercase tracking-widest">SKU: MERCH-04</span>
-                </div>
-                
-                <div class="flex justify-between items-end border-t border-border/50 pt-4">
-                    <div>
-                        <div class="text-[10px] uppercase font-bold text-destructive tracking-widest mb-0.5">Stock</div>
-                        <div class="flex items-center gap-1.5">
-                            <span class="w-2 h-2 rounded-full bg-destructive animate-pulse"></span>
-                            <span class="text-sm font-semibold text-destructive">Out of Stock</span>
-                        </div>
-                    </div>
-                    <div class="text-xl font-bold font-outfit text-muted-foreground">$12.00</div>
-                </div>
-            </div>
-        </div>
-
-    </div>
+    }
 </div>
 
 @code {
     [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
+    [Inject] private HttpClient Http { get; set; } = default!;
+
+    public class ProductUI
+    {
+        public string Icon { get; set; } = "";
+        public string Gradient { get; set; } = "";
+        public string BadgeClass { get; set; } = "";
+        public string BadgeText { get; set; } = "";
+        public string StatusClass { get; set; } = "";
+        public string StatusText { get; set; } = "";
+    }
+
+    private List<Product>? _products;
+    private Dictionary<Guid, ProductUI> _productUIs = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _products = await Http.GetFromJsonAsync<List<Product>>("sample-data/products.json");
+
+        if (_products != null)
+        {
+            var id1 = Guid.Parse("00000000-0000-0000-0000-00000000881A");
+            var id2 = Guid.Parse("00000000-0000-0000-0000-000000008819");
+            var id3 = Guid.Parse("00000000-0000-0000-0000-000000008818");
+            var id4 = Guid.Parse("00000000-0000-0000-0000-000000008817");
+
+            _productUIs[id1] = new ProductUI { Icon = "coffee", Gradient = "from-indigo-500 to-purple-600", BadgeClass = "text-primary", BadgeText = "Coffee Beans", StatusClass = "bg-success", StatusText = "Stocked" };
+            _productUIs[id2] = new ProductUI { Icon = "leaf", Gradient = "from-emerald-400 to-teal-600", BadgeClass = "text-emerald-600", BadgeText = "Tea", StatusClass = "bg-warning", StatusText = "Low Stock" };
+            _productUIs[id3] = new ProductUI { Icon = "croissant", Gradient = "from-amber-400 to-orange-500", BadgeClass = "text-orange-600", BadgeText = "Pastries", StatusClass = "bg-success", StatusText = "Stocked" };
+            _productUIs[id4] = new ProductUI { Icon = "cup-soda", Gradient = "from-slate-400 to-slate-600", BadgeClass = "text-slate-700", BadgeText = "Merchandise", StatusClass = "bg-destructive", StatusText = "Out of Stock" };
+        }
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
