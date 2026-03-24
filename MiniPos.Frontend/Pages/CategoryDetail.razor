@@ -1,0 +1,260 @@
+@page "/categories/{CategoryId}"
+@using MiniPos.Frontend.Models
+@using System.Net.Http.Json
+
+<PageTitle>Category Details - MiniPOS</PageTitle>
+
+<div class="animate-slide-down max-w-4xl mx-auto pb-12">
+    <!-- Header with Back Navigation -->
+    <div class="mb-8 flex justify-between items-center">
+        <button class="flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors group" @onclick="GoBack">
+            <i data-lucide="arrow-left" class="w-4 h-4 group-hover:-translate-x-1 transition-transform"></i>
+            Back to Categories
+        </button>
+        <div class="flex items-center gap-2">
+            <button class="btn btn-primary btn-sm rounded-lg flex items-center gap-1.5" @onclick="() => _showEditModal = true">
+                <i data-lucide="pencil" class="w-3.5 h-3.5"></i> Edit
+            </button>
+            <button class="btn btn-outline border-destructive/30 text-destructive btn-sm rounded-lg flex items-center gap-1.5 hover:bg-destructive/5" @onclick="() => _showDeleteModal = true">
+                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Delete
+            </button>
+        </div>
+    </div>
+
+    @if (_category == null)
+    {
+        <div class="flex flex-col items-center justify-center p-24">
+            <div class="animate-spin rounded-full h-10 w-10 border-4 border-t-primary border-primary/20"></div>
+            <span class="mt-4 text-sm font-bold text-muted-foreground">Loading category...</span>
+        </div>
+    }
+    else
+    {
+        <!-- Main Stats display & details -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Left Info column -->
+            <div class="lg:col-span-2 flex flex-col gap-6">
+                <!-- Profile Card -->
+                <div class="pos-card overflow-hidden bg-white/60 shadow-xl border-border/40 p-8 flex flex-col relative">
+                    <div class="absolute -right-10 -top-10 w-40 h-40 @(_bgGlow) rounded-full blur-2xl"></div>
+                    <div class="relative z-10">
+                        <div class="w-14 h-14 rounded-full @(_bgIcon) @(_textColor) flex items-center justify-center mb-4">
+                            <i data-lucide="@_style.Icon" class="w-7 h-7"></i>
+                        </div>
+                        <h1 class="text-3xl font-black text-foreground tracking-tight mb-2">@_category.Name</h1>
+                        <p class="text-muted-foreground text-sm font-medium leading-relaxed">@(_category.Description ?? "No description available for this category.")</p>
+                    </div>
+                </div>
+
+                <!-- Product items under Category -->
+                <div class="pos-card bg-white/60 shadow-lg border-border/40">
+                    <div class="flex items-center justify-between mb-5">
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+                                <i data-lucide="package" class="w-4 h-4"></i>
+                            </div>
+                            <h2 class="text-lg font-bold text-foreground">Products in Category</h2>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col gap-3">
+                        @if (!_connectedProducts.Any())
+                        {
+                            <div class="text-center py-6 text-sm text-muted-foreground font-medium italic">No products available.</div>
+                        }
+                        else
+                        {
+                            @foreach (var prod in _connectedProducts)
+                            {
+                                <div class="bg-muted/20 rounded-xl p-4 border border-border/30 flex justify-between items-center group cursor-pointer hover:bg-white/40 transition-colors">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 rounded-lg bg-white border flex items-center justify-center text-primary font-bold shadow-sm">
+                                            @prod.Name.Substring(0, 1).ToUpper()
+                                        </div>
+                                        <div>
+                                            <div class="text-sm font-bold text-foreground">@prod.Name</div>
+                                            <div class="text-[10px] text-muted-foreground">SKU: @prod.Sku</div>
+                                        </div>
+                                    </div>
+                                    <div class="flex">
+                                        <i data-lucide="chevron-right" class="w-4 h-4 text-muted-foreground group-hover:translate-x-1 transition-transform"></i>
+                                    </div>
+                                </div>
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right side Sidebar specs -->
+            <div class="flex flex-col gap-6">
+                <!-- Metadata Stats -->
+                <div class="pos-card bg-white/60 shadow-lg border-border/40 p-6">
+                    <h3 class="text-sm font-black uppercase tracking-wider text-muted-foreground mb-4">Category Metrics</h3>
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs text-muted-foreground">Attached Products</span>
+                            <span class="text-sm font-black font-outfit text-foreground">@_connectedProducts.Count</span>
+                        </div>
+                        <hr class="border-border/30" />
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs text-muted-foreground">Created On</span>
+                            <span class="text-sm font-bold font-outfit text-foreground">@_category.CreatedAt.ToString("MMM dd, yyyy")</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- --- Modals --- -->
+
+        <!-- Edit Modal -->
+        @if (_showEditModal)
+        {
+            <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
+                <div class="bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-border/40 w-full max-w-md p-6 animate-scale-up space-y-5">
+                    <div class="flex items-center gap-2 text-primary">
+                        <i data-lucide="pencil" class="w-5 h-5"></i>
+                        <h3 class="text-lg font-bold">Edit Category</h3>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Category Name</label>
+                            <input type="text" @bind="_editName" class="w-full px-4 py-2.5 bg-white border border-border/60 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary/40 focus:outline-none font-medium" />
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Description</label>
+                            <textarea @bind="_editDescription" rows="3" class="w-full px-4 py-2.5 bg-white border border-border/60 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary/40 focus:outline-none font-medium resize-none"></textarea>
+                        </div>
+                    </div>
+                    <div class="flex justify-end gap-3 pt-2">
+                        <button class="btn btn-ghost rounded-xl px-4 text-sm" @onclick='() => _showEditModal = false' disabled="@_isSubmitting">Cancel</button>
+                        <button class="btn btn-primary rounded-xl px-5 text-sm shadow-primary disabled:opacity-50 flex items-center gap-2" @onclick="HandleEditCategory" disabled="@_isSubmitting">
+                            @if (_isSubmitting) { <div class="animate-spin rounded-full h-3.5 w-3.5 border-2 border-white/20 border-t-white"></div> }
+                            <span>Save Changes</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <!-- Delete Modal -->
+        @if (_showDeleteModal)
+        {
+            <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
+                <div class="bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-border/40 w-full max-w-md p-6 animate-scale-up space-y-5">
+                    <div class="flex items-center gap-2 text-destructive">
+                        <i data-lucide="trash-2" class="w-5 h-5"></i>
+                        <h3 class="text-lg font-bold">Delete Category</h3>
+                    </div>
+                    <p class="text-sm text-muted-foreground">Are you sure you want to delete Category <b>@_category.Name</b>? Doing so will dissociate linked inventory references safely.</p>
+                    <div class="flex justify-end gap-3 pt-2">
+                        <button class="btn btn-ghost rounded-xl px-4 text-sm" @onclick='() => _showDeleteModal = false' disabled="@_isSubmitting">Cancel</button>
+                        <button class="btn btn-destructive rounded-xl px-5 text-sm flex items-center gap-2" @onclick="HandleDeleteCategory" disabled="@_isSubmitting">
+                            @if (_isSubmitting) { <div class="animate-spin rounded-full h-3.5 w-3.5 border-2 border-white/20 border-t-white"></div> }
+                            <span>Delete</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+</div>
+
+@code {
+    [Parameter] public string CategoryId { get; set; } = "";
+
+    [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
+    [Inject] private HttpClient Http { get; set; } = default!;
+    [Inject] private NavigationManager Navigation { get; set; } = default!;
+
+    private Category? _category;
+    private List<ProductModel> _connectedProducts = new(); // Mock Products
+
+    // Styles placeholders
+    private (string Icon, string Color) _style;
+    private string _bgGlow = "";
+    private string _bgIcon = "";
+    private string _textColor = "";
+
+    // Modals controls
+    private bool _showEditModal = false;
+    private bool _showDeleteModal = false;
+
+    private string _editName = "";
+    private string _editDescription = "";
+
+    private bool _isSubmitting = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var categoryData = await Http.GetFromJsonAsync<PagedResult<Category>>("sample-data/categories.json");
+        if (categoryData != null && Guid.TryParse(CategoryId, out var id))
+        {
+            _category = categoryData.Data.FirstOrDefault(c => c.Id == id);
+            if (_category != null)
+            {
+                _editName = _category.Name;
+                _editDescription = _category.Description ?? "";
+
+                // Styles binding
+                _style = GetCategoryStyle(_category.Name);
+                _bgGlow = _style.Color == "primary" ? "bg-primary/20" : $"bg-{_style.Color}-500/20";
+                _bgIcon = _style.Color == "primary" ? "bg-primary/10" : $"bg-{_style.Color}-500/10";
+                _textColor = _style.Color == "primary" ? "text-primary" : $"text-{_style.Color}-600";
+
+                // Mock products loading
+                _connectedProducts = new List<ProductModel>
+                {
+                    new ProductModel { Name = "Hot Latte", Sku = "LAT-001" },
+                    new ProductModel { Name = "Ethiopia Yirgacheffe", Sku = "COF-015" }
+                };
+            }
+        }
+    }
+
+    private class ProductModel { public string Name { get; set; } = ""; public string Sku { get; set; } = ""; }
+
+    private (string Icon, string Color) GetCategoryStyle(string name)
+    {
+        var icons = new[] { "folder", "coffee", "leaf", "croissant", "shopping-bag", "tag", "bookmark", "box" };
+        var colors = new[] { "primary", "emerald", "orange", "indigo", "rose", "pink", "sky", "violet" };
+
+        var hash = Math.Abs(name.GetHashCode());
+        var iconIndex = hash % icons.Length;
+        var colorIndex = (hash + 3) % colors.Length; 
+
+        return (icons[iconIndex], colors[colorIndex]);
+    }
+
+    private void GoBack() { Navigation.NavigateTo("/categories"); }
+
+    private async Task HandleEditCategory()
+    {
+        if (string.IsNullOrWhiteSpace(_editName)) return;
+        _isSubmitting = true;
+        await Task.Delay(1000); // Simulate Update
+        if (_category != null)
+        {
+            _category.Name = _editName;
+            _category.Description = _editDescription;
+        }
+        _isSubmitting = false;
+        _showEditModal = false;
+        StateHasChanged();
+    }
+
+    private async Task HandleDeleteCategory()
+    {
+        _isSubmitting = true;
+        await Task.Delay(1000); // Simulate Delete
+        _isSubmitting = false;
+        _showDeleteModal = false;
+        Navigation.NavigateTo("/categories");
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender) { await JSRuntime.InvokeVoidAsync("initIcons"); }
+    }
+}

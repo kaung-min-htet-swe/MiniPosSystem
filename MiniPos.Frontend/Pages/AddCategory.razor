@@ -1,0 +1,144 @@
+@page "/categories/add"
+@using MiniPos.Frontend.Models
+@using System.Net.Http.Json
+
+<PageTitle>Add Category - MiniPOS</PageTitle>
+
+<div class="animate-slide-down max-w-2xl mx-auto pb-12">
+    <!-- Header with Back Navigation -->
+    <div class="mb-8">
+        <button class="flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors mb-4 group" @onclick="GoBack">
+            <i data-lucide="arrow-left" class="w-4 h-4 group-hover:-translate-x-1 transition-transform"></i>
+            Back to Categories
+        </button>
+        <h1 class="text-3xl font-black tracking-tight text-foreground">Create Category</h1>
+        <p class="text-muted-foreground mt-1 text-sm">Organize your products catalog into structured groups.</p>
+    </div>
+
+    <!-- Form Card -->
+    <div class="pos-card p-8 bg-white/60 shadow-xl border-border/40 relative overflow-hidden">
+        <div class="absolute -top-10 -right-10 w-40 h-40 bg-primary/5 rounded-full blur-2xl"></div>
+
+        <EditForm Model="@_categoryRequest" OnValidSubmit="HandleSubmit" class="space-y-6 relative z-10">
+            <DataAnnotationsValidator />
+
+            <!-- Success / Error Banner -->
+            @if (!string.IsNullOrEmpty(_successMessage))
+            {
+                <div class="bg-success/10 border border-success/20 text-success rounded-xl p-4 text-sm font-bold flex items-center gap-2 animate-fade-in mb-4">
+                    <i data-lucide="check-circle" class="w-4 h-4"></i> @_successMessage
+                </div>
+            }
+
+            <div class="grid grid-cols-1 gap-5">
+                <!-- Associated Merchant -->
+                <div class="space-y-1">
+                    <label class="text-[11px] font-black uppercase tracking-widest text-muted-foreground">Select Merchant</label>
+                    <div class="relative flex items-center">
+                        <i data-lucide="building" class="absolute left-4 w-4 h-4 text-muted-foreground"></i>
+                        <select @bind="_categoryRequest.MerchantId" class="w-full pl-11 pr-10 py-3 bg-white border border-border/60 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary/40 focus:outline-none font-medium shadow-sm appearance-none cursor-pointer">
+                            <option value="">Choose a Merchant...</option>
+                            @if (_merchants != null)
+                            {
+                                @foreach (var m in _merchants)
+                                {
+                                    <option value="@m.Id.ToString()">@m.Name</option>
+                                }
+                            }
+                        </select>
+                        <i data-lucide="chevron-down" class="absolute right-4 w-4 h-4 text-muted-foreground pointer-events-none"></i>
+                    </div>
+                    @if (string.IsNullOrEmpty(_categoryRequest.MerchantId) && _hasSubmittedAttempt)
+                    {
+                        <div class="text-xs text-destructive font-semibold mt-1">Merchant is required.</div>
+                    }
+                </div>
+
+                <!-- Category Name -->
+                <div class="space-y-1">
+                    <label class="text-[11px] font-black uppercase tracking-widest text-muted-foreground">Category Name</label>
+                    <div class="relative flex items-center">
+                        <i data-lucide="folder" class="absolute left-4 w-4 h-4 text-muted-foreground"></i>
+                        <InputText @bind-Value="_categoryRequest.Name" placeholder="e.g. Coffee Beans, Merchandise" class="w-full pl-11 pr-4 py-3 bg-white border border-border/60 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary/40 focus:outline-none font-medium shadow-sm" />
+                    </div>
+                    <ValidationMessage For="@(() => _categoryRequest.Name)" class="text-xs text-destructive font-semibold mt-1" />
+                </div>
+
+                <!-- Description -->
+                <div class="space-y-1">
+                    <label class="text-[11px] font-black uppercase tracking-widest text-muted-foreground">Description (Optional)</label>
+                    <div class="relative flex items-center">
+                        <i data-lucide="file-text" class="absolute left-4 top-4 w-4 h-4 text-muted-foreground"></i>
+                        <InputTextArea @bind-Value="_categoryRequest.Description" rows="4" placeholder="Briefly describe what goes into this category..." class="w-full pl-11 pr-4 py-3 bg-white border border-border/60 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary/40 focus:outline-none font-medium shadow-sm resize-none" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="pt-4 flex items-center gap-4">
+                <button type="submit" class="btn btn-primary rounded-xl px-6 py-3 font-bold text-sm shadow-primary disabled:opacity-50 flex items-center gap-2" disabled="@_isSubmitting">
+                    @if (_isSubmitting)
+                    {
+                        <div class="animate-spin rounded-full h-4 w-4 border-2 border-white/20 border-t-white"></div>
+                    }
+                    <span>Create Category</span>
+                </button>
+                <button type="button" class="btn btn-ghost rounded-xl px-6 py-3 font-bold text-sm" @onclick="GoBack" disabled="@_isSubmitting">Cancel</button>
+            </div>
+
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
+    [Inject] private HttpClient Http { get; set; } = default!;
+    [Inject] private NavigationManager Navigation { get; set; } = default!;
+
+    private CategoryFormModel _categoryRequest = new();
+    private List<Merchant>? _merchants;
+    
+    private bool _isSubmitting = false;
+    private bool _hasSubmittedAttempt = false;
+    private string _successMessage = "";
+
+    public class CategoryFormModel
+    {
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Name is required.")]
+        [System.ComponentModel.DataAnnotations.StringLength(100, ErrorMessage = "Too long.")]
+        public string Name { get; set; } = "";
+
+        public string? Description { get; set; }
+
+        public string MerchantId { get; set; } = "";
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var merchantData = await Http.GetFromJsonAsync<PagedResult<Merchant>>("sample-data/merchants.json");
+        _merchants = merchantData?.Data;
+    }
+
+    private void GoBack() { Navigation.NavigateTo("/categories"); }
+
+    private async Task HandleSubmit()
+    {
+        _hasSubmittedAttempt = true;
+        if (string.IsNullOrEmpty(_categoryRequest.MerchantId)) return;
+
+        _isSubmitting = true;
+        _successMessage = "";
+        
+        await Task.Delay(1500); // Simulate API Submit
+        _isSubmitting = false;
+        _successMessage = "Category created successfully!";
+        
+        // Redirect after delay
+        await Task.Delay(1000);
+        Navigation.NavigateTo("/categories");
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender) { await JSRuntime.InvokeVoidAsync("initIcons"); }
+    }
+}
