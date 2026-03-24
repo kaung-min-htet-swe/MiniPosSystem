@@ -10,7 +10,7 @@
             <h1 class="text-3xl font-bold tracking-tight text-foreground">Store Branches</h1>
             <p class="text-muted-foreground mt-1 text-sm">Manage physical locations, addresses, and connect registers.</p>
         </div>
-        <button class="btn btn-primary rounded-lg shadow-primary">
+        <button class="btn btn-primary rounded-lg shadow-primary" @onclick="GoToAddBranch">
             <i data-lucide="map-pin" class="w-4 h-4 mr-2"></i> Add Branch
         </button>
     </div>
@@ -80,5 +80,9 @@
     private void GoToBranchDetail(Guid branchId)
     {
         Navigation.NavigateTo($"/branches/{branchId}");
+    }
+    private void GoToAddBranch()
+    {
+        Navigation.NavigateTo("/branches/add");
     }
 }
