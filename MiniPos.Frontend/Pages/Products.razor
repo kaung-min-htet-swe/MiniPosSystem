@@ -23,7 +23,7 @@
         </div>
     </div>
 
-    @if (_products == null)
+    @if (_pagedProducts == null)
     {
         <div class="flex items-center justify-center p-12">
             <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -33,16 +33,14 @@
     {
         <!-- Beautiful Product Grid -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            
-            @foreach (var product in _products)
+            @foreach (var product in _pagedProducts.Data)
             {
-                var ui = _productUIs.GetValueOrDefault(product.Id, new ProductUI { Icon = "package", Gradient = "from-primary to-primary", BadgeClass = "text-primary", BadgeText = "General", StatusClass = "bg-success", StatusText = "In Stock" });
+                var ui = _productUIs.GetValueOrDefault(product.Id, new ProductUI { Icon = "package", Gradient = "from-primary to-primary", BadgeClass = "text-primary", BadgeText = "General", StatusClass = "bg-success", StatusText = "In Stock", StockQuantity = 50 });
                 var isOutOfStock = ui.StatusText == "Out of Stock";
                 var cardExtraClass = isOutOfStock ? "bg-muted/20" : "";
                 var imageExtraClass = isOutOfStock ? "grayscale" : "";
                 var stockColorClass = isOutOfStock ? "text-destructive" : "text-foreground";
                 var stockLabelColorClass = isOutOfStock ? "text-destructive" : "text-muted-foreground";
-                
                 <div class="pos-card p-0 overflow-hidden group hover:-translate-y-1 transition-transform border-border/40 hover:border-primary/20 @cardExtraClass">
                     <!-- Simulated Image Block using Jaw-Dropping CSS -->
                     <div class="h-48 w-full bg-gradient-to-br @ui.Gradient relative overflow-hidden flex items-center justify-center @imageExtraClass">
@@ -50,12 +48,9 @@
                         <!-- Abstract glowing orbs -->
                         <div class="absolute -top-10 -right-10 w-32 h-32 bg-white/20 rounded-full blur-2xl"></div>
                         <div class="absolute -bottom-10 -left-10 w-32 h-32 bg-black/10 rounded-full blur-2xl"></div>
-                        
                         <i data-lucide="@ui.Icon" class="w-16 h-16 text-white/90 drop-shadow-lg relative z-10 group-hover:scale-110 transition-transform duration-500 delay-75"></i>
-                        
                         <span class="absolute top-3 left-3 badge bg-white @ui.BadgeClass text-[10px] font-bold shadow-md rounded-full px-2">@ui.BadgeText</span>
                     </div>
-                    
                     <div class="p-5">
                         <div class="flex justify-between items-start mb-1">
                             <h3 class="font-bold text-lg text-foreground line-clamp-1">@product.Name</h3>
@@ -63,14 +58,13 @@
                         <div class="flex items-center gap-2 mb-4">
                             <span class="text-xs font-medium text-muted-foreground uppercase tracking-widest">SKU: @product.Sku</span>
                         </div>
-                        
                         <div class="flex justify-between items-end border-t border-border/50 pt-4">
                             <div>
                                 <div class="text-[10px] uppercase font-bold @stockLabelColorClass tracking-widest mb-0.5">Stock</div>
                                 <div class="flex items-center gap-1.5">
                                     <span class="w-2 h-2 rounded-full @ui.StatusClass @(isOutOfStock ? "animate-pulse" : "")"></span>
                                     <span class="text-sm font-semibold @stockColorClass">
-                                        @(isOutOfStock ? "Out of Stock" : $"{product.BranchInventories.FirstOrDefault()?.StockQuantity ?? 0} Units")
+                                        @(isOutOfStock ? "Out of Stock" : $"{ui.StockQuantity} Units")
                                     </span>
                                 </div>
                             </div>
@@ -95,26 +89,27 @@
         public string BadgeText { get; set; } = "";
         public string StatusClass { get; set; } = "";
         public string StatusText { get; set; } = "";
+        public int StockQuantity { get; set; }
     }
 
-    private List<Product>? _products;
+    private PagedResult<Product>? _pagedProducts;
     private Dictionary<Guid, ProductUI> _productUIs = new();
 
     protected override async Task OnInitializedAsync()
     {
-        _products = await Http.GetFromJsonAsync<List<Product>>("sample-data/products.json");
+        _pagedProducts = await Http.GetFromJsonAsync<PagedResult<Product>>("sample-data/products.json");
 
-        if (_products != null)
+        if (_pagedProducts != null)
         {
             var id1 = Guid.Parse("00000000-0000-0000-0000-00000000881A");
             var id2 = Guid.Parse("00000000-0000-0000-0000-000000008819");
             var id3 = Guid.Parse("00000000-0000-0000-0000-000000008818");
             var id4 = Guid.Parse("00000000-0000-0000-0000-000000008817");
 
-            _productUIs[id1] = new ProductUI { Icon = "coffee", Gradient = "from-indigo-500 to-purple-600", BadgeClass = "text-primary", BadgeText = "Coffee Beans", StatusClass = "bg-success", StatusText = "Stocked" };
-            _productUIs[id2] = new ProductUI { Icon = "leaf", Gradient = "from-emerald-400 to-teal-600", BadgeClass = "text-emerald-600", BadgeText = "Tea", StatusClass = "bg-warning", StatusText = "Low Stock" };
-            _productUIs[id3] = new ProductUI { Icon = "croissant", Gradient = "from-amber-400 to-orange-500", BadgeClass = "text-orange-600", BadgeText = "Pastries", StatusClass = "bg-success", StatusText = "Stocked" };
-            _productUIs[id4] = new ProductUI { Icon = "cup-soda", Gradient = "from-slate-400 to-slate-600", BadgeClass = "text-slate-700", BadgeText = "Merchandise", StatusClass = "bg-destructive", StatusText = "Out of Stock" };
+            _productUIs[id1] = new ProductUI { Icon = "coffee", Gradient = "from-indigo-500 to-purple-600", BadgeClass = "text-primary", BadgeText = "Coffee Beans", StatusClass = "bg-success", StatusText = "Stocked", StockQuantity = 142 };
+            _productUIs[id2] = new ProductUI { Icon = "leaf", Gradient = "from-emerald-400 to-teal-600", BadgeClass = "text-emerald-600", BadgeText = "Tea", StatusClass = "bg-warning", StatusText = "Low Stock", StockQuantity = 18 };
+            _productUIs[id3] = new ProductUI { Icon = "croissant", Gradient = "from-amber-400 to-orange-500", BadgeClass = "text-orange-600", BadgeText = "Pastries", StatusClass = "bg-success", StatusText = "Stocked", StockQuantity = 45 };
+            _productUIs[id4] = new ProductUI { Icon = "cup-soda", Gradient = "from-slate-400 to-slate-600", BadgeClass = "text-slate-700", BadgeText = "Merchandise", StatusClass = "bg-destructive", StatusText = "Out of Stock", StockQuantity = 0 };
         }
     }
 

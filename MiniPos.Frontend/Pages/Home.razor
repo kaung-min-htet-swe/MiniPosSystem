@@ -143,7 +143,7 @@
                     @foreach (var order in _recentOrders.Take(4))
                 {
                     var ui = _orderUIs.GetValueOrDefault(order.Id, new OrderUI { Initials = "GU", BgClass = "bg-muted text-muted-foreground", StatusText = "Paid", StatusClass = "badge-success" });
-                    var customerName = order.Customer?.Name ?? "Guest User";
+                    var customerName = "Guest User";
                     var timeAgo = GetTimeAgo(order.OrderDate);
                     var orderNumber = GetFormattedOrderNumber(order.Id);
 
@@ -193,7 +193,8 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var allOrders = await Http.GetFromJsonAsync<List<Order>>("sample-data/orders.json");
+        var pagedOrders = await Http.GetFromJsonAsync<PagedResult<Order>>("sample-data/orders.json");
+        var allOrders = pagedOrders?.Data;
         
         if (allOrders != null)
         {

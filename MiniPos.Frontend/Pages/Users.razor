@@ -21,12 +21,12 @@
             </button>
             <button class="btn btn-primary rounded-lg shadow-primary">
                 <i data-lucide="user-plus" class="w-4 h-4 mr-2"></i>
-                Invite Staff
+                Add Staff
             </button>
         </div>
     </div>
 
-    @if (_users == null)
+    @if (_pagedUsers == null)
     {
         <div class="flex items-center justify-center p-12">
             <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -36,16 +36,14 @@
     {
         <!-- Stunning User Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-
-            @foreach (var user in _users)
+            @foreach (var user in _pagedUsers.Data)
             {
                 var ui = _userUIs.GetValueOrDefault(user.Id, new UserUI { BadgeClass = "bg-muted text-muted-foreground", Icon = "user", AvatarGradient = "from-slate-400 to-slate-500", IsOnline = false, BranchName = "Unassigned", LeftStatLabel = "Total Sales", LeftStatValue = "-", LeftStatClass = "text-muted-foreground", RightStatLabel = "Shift Today", RightStatValue = "-" });
-                var nameParts = user.Username.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                var nameParts = user.UserName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
                 var initials = nameParts.Length > 1 
                     ? $"{nameParts[0][0]}{nameParts[nameParts.Length - 1][0]}".ToUpper() 
-                    : user.Username.Substring(0, Math.Min(2, user.Username.Length)).ToUpper();
-
-                <div class="pos-card relative overflow-visible group hover:-translate-y-1 transition-transform bg-white/40 @(user.DeletedAt == null ? "" : "grayscale-[20%]") @(user.Role == "Admin" ? "border-primary/20" : "")">
+                    : user.UserName.Substring(0, Math.Min(2, user.UserName.Length)).ToUpper();
+                <div class="pos-card relative overflow-visible group hover:-translate-y-1 transition-transform bg-white/40 @(user.Role == "Admin" ? "border-primary/20" : "")">
                     <!-- Top Role Badge & Actions -->
                     <div class="flex justify-between items-start w-full">
                         <span class="badge @ui.BadgeClass px-2.5 py-1 uppercase tracking-widest text-[9px] shadow-sm flex items-center">
@@ -55,7 +53,6 @@
                             <i data-lucide="more-horizontal" class="w-5 h-5"></i>
                         </button>
                     </div>
-
                     <!-- Avatar Profile -->
                     <div class="flex flex-col items-center mt-4">
                         <div class="relative">
@@ -64,10 +61,9 @@
                             </div>
                             <div class="absolute bottom-0 right-1 w-4 h-4 @(ui.IsOnline ? "bg-success" : "bg-muted") border-2 border-white rounded-full" title="@(ui.IsOnline ? "Online" : "Offline")"></div>
                         </div>
-                        <h3 class="font-bold text-lg mt-3 text-foreground">@user.Username</h3>
+                        <h3 class="font-bold text-lg mt-3 text-foreground">@user.UserName</h3>
                         <p class="text-xs text-muted-foreground font-medium">@user.Email</p>
                     </div>
-
                     <!-- Detailed Stats / Context -->
                     <div class="mt-6 flex flex-col gap-2">
                         <div class="@(ui.BranchName == "Unassigned" ? "bg-muted/10 opacity-70" : "bg-muted/30") rounded-lg p-3 flex items-center gap-3">
@@ -86,7 +82,6 @@
                                 }
                             </div>
                         </div>
-                        
                         @if (ui.BranchName == "Unassigned")
                         {
                             <div class="bg-white/30 border border-border/50 rounded-lg p-2 text-center mt-1">
@@ -109,7 +104,6 @@
                     </div>
                 </div>
             }
-
         </div>
     }
 </div>
@@ -132,24 +126,51 @@
         public string RightStatValue { get; set; } = "";
     }
 
-    private List<User>? _users;
+    private PagedResult<User>? _pagedUsers;
     private Dictionary<Guid, UserUI> _userUIs = new();
 
     protected override async Task OnInitializedAsync()
     {
-        _users = await Http.GetFromJsonAsync<List<User>>("sample-data/users.json");
+        _pagedUsers = await Http.GetFromJsonAsync<PagedResult<User>>("sample-data/users.json");
 
-        if (_users != null)
+        if (_pagedUsers != null)
         {
-            var id1 = Guid.Parse("00000000-0000-0000-0000-00000000771A");
-            var id2 = Guid.Parse("00000000-0000-0000-0000-000000007719");
-            var id3 = Guid.Parse("00000000-0000-0000-0000-000000007718");
-            var id4 = Guid.Parse("00000000-0000-0000-0000-000000007717");
-
-            _userUIs[id1] = new UserUI { BadgeClass = "badge-primary", Icon = "shield-check", AvatarGradient = "from-primary to-purple-500", IsOnline = true, BranchName = "Headquarters", LeftStatLabel = "Total Sales", LeftStatValue = "1.2k", LeftStatClass = "text-primary", RightStatLabel = "Shift Today", RightStatValue = "8 hrs" };
-            _userUIs[id2] = new UserUI { BadgeClass = "badge-success", Icon = "calculator", AvatarGradient = "from-success to-emerald-400", IsOnline = true, BranchName = "Metro Branch 1", LeftStatLabel = "Sales Today", LeftStatValue = "42", LeftStatClass = "text-success", RightStatLabel = "Active POS", RightStatValue = "Term 2" };
-            _userUIs[id3] = new UserUI { BadgeClass = "badge-warning", Icon = "briefcase", AvatarGradient = "from-warning to-yellow-400", IsOnline = false, BranchName = "Metro Branch 1", LeftStatLabel = "Total Sales", LeftStatValue = "1.9k", LeftStatClass = "text-warning", RightStatLabel = "Shift Today", RightStatValue = "-" };
-            _userUIs[id4] = new UserUI { BadgeClass = "bg-muted text-muted-foreground", Icon = "calculator", AvatarGradient = "from-muted-foreground to-muted", IsOnline = false, BranchName = "Unassigned" };
+            foreach (var user in _pagedUsers.Data)
+            {
+                _userUIs[user.Id] = user.Role switch
+                {
+                    "Admin" => new UserUI
+                    {
+                        BadgeClass = "badge-primary", Icon = "shield-check",
+                        AvatarGradient = "from-primary to-purple-500", IsOnline = true,
+                        BranchName = "Headquarters",
+                        LeftStatLabel = "Total Sales", LeftStatValue = "1.2k", LeftStatClass = "text-primary",
+                        RightStatLabel = "Shift Today", RightStatValue = "8 hrs"
+                    },
+                    "Cashier" => new UserUI
+                    {
+                        BadgeClass = "badge-success", Icon = "calculator",
+                        AvatarGradient = "from-success to-emerald-400", IsOnline = true,
+                        BranchName = "Metro Branch 1",
+                        LeftStatLabel = "Sales Today", LeftStatValue = "42", LeftStatClass = "text-success",
+                        RightStatLabel = "Active POS", RightStatValue = "Term 2"
+                    },
+                    "Merchant" or "Manager" => new UserUI
+                    {
+                        BadgeClass = "badge-warning", Icon = "briefcase",
+                        AvatarGradient = "from-warning to-yellow-400", IsOnline = false,
+                        BranchName = "Metro Branch 1",
+                        LeftStatLabel = "Total Sales", LeftStatValue = "1.9k", LeftStatClass = "text-warning",
+                        RightStatLabel = "Shift Today", RightStatValue = "-"
+                    },
+                    _ => new UserUI
+                    {
+                        BadgeClass = "bg-muted text-muted-foreground", Icon = "user",
+                        AvatarGradient = "from-muted-foreground to-muted", IsOnline = false,
+                        BranchName = "Unassigned"
+                    }
+                };
+            }
         }
     }
 

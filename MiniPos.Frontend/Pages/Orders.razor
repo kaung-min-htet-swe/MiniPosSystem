@@ -134,7 +134,7 @@
                                         
                                         <!-- Item Info -->
                                         <div class="flex-1 min-w-0 pr-2 pl-2">
-                                            <div class="font-bold text-foreground text-sm truncate">@item.Product.Name</div>
+                                            <div class="font-bold text-foreground text-sm truncate">@item.ProductName</div>
                                             <div class="font-black font-outfit text-primary mt-0.5">$@item.UnitPrice.ToString("F2")</div>
                                         </div>
 
@@ -239,7 +239,8 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _products = await Http.GetFromJsonAsync<List<Product>>("sample-data/products.json");
+        var pagedData = await Http.GetFromJsonAsync<PagedResult<Product>>("sample-data/products.json");
+        _products = pagedData?.Data;
 
         if (_products != null)
         {
@@ -270,6 +271,7 @@
                 Id = Guid.NewGuid(),
                 ProductId = p.Id,
                 Product = p,
+                ProductName = p.Name,
                 Quantity = 1,
                 UnitPrice = p.Price,
                 SubTotal = p.Price
