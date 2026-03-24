@@ -35,10 +35,10 @@
                     <i data-lucide="dollar-sign" class="w-5 h-5"></i>
                 </div>
             </div>
-            <div class="pos-card-value">$24,592.50</div>
+            <div class="pos-card-value">$@_revenue.ToString("N2")</div>
             <div class="pos-card-trend trend-up">
                 <i data-lucide="trending-up" class="w-4 h-4"></i>
-                <span>+14.5% from last month</span>
+                <span>Summarized lifetime sales</span>
             </div>
         </div>
 
@@ -51,10 +51,10 @@
                     <i data-lucide="credit-card" class="w-5 h-5"></i>
                 </div>
             </div>
-            <div class="pos-card-value">+1,249</div>
+            <div class="pos-card-value">@_transactions</div>
             <div class="pos-card-trend trend-up">
                 <i data-lucide="trending-up" class="w-4 h-4"></i>
-                <span>+8.2% from last month</span>
+                <span>Completed orders count</span>
             </div>
         </div>
 
@@ -62,15 +62,15 @@
         <div class="pos-card relative overflow-hidden group">
             <div class="absolute -right-6 -top-6 w-24 h-24 bg-warning/5 rounded-full blur-2xl group-hover:bg-warning/10 transition-colors"></div>
             <div class="pos-card-header">
-                <h3 class="pos-card-title">Active Orders</h3>
+                <h3 class="pos-card-title">Total Merchants</h3>
                 <div class="pos-card-icon bg-warning bg-opacity-10 text-warning">
-                    <i data-lucide="shopping-bag" class="w-5 h-5"></i>
+                    <i data-lucide="building" class="w-5 h-5"></i>
                 </div>
             </div>
-            <div class="pos-card-value">42</div>
+            <div class="pos-card-value">@_merchantsCount</div>
             <div class="pos-card-trend text-muted-foreground">
-                <i data-lucide="clock" class="w-4 h-4"></i>
-                <span>Processing in kitchen</span>
+                <i data-lucide="shield" class="w-4 h-4"></i>
+                <span>Active business accounts</span>
             </div>
         </div>
 
@@ -78,15 +78,15 @@
         <div class="pos-card relative overflow-hidden group">
             <div class="absolute -right-6 -top-6 w-24 h-24 bg-destructive/5 rounded-full blur-2xl group-hover:bg-destructive/10 transition-colors"></div>
             <div class="pos-card-header">
-                <h3 class="pos-card-title">Refunds</h3>
+                <h3 class="pos-card-title">Active Branches</h3>
                 <div class="pos-card-icon bg-destructive/10 text-destructive">
-                    <i data-lucide="arrow-down-circle" class="w-5 h-5"></i>
+                    <i data-lucide="map-pin" class="w-5 h-5"></i>
                 </div>
             </div>
-            <div class="pos-card-value">$420.00</div>
-            <div class="pos-card-trend trend-down">
-                <i data-lucide="trending-down" class="w-4 h-4"></i>
-                <span>-2.1% from last month</span>
+            <div class="pos-card-value">@_branchesCount</div>
+            <div class="pos-card-trend tren-up">
+                <i data-lucide="store" class="w-4 h-4"></i>
+                <span>Physical points registered</span>
             </div>
         </div>
     </div>
@@ -141,34 +141,25 @@
                 else
                 {
                     @foreach (var order in _recentOrders.Take(4))
-                {
-                    var ui = _orderUIs.GetValueOrDefault(order.Id, new OrderUI { Initials = "GU", BgClass = "bg-muted text-muted-foreground", StatusText = "Paid", StatusClass = "badge-success" });
-                    var customerName = "Guest User";
-                    var timeAgo = GetTimeAgo(order.OrderDate);
-                    var orderNumber = GetFormattedOrderNumber(order.Id);
+                    {
+                        var orderNumber = GetFormattedOrderNumber(order.Id);
+                        var timeAgo = GetTimeAgo(order.OrderDate);
 
-                    <div class="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors border border-transparent hover:border-border/50 cursor-pointer">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-full @ui.BgClass flex items-center justify-center font-bold text-sm">
-                                @if (customerName == "Guest User")
-                                {
+                        <div class="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors border border-transparent hover:border-border/50 cursor-pointer">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm">
                                     <i data-lucide="user" class="w-4 h-4"></i>
-                                }
-                                else
-                                {
-                                    @ui.Initials
-                                }
+                                </div>
+                                <div>
+                                    <p class="text-sm font-semibold">Guest User</p>
+                                    <p class="text-xs text-muted-foreground">@orderNumber • @timeAgo</p>
+                                </div>
                             </div>
-                            <div>
-                                <p class="text-sm font-semibold">@customerName</p>
-                                <p class="text-xs text-muted-foreground">@orderNumber • @timeAgo</p>
+                            <div class="text-right">
+                                <p class="text-sm font-bold">$@order.TotalAmount.ToString("F2")</p>
+                                <span class="badge badge-success mt-1">Paid</span>
                             </div>
                         </div>
-                        <div class="text-right">
-                            <p class="text-sm font-bold">$@order.TotalAmount.ToString("F2")</p>
-                            <span class="badge @ui.StatusClass mt-1">@ui.StatusText</span>
-                        </div>
-                    </div>
                     }
                 }
             </div>
@@ -180,38 +171,29 @@
     [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
     [Inject] private HttpClient Http { get; set; } = default!;
 
-    public class OrderUI
-    {
-        public string Initials { get; set; } = "";
-        public string BgClass { get; set; } = "";
-        public string StatusText { get; set; } = "";
-        public string StatusClass { get; set; } = "";
-    }
-
     private List<Order>? _recentOrders;
-    private Dictionary<Guid, OrderUI> _orderUIs = new();
+    private decimal _revenue = 0;
+    private int _transactions = 0;
+    private int _merchantsCount = 0;
+    private int _branchesCount = 0;
 
     protected override async Task OnInitializedAsync()
     {
         var pagedOrders = await Http.GetFromJsonAsync<PagedResult<Order>>("sample-data/orders.json");
         var allOrders = pagedOrders?.Data;
-        
+
+        var pagedMerchants = await Http.GetFromJsonAsync<PagedResult<Merchant>>("sample-data/merchants.json");
+        var pagedBranches = await Http.GetFromJsonAsync<PagedResult<Branch>>("sample-data/branches.json");
+
         if (allOrders != null)
         {
-            // Just take the later 4 orders for the dashboard mapping
-            _recentOrders = allOrders.Where(o => o.Id.ToString().StartsWith("00000000-0000-0000-0000-0000000089")).ToList();
-            if(!_recentOrders.Any()) _recentOrders = allOrders.Take(4).ToList();
-
-            var id1 = Guid.Parse("00000000-0000-0000-0000-000000008923");
-            var id2 = Guid.Parse("00000000-0000-0000-0000-000000008922");
-            var id3 = Guid.Parse("00000000-0000-0000-0000-000000008921");
-            var id4 = Guid.Parse("00000000-0000-0000-0000-000000008920");
-
-            _orderUIs[id1] = new OrderUI { Initials = "JS", BgClass = "bg-primary/10 text-primary", StatusText = "Paid", StatusClass = "badge-success" };
-            _orderUIs[id2] = new OrderUI { Initials = "AW", BgClass = "bg-accent text-accent-foreground", StatusText = "Pending", StatusClass = "badge-warning" };
-            _orderUIs[id3] = new OrderUI { Initials = "MR", BgClass = "bg-success/20 text-success", StatusText = "Paid", StatusClass = "badge-success" };
-            _orderUIs[id4] = new OrderUI { Initials = "GU", BgClass = "bg-muted text-muted-foreground", StatusText = "Paid", StatusClass = "badge-success" };
+            _recentOrders = allOrders.Take(4).ToList();
+            _revenue = allOrders.Sum(o => o.TotalAmount);
+            _transactions = allOrders.Count;
         }
+
+        if (pagedMerchants != null) _merchantsCount = pagedMerchants.Data.Count;
+        if (pagedBranches != null) _branchesCount = pagedBranches.Data.Count;
     }
 
     private string GetTimeAgo(DateTime date)
