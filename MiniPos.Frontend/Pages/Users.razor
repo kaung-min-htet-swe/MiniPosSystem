@@ -19,7 +19,7 @@
             <button class="btn btn-outline bg-white hover:bg-muted shadow-sm rounded-lg p-2">
                 <i data-lucide="filter" class="w-4 h-4"></i>
             </button>
-            <button class="btn btn-primary rounded-lg shadow-primary">
+            <button class="btn btn-primary rounded-lg shadow-primary" @onclick="GoToAddStaff">
                 <i data-lucide="user-plus" class="w-4 h-4 mr-2"></i>
                 Add Staff
             </button>
@@ -111,6 +111,7 @@
 @code {
     [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
     [Inject] private HttpClient Http { get; set; } = default!;
+    [Inject] private NavigationManager Navigation { get; set; } = default!;
 
     public class UserUI
     {
@@ -180,5 +181,9 @@
         {
             await JSRuntime.InvokeVoidAsync("initIcons");
         }
+    }
+    private void GoToAddStaff()
+    {
+        Navigation.NavigateTo("/users/add");
     }
 }
