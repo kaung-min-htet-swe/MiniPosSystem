@@ -6,5 +6,6 @@ public class Merchant
     public string Name { get; set; } = null!;
     public string? ContactEmail { get; set; }
     public bool IsActive { get; set; }
+    public DateTime CreatedAt { get; set; }
     public List<Branch> Branches { get; set; } = new();
 }
