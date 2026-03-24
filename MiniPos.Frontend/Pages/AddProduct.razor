@@ -1,0 +1,241 @@
+@page "/products/add"
+@using MiniPos.Frontend.Models
+@using System.Net.Http.Json
+
+<PageTitle>Add Product - MiniPOS</PageTitle>
+
+<div class="animate-slide-down max-w-2xl mx-auto pb-12">
+    <!-- Header with Back Navigation -->
+    <div class="mb-8">
+        <button class="flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors mb-4 group" @onclick="GoBack">
+            <i data-lucide="arrow-left" class="w-4 h-4 group-hover:-translate-x-1 transition-transform"></i>
+            Back to Products
+        </button>
+        <h1 class="text-3xl font-black tracking-tight text-foreground">Add New Product</h1>
+        <p class="text-muted-foreground mt-1 text-sm">Create a catalog item and allocate initial branch listings.</p>
+    </div>
+
+    <!-- Form Card -->
+    <div class="pos-card p-8 bg-white/60 shadow-xl border-border/40 relative overflow-hidden">
+        <div class="absolute -top-10 -right-10 w-40 h-40 bg-primary/5 rounded-full blur-2xl"></div>
+
+        <EditForm Model="@_productRequest" OnValidSubmit="HandleSubmit" class="space-y-6 relative z-10">
+            <DataAnnotationsValidator />
+
+            <!-- Success / Error Banner -->
+            @if (!string.IsNullOrEmpty(_successMessage))
+            {
+                <div class="bg-success/10 border border-success/20 text-success rounded-xl p-4 text-sm font-bold flex items-center gap-2 animate-fade-in mb-4">
+                    <i data-lucide="check-circle" class="w-4 h-4"></i> @_successMessage
+                </div>
+            }
+
+            <div class="grid grid-cols-1 gap-5">
+                <!-- Step 1: Merchant Selection -->
+                <div class="space-y-1">
+                    <label class="text-[11px] font-black uppercase tracking-widest text-muted-foreground">Select Merchant</label>
+                    <div class="relative flex items-center">
+                        <i data-lucide="building" class="absolute left-4 w-4 h-4 text-muted-foreground"></i>
+                        <select @onchange="OnMerchantChanged" class="w-full pl-11 pr-10 py-3 bg-white border border-border/60 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary/40 focus:outline-none font-medium shadow-sm appearance-none cursor-pointer">
+                            <option value="">Choose a Merchant...</option>
+                            @if (_merchants != null)
+                            {
+                                @foreach (var m in _merchants)
+                                {
+                                    <option value="@m.Id.ToString()">@m.Name</option>
+                                }
+                            }
+                        </select>
+                        <i data-lucide="chevron-down" class="absolute right-4 w-4 h-4 text-muted-foreground pointer-events-none"></i>
+                    </div>
+                    @if (string.IsNullOrEmpty(_productRequest.MerchantId) && _hasSubmittedAttempt)
+                    {
+                        <div class="text-xs text-destructive font-semibold mt-1">Merchant is required.</div>
+                    }
+                </div>
+
+                <!-- Step 2: Category & Basic Info -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="space-y-1">
+                        <label class="text-[11px] font-black uppercase tracking-widest text-muted-foreground">Category</label>
+                        <div class="relative flex items-center">
+                            <i data-lucide="folder" class="absolute left-4 w-4 h-4 text-muted-foreground"></i>
+                            <select @bind="_productRequest.CategoryId" class="w-full pl-11 pr-10 py-3 bg-white border border-border/60 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary/40 focus:outline-none font-medium shadow-sm appearance-none cursor-pointer">
+                                <option value="">Select Category...</option>
+                                @foreach (var c in _filteredCategories)
+                                {
+                                    <option value="@c.Id.ToString()">@c.Name</option>
+                                }
+                            </select>
+                            <i data-lucide="chevron-down" class="absolute right-4 w-4 h-4 text-muted-foreground pointer-events-none"></i>
+                        </div>
+                        <ValidationMessage For="@(() => _productRequest.CategoryId)" class="text-xs text-destructive font-semibold mt-1" />
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="text-[11px] font-black uppercase tracking-widest text-muted-foreground">SKU / Code</label>
+                        <div class="relative flex items-center">
+                            <i data-lucide="tag" class="absolute left-4 w-4 h-4 text-muted-foreground"></i>
+                            <InputText @bind-Value="_productRequest.Sku" placeholder="e.g. COF-001" class="w-full pl-11 pr-4 py-3 bg-white border border-border/60 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary/40 focus:outline-none font-medium shadow-sm" />
+                        </div>
+                        <ValidationMessage For="@(() => _productRequest.Sku)" class="text-xs text-destructive font-semibold mt-1" />
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="space-y-1">
+                        <label class="text-[11px] font-black uppercase tracking-widest text-muted-foreground">Product Name</label>
+                        <div class="relative flex items-center">
+                            <i data-lucide="package" class="absolute left-4 w-4 h-4 text-muted-foreground"></i>
+                            <InputText @bind-Value="_productRequest.Name" placeholder="e.g. Cold Brew" class="w-full pl-11 pr-4 py-3 bg-white border border-border/60 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary/40 focus:outline-none font-medium shadow-sm" />
+                        </div>
+                        <ValidationMessage For="@(() => _productRequest.Name)" class="text-xs text-destructive font-semibold mt-1" />
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="text-[11px] font-black uppercase tracking-widest text-muted-foreground">Retail Price ($)</label>
+                        <div class="relative flex items-center">
+                            <i data-lucide="dollar-sign" class="absolute left-4 w-4 h-4 text-muted-foreground"></i>
+                            <InputNumber @bind-Value="_productRequest.Price" class="w-full pl-11 pr-4 py-3 bg-white border border-border/60 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary/40 focus:outline-none font-medium shadow-sm" />
+                        </div>
+                        <ValidationMessage For="@(() => _productRequest.Price)" class="text-xs text-destructive font-semibold mt-1" />
+                    </div>
+                </div>
+
+                <hr class="border-border/30 my-2" />
+
+                <!-- Step 3: Initial Inventory Allocation -->
+                <div class="space-y-3">
+                    <h3 class="text-xs font-black uppercase tracking-wider text-primary">Branch Inventory Allocation</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-muted/20 p-4 rounded-xl border border-border/30">
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-bold text-muted-foreground">Branch</label>
+                            <div class="relative flex items-center">
+                                <select @bind="_productRequest.BranchId" class="w-full px-4 py-2 bg-white border border-border/40 rounded-lg text-sm focus:outline-none font-medium shadow-sm appearance-none cursor-pointer">
+                                    <option value="">Select Branch...</option>
+                                    @foreach (var b in _filteredBranches)
+                                    {
+                                        <option value="@b.Id.ToString()">@b.Name</option>
+                                    }
+                                </select>
+                                <i data-lucide="chevron-down" class="absolute right-3 w-4 h-4 text-muted-foreground pointer-events-none"></i>
+                            </div>
+                        </div>
+
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-bold text-muted-foreground">Initial Stock Quantity</label>
+                            <InputNumber @bind-Value="_productRequest.StockQuantity" class="w-full px-4 py-2 bg-white border border-border/40 rounded-lg text-sm focus:outline-none font-medium shadow-sm" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pt-4 flex items-center gap-4">
+                <button type="submit" class="btn btn-primary rounded-xl px-6 py-3 font-bold text-sm shadow-primary disabled:opacity-50 flex items-center gap-2" disabled="@_isSubmitting">
+                    @if (_isSubmitting)
+                    {
+                        <div class="animate-spin rounded-full h-4 w-4 border-2 border-white/20 border-t-white"></div>
+                    }
+                    <span>Create Product</span>
+                </button>
+                <button type="button" class="btn btn-ghost rounded-xl px-6 py-3 font-bold text-sm" @onclick="GoBack" disabled="@_isSubmitting">Cancel</button>
+            </div>
+
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
+    [Inject] private HttpClient Http { get; set; } = default!;
+    [Inject] private NavigationManager Navigation { get; set; } = default!;
+
+    private ProductFormModel _productRequest = new();
+    private List<Merchant>? _merchants;
+    private List<Category> _allCategories = new();
+    private List<Category> _filteredCategories = new();
+    private List<Branch> _allBranches = new();
+    private List<Branch> _filteredBranches = new();
+
+    private bool _isSubmitting = false;
+    private bool _hasSubmittedAttempt = false;
+    private string _successMessage = "";
+
+    public class ProductFormModel
+    {
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Merchant is required.")]
+        public string MerchantId { get; set; } = "";
+
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Category is required.")]
+        public string CategoryId { get; set; } = "";
+
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Name is required.")]
+        [System.ComponentModel.DataAnnotations.StringLength(100, ErrorMessage = "Too long.")]
+        public string Name { get; set; } = "";
+
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "SKU is required.")]
+        public string Sku { get; set; } = "";
+
+        [System.ComponentModel.DataAnnotations.Range(0.01, 1000000, ErrorMessage = "Price must be greater than 0.")]
+        public decimal Price { get; set; } = 0;
+
+        // Branch Allocation (Optional to fulfill request implicitly)
+        public string BranchId { get; set; } = "";
+        public int StockQuantity { get; set; } = 0;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var merchantData = await Http.GetFromJsonAsync<PagedResult<Merchant>>("sample-data/merchants.json");
+        _merchants = merchantData?.Data;
+
+        var categoryData = await Http.GetFromJsonAsync<PagedResult<Category>>("sample-data/categories.json");
+        if (categoryData != null) _allCategories = categoryData.Data;
+
+        var branchData = await Http.GetFromJsonAsync<PagedResult<Branch>>("sample-data/branches.json");
+        if (branchData != null) _allBranches = branchData.Data;
+    }
+
+    private void OnMerchantChanged(ChangeEventArgs e)
+    {
+        var val = e.Value?.ToString() ?? "";
+        _productRequest.MerchantId = val;
+        _productRequest.CategoryId = ""; // Reset dependent dropdowns
+        _productRequest.BranchId = "";
+
+        if (Guid.TryParse(val, out var merchantGuid))
+        {
+            _filteredCategories = _allCategories.Where(c => c.MerchantId == merchantGuid).ToList();
+            _filteredBranches = _allBranches.Where(b => b.MerchantId == merchantGuid).ToList();
+        }
+        else
+        {
+            _filteredCategories.Clear();
+            _filteredBranches.Clear();
+        }
+    }
+
+    private void GoBack() { Navigation.NavigateTo("/products"); }
+
+    private async Task HandleSubmit()
+    {
+        _hasSubmittedAttempt = true;
+        if (string.IsNullOrEmpty(_productRequest.MerchantId) || string.IsNullOrEmpty(_productRequest.CategoryId)) return;
+
+        _isSubmitting = true;
+        _successMessage = "";
+        
+        await Task.Delay(1500); // Simulate API Submit
+        _isSubmitting = false;
+        _successMessage = "Product created successfully!";
+        
+        // Redirect after delay
+        await Task.Delay(1000);
+        Navigation.NavigateTo("/products");
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender) { await JSRuntime.InvokeVoidAsync("initIcons"); }
+    }
+}

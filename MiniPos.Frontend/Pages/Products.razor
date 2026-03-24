@@ -16,7 +16,7 @@
                 <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"></i>
                 <input type="text" placeholder="Search by name, SKU..." class="pl-9 pr-4 py-2 bg-white/60 backdrop-blur-sm border border-border/60 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 w-56 transition-all hover:bg-white" />
             </div>
-            <button class="btn btn-primary rounded-lg shadow-primary">
+            <button class="btn btn-primary rounded-lg shadow-primary" @onclick="GoToAddProduct">
                 <i data-lucide="package-plus" class="w-4 h-4 mr-2"></i>
                 Add Product
             </button>
@@ -35,13 +35,13 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             @foreach (var product in _pagedProducts.Data)
             {
-                var ui = _productUIs.GetValueOrDefault(product.Id, new ProductUI { Icon = "package", Gradient = "from-primary to-primary", BadgeClass = "text-primary", BadgeText = "General", StatusClass = "bg-success", StatusText = "In Stock", StockQuantity = 50 });
-                var isOutOfStock = ui.StatusText == "Out of Stock";
+                var ui = GetProductUI(product);
+                var isOutOfStock = ui.StockQuantity == 0;
                 var cardExtraClass = isOutOfStock ? "bg-muted/20" : "";
                 var imageExtraClass = isOutOfStock ? "grayscale" : "";
                 var stockColorClass = isOutOfStock ? "text-destructive" : "text-foreground";
                 var stockLabelColorClass = isOutOfStock ? "text-destructive" : "text-muted-foreground";
-                <div class="pos-card p-0 overflow-hidden group hover:-translate-y-1 transition-transform border-border/40 hover:border-primary/20 @cardExtraClass">
+                <div class="pos-card p-0 overflow-hidden group hover:-translate-y-1 transition-transform border-border/40 hover:border-primary/20 @cardExtraClass cursor-pointer" @onclick="() => GoToProductDetail(product.Id)">
                     <!-- Simulated Image Block using Jaw-Dropping CSS -->
                     <div class="h-48 w-full bg-gradient-to-br @ui.Gradient relative overflow-hidden flex items-center justify-center @imageExtraClass">
                         <div class="absolute inset-0 bg-white/10 backdrop-blur-3xl"></div>
@@ -49,7 +49,7 @@
                         <div class="absolute -top-10 -right-10 w-32 h-32 bg-white/20 rounded-full blur-2xl"></div>
                         <div class="absolute -bottom-10 -left-10 w-32 h-32 bg-black/10 rounded-full blur-2xl"></div>
                         <i data-lucide="@ui.Icon" class="w-16 h-16 text-white/90 drop-shadow-lg relative z-10 group-hover:scale-110 transition-transform duration-500 delay-75"></i>
-                        <span class="absolute top-3 left-3 badge bg-white @ui.BadgeClass text-[10px] font-bold shadow-md rounded-full px-2">@ui.BadgeText</span>
+                        <span class="absolute top-3 left-3 badge bg-white @ui.BadgeClass text-[10px] font-bold shadow-md rounded-full px-2">@(product.Category?.Name ?? "General")</span>
                     </div>
                     <div class="p-5">
                         <div class="flex justify-between items-start mb-1">
@@ -80,37 +80,69 @@
 @code {
     [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
     [Inject] private HttpClient Http { get; set; } = default!;
+    [Inject] private NavigationManager Navigation { get; set; } = default!;
 
     public class ProductUI
     {
         public string Icon { get; set; } = "";
         public string Gradient { get; set; } = "";
         public string BadgeClass { get; set; } = "";
-        public string BadgeText { get; set; } = "";
         public string StatusClass { get; set; } = "";
-        public string StatusText { get; set; } = "";
         public int StockQuantity { get; set; }
     }
 
     private PagedResult<Product>? _pagedProducts;
-    private Dictionary<Guid, ProductUI> _productUIs = new();
+
+    private (string Icon, string Gradient, string BadgeClass) GetCategoryStyle(string name)
+    {
+        var categoryStyleMaps = new Dictionary<string, (string Icon, string Gradient, string BadgeClass)>
+        {
+            { "Coffee Beans", ("coffee", "from-indigo-500 to-purple-600", "text-primary") },
+            { "Tea", ("leaf", "from-emerald-400 to-teal-600", "text-emerald-600") },
+            { "Pastries", ("croissant", "from-amber-400 to-orange-500", "text-orange-600") },
+            { "Merchandise", ("shopping-bag", "from-slate-400 to-slate-600", "text-slate-700") }
+        };
+
+        if (categoryStyleMaps.TryGetValue(name, out var style)) return style;
+        var icons = new[] { "package", "box", "tag", "bookmark" };
+        var gradients = new[] { "from-primary to-primary", "from-blue-500 to-indigo-600", "from-violet-400 to-purple-600" };
+        var hash = Math.Abs(name.GetHashCode());
+        return (icons[hash % icons.Length], gradients[hash % gradients.Length], "text-primary");
+    }
+
+    private ProductUI GetProductUI(Product product)
+    {
+        var catName = product.Category?.Name ?? "General";
+        var style = GetCategoryStyle(catName);
+
+        var hash = Math.Abs(product.Id.GetHashCode());
+        var isOutOfStock = hash % 10 == 0; // 10% chance out of stock
+        var stockQty = isOutOfStock ? 0 : (hash % 150) + 10;
+        var statusClass = isOutOfStock ? "bg-destructive" : (stockQty < 20 ? "bg-warning" : "bg-success");
+
+        return new ProductUI
+        {
+            Icon = style.Icon,
+            Gradient = style.Gradient,
+            BadgeClass = style.BadgeClass,
+            StatusClass = statusClass,
+            StockQuantity = stockQty
+        };
+    }
 
     protected override async Task OnInitializedAsync()
     {
         _pagedProducts = await Http.GetFromJsonAsync<PagedResult<Product>>("sample-data/products.json");
+    }
 
-        if (_pagedProducts != null)
-        {
-            var id1 = Guid.Parse("00000000-0000-0000-0000-00000000881A");
-            var id2 = Guid.Parse("00000000-0000-0000-0000-000000008819");
-            var id3 = Guid.Parse("00000000-0000-0000-0000-000000008818");
-            var id4 = Guid.Parse("00000000-0000-0000-0000-000000008817");
+    private void GoToProductDetail(Guid id)
+    {
+        Navigation.NavigateTo($"/products/{id}");
+    }
 
-            _productUIs[id1] = new ProductUI { Icon = "coffee", Gradient = "from-indigo-500 to-purple-600", BadgeClass = "text-primary", BadgeText = "Coffee Beans", StatusClass = "bg-success", StatusText = "Stocked", StockQuantity = 142 };
-            _productUIs[id2] = new ProductUI { Icon = "leaf", Gradient = "from-emerald-400 to-teal-600", BadgeClass = "text-emerald-600", BadgeText = "Tea", StatusClass = "bg-warning", StatusText = "Low Stock", StockQuantity = 18 };
-            _productUIs[id3] = new ProductUI { Icon = "croissant", Gradient = "from-amber-400 to-orange-500", BadgeClass = "text-orange-600", BadgeText = "Pastries", StatusClass = "bg-success", StatusText = "Stocked", StockQuantity = 45 };
-            _productUIs[id4] = new ProductUI { Icon = "cup-soda", Gradient = "from-slate-400 to-slate-600", BadgeClass = "text-slate-700", BadgeText = "Merchandise", StatusClass = "bg-destructive", StatusText = "Out of Stock", StockQuantity = 0 };
-        }
+    private void GoToAddProduct()
+    {
+        Navigation.NavigateTo("/products/add");
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
