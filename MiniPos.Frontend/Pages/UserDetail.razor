@@ -1,4 +1,5 @@
 @page "/users/{UserId}"
+@using System.Globalization
 @using MiniPos.Frontend.Models
 @using System.Net.Http.Json
 
@@ -61,7 +62,7 @@
                         <div class="w-28 h-28 rounded-full bg-gradient-to-tr @_ui.AvatarGradient shadow-xl flex items-center justify-center text-white text-4xl font-bold font-outfit border-4 border-white ring-4 ring-white/50">
                             @initials
                         </div>
-                        <div class="absolute bottom-2 right-2 w-5 h-5 @(_ui.IsOnline ? "bg-success" : "bg-muted") border-[3px] border-white rounded-full shadow-sm" title="@(_ui.IsOnline ? "Online" : "Offline")"></div>
+                        <div class="absolute bottom-2 right-2 w-5 h-5 @(_ui.IsActive ? "bg-success" : "bg-muted") border-[3px] border-white rounded-full shadow-sm" title="@(_ui.IsActive ? "Online" : "Offline")"></div>
                     </div>
                     <div class="pb-2 flex-1 min-w-0">
                         <h1 class="text-2xl font-black text-foreground tracking-tight truncate">@_user.UserName</h1>
@@ -70,9 +71,9 @@
                         </p>
                     </div>
                     <div class="pb-2 shrink-0 hidden sm:flex items-center gap-2">
-                        <span class="flex items-center gap-1.5 text-xs font-bold @(_ui.IsOnline ? "text-success" : "text-muted-foreground")">
-                            <span class="w-2 h-2 rounded-full @(_ui.IsOnline ? "bg-success animate-pulse" : "bg-muted")"></span>
-                            @(_ui.IsOnline ? "Online Now" : "Offline")
+                        <span class="flex items-center gap-1.5 text-xs font-bold @(_ui.IsActive ? "text-success" : "text-muted-foreground")">
+                            <span class="w-2 h-2 rounded-full @(_ui.IsActive ? "bg-success animate-pulse" : "bg-muted")"></span>
+                            @(_ui.IsActive ? "Online Now" : "Offline")
                         </span>
                     </div>
                 </div>
@@ -393,7 +394,7 @@
         public string AvatarGradient { get; set; } = "from-slate-400 to-slate-500";
         public string BannerGradient { get; set; } = "from-slate-400 to-slate-600";
         public string RoleColorClass { get; set; } = "text-muted-foreground";
-        public bool IsOnline { get; set; }
+        public bool IsActive { get; set; }
         public string TotalSales { get; set; } = "—";
         public string ShiftToday { get; set; } = "—";
         public string JoinedDate { get; set; } = "—";
@@ -417,24 +418,21 @@
                     BadgeClass = "badge-primary", Icon = "shield-check",
                     AvatarGradient = "from-primary to-purple-500",
                     BannerGradient = "from-primary via-purple-600 to-indigo-700",
-                    RoleColorClass = "text-primary", IsOnline = true,
-                    TotalSales = "1.2k", ShiftToday = "8 hrs", JoinedDate = "Jan 2023"
+                    RoleColorClass = "text-primary", IsActive = true,
                 },
                 "Cashier" => new DetailUI
                 {
                     BadgeClass = "badge-success", Icon = "calculator",
                     AvatarGradient = "from-success to-emerald-400",
                     BannerGradient = "from-emerald-500 via-teal-500 to-green-600",
-                    RoleColorClass = "text-success", IsOnline = true,
-                    TotalSales = "42", ShiftToday = "6 hrs", JoinedDate = "Mar 2024"
+                    RoleColorClass = "text-success", IsActive = true,
                 },
                 "Merchant" or "Manager" => new DetailUI
                 {
                     BadgeClass = "badge-warning", Icon = "briefcase",
                     AvatarGradient = "from-warning to-yellow-400",
                     BannerGradient = "from-amber-500 via-orange-500 to-yellow-600",
-                    RoleColorClass = "text-warning", IsOnline = false,
-                    TotalSales = "1.9k", ShiftToday = "—", JoinedDate = "Jun 2023"
+                    RoleColorClass = "text-warning", IsActive = false,
                 },
                 _ => new DetailUI()
             };
@@ -461,6 +459,8 @@
 
             _editUserName = _user.UserName;
             _editEmail = _user.Email;
+            _ui.TotalSales = _user.TotalSales;
+            _ui.JoinedDate = $"{_user.JoinedDate:yyyy MM}";
         }
     }
 
