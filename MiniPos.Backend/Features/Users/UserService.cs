@@ -11,6 +11,8 @@ public interface IUserService
     Task<Result<UserGetByIdResponseDto>> GetById(UserGetByIdRequestDto request);
     Task<Result<UserCreateResponseDto>> Create(UserCreateRequestDto request);
     Task<Result> Update(Guid id, UserUpdateRequestDto request);
+    Task<Result> ResetPassword(Guid id, UserUpdatePasswordRequestDto request);
+    Task<Result> AssignBranch(Guid id, Guid branchId);
     Task<Result> Delete(Guid id);
 }
 
@@ -86,7 +88,7 @@ public class UserService : IUserService
             return Result<PagedResult<UserListResponseDto>>.Failure(new InternalError("User.GetList", e.Message));
         }
     }
-
+    
     public async Task<Result<UserGetByIdResponseDto>> GetById(UserGetByIdRequestDto request)
     {
         const string errCode = "User.GetById";
@@ -148,6 +150,55 @@ public class UserService : IUserService
         catch (Exception e)
         {
             return Result.Failure(new InternalError("User.Update", e.Message));
+        }
+    }
+
+    public async Task<Result> ResetPassword(Guid id, UserUpdatePasswordRequestDto request)
+    {
+        try
+        {
+            var user = await _db.Users.FirstOrDefaultAsync(user => user.Id == id);
+            if (user == null)
+                return Result.Failure(new NotFoundError("User.UpdatePassword", "User does not exist"));
+            
+            if (request.NewPassword != request.ConfirmPassword)
+                return Result.Failure(new BadRequestError("User.UpdatePassword", "New password and confirm password do not match"));
+            
+            var hashedPassword = _passwordHasher.HashPassword(user, request.NewPassword);
+            user.PasswordHash = hashedPassword;
+            user.UpdatedAt = DateTime.UtcNow;
+            await _db.SaveChangesAsync();
+            
+            return Result.Success();
+        }
+        catch (Exception e)
+        {
+            return Result.Failure(new InternalError("User.UpdatePassword", e.Message));
+        }
+    }
+
+    public async Task<Result> AssignBranch(Guid id, Guid branchId)
+    {
+        const string errCode = "User.ReassignBranch";
+        try
+        {
+            var isBranchExist = await _db.Branches.AnyAsync(b => b.Id == branchId);
+            if (!isBranchExist)
+                return Result.Failure(new NotFoundError(errCode, "Branch does not exist"));
+
+            var user = await _db.Users.FirstOrDefaultAsync(user => user.Id == id);
+            if (user == null)
+                return Result.Failure(new NotFoundError(errCode, "User does not exist"));
+            
+            user.BranchId = branchId;
+            user.UpdatedAt = DateTime.UtcNow;
+            await _db.SaveChangesAsync();
+            
+            return Result.Success();
+        }
+        catch (Exception e)
+        {
+            return Result.Failure(new InternalError(errCode, e.Message));
         }
     }
 
@@ -384,4 +435,15 @@ public class UserUpdateRequestDto
 {
     public string UserName { get; set; }
     public string Email { get; set; }
+}
+
+public class UserUpdatePasswordRequestDto
+{
+    public string NewPassword { get; set; } = string.Empty;
+    public string ConfirmPassword { get; set; } = string.Empty;
+}
+
+public class UserAssignBranchRequestDto
+{
+    public Guid BranchId { get; set; }
 }

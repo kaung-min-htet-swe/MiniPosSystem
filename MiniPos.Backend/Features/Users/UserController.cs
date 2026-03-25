@@ -47,6 +47,7 @@ public class UserController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] UserCreateRequestDto request)
     {
+        request.ProcessedById = "3798433e-f36b-1410-8548-003fb1df8966";
         var result = await _userService.Create(request);
         if (result.IsSuccess)
         {
@@ -68,6 +69,28 @@ public class UserController : ControllerBase
         return StatusCode(statusCode, new { message = result.Error!.Message });
     }
 
+    [HttpPost("{id}/reset-password")]
+    public async Task<IActionResult> UpdatePassword(Guid id, [FromBody] UserUpdatePasswordRequestDto request)
+    {
+        var result = await _userService.ResetPassword(id, request);
+        if (result.IsSuccess)
+            return Ok();
+
+        var statusCode = ErrorHttpMapper.GetStatusCode(result.Error!);
+        return StatusCode(statusCode, new { message = result.Error!.Message });
+    }
+    
+    [HttpPost("{id}/reassign-branch")]
+    public async Task<IActionResult> ReassignBranch(Guid id, [FromBody] UserAssignBranchRequestDto request)
+    {
+        var result = await _userService.AssignBranch(id, request.BranchId);
+        if (result.IsSuccess)
+            return Ok();
+
+        var statusCode = ErrorHttpMapper.GetStatusCode(result.Error!);
+        return StatusCode(statusCode, new { message = result.Error!.Message });
+    }
+    
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(Guid id)
     {

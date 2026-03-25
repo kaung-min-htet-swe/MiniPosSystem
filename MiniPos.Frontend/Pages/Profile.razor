@@ -7,7 +7,9 @@
 <div class="animate-slide-down max-w-4xl mx-auto pb-12">
     <!-- Header with Back Navigation -->
     <div class="mb-10">
-        <button class="flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors mb-6 group" @onclick="GoBack">
+        <button
+            class="flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors mb-6 group"
+            @onclick="GoBack">
             <i data-lucide="arrow-left" class="w-4 h-4 group-hover:-translate-x-1 transition-transform"></i>
             Back to Dashboard
         </button>
@@ -17,8 +19,10 @@
     {
         <div class="flex flex-col items-center justify-center p-24 relative">
             <div class="absolute w-24 h-24 bg-primary/20 blur-xl rounded-full animate-ping"></div>
-            <div class="animate-spin rounded-full h-12 w-12 border-4 border-t-primary border-primary/20 relative z-10"></div>
-            <span class="mt-6 text-sm font-bold text-muted-foreground tracking-widest uppercase">Loading Profile...</span>
+            <div
+                class="animate-spin rounded-full h-12 w-12 border-4 border-t-primary border-primary/20 relative z-10"></div>
+            <span
+                class="mt-6 text-sm font-bold text-muted-foreground tracking-widest uppercase">Loading Profile...</span>
         </div>
     }
     else
@@ -35,19 +39,23 @@
                 <div class="absolute inset-0 bg-white/10 backdrop-blur-3xl"></div>
                 <div class="absolute -top-10 -right-10 w-48 h-48 bg-white/15 rounded-full blur-2xl"></div>
                 <div class="absolute -bottom-10 -left-10 w-48 h-48 bg-black/10 rounded-full blur-2xl"></div>
-                
-                <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(circle, rgba(255,255,255,0.3) 1px, transparent 1px); background-size: 20px 20px;"></div>
+
+                <div class="absolute inset-0 opacity-10"
+                     style="background-image: radial-gradient(circle, rgba(255,255,255,0.3) 1px, transparent 1px); background-size: 20px 20px;"></div>
 
                 <!-- Edit button -->
                 <div class="absolute top-4 right-4 z-20">
-                    <button class="w-9 h-9 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-white hover:bg-white/40 transition-all" @onclick="OpenEditProfileModal">
+                    <button
+                        class="w-9 h-9 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-white hover:bg-white/40 transition-all"
+                        @onclick="OpenEditProfileModal">
                         <i data-lucide="pencil" class="w-4 h-4"></i>
                     </button>
                 </div>
 
                 <!-- Role Badge -->
                 <div class="absolute top-4 left-6 z-20">
-                    <span class="badge @_ui.BadgeClass px-3 py-1.5 uppercase tracking-widest text-[10px] shadow-md flex items-center font-black">
+                    <span
+                        class="badge @_ui.BadgeClass px-3 py-1.5 uppercase tracking-widest text-[10px] shadow-md flex items-center font-black">
                         <i data-lucide="@_ui.Icon" class="w-3.5 h-3.5 mr-1.5"></i> @_profile.Role
                     </span>
                 </div>
@@ -58,10 +66,13 @@
                 <!-- Avatar -->
                 <div class="relative -mt-14 mb-4 flex items-end gap-6">
                     <div class="relative shrink-0">
-                        <div class="w-28 h-28 rounded-full bg-gradient-to-tr @_ui.AvatarGradient shadow-xl flex items-center justify-center text-white text-4xl font-bold font-outfit border-4 border-white ring-4 ring-white/50">
+                        <div
+                            class="w-28 h-28 rounded-full bg-gradient-to-tr @_ui.AvatarGradient shadow-xl flex items-center justify-center text-white text-4xl font-bold font-outfit border-4 border-white ring-4 ring-white/50">
                             @initials
                         </div>
-                        <div class="absolute bottom-2 right-2 w-5 h-5 bg-success border-[3px] border-white rounded-full shadow-sm" title="Online"></div>
+                        <div
+                            class="absolute bottom-2 right-2 w-5 h-5 bg-success border-[3px] border-white rounded-full shadow-sm"
+                            title="Online"></div>
                     </div>
                     <div class="pb-2 flex-1 min-w-0">
                         <h1 class="text-2xl font-black text-foreground tracking-tight truncate">@_profile.UserName</h1>
@@ -89,22 +100,31 @@
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                         <div class="bg-muted/20 rounded-xl p-4 border border-border/30">
-                            <div class="text-[10px] uppercase font-black tracking-widest text-muted-foreground mb-1">Full Name</div>
+                            <div class="text-[10px] uppercase font-black tracking-widest text-muted-foreground mb-1">
+                                Full Name
+                            </div>
                             <div class="text-sm font-semibold text-foreground">@_profile.UserName</div>
                         </div>
                         <div class="bg-muted/20 rounded-xl p-4 border border-border/30">
-                            <div class="text-[10px] uppercase font-black tracking-widest text-muted-foreground mb-1">Email</div>
+                            <div class="text-[10px] uppercase font-black tracking-widest text-muted-foreground mb-1">
+                                Email
+                            </div>
                             <div class="text-sm font-semibold text-foreground">@_profile.Email</div>
                         </div>
                         <div class="bg-muted/20 rounded-xl p-4 border border-border/30">
-                            <div class="text-[10px] uppercase font-black tracking-widest text-muted-foreground mb-1">Role</div>
+                            <div class="text-[10px] uppercase font-black tracking-widest text-muted-foreground mb-1">
+                                Role
+                            </div>
                             <div class="text-sm font-semibold text-foreground flex items-center gap-2">
                                 <i data-lucide="@_ui.Icon" class="w-3.5 h-3.5 @_ui.RoleColorClass"></i> @_profile.Role
                             </div>
                         </div>
                         <div class="bg-muted/20 rounded-xl p-4 border border-border/30">
-                            <div class="text-[10px] uppercase font-black tracking-widest text-muted-foreground mb-1">Joined Date</div>
-                            <div class="text-sm font-semibold text-foreground">@_profile.CreatedAt.ToString("MMMM yyyy")</div>
+                            <div class="text-[10px] uppercase font-black tracking-widest text-muted-foreground mb-1">
+                                Joined Date
+                            </div>
+                            <div
+                                class="text-sm font-semibold text-foreground">@_profile.CreatedAt.ToString("MMMM yyyy")</div>
                         </div>
                     </div>
                 </div>
@@ -166,12 +186,16 @@
                         <h2 class="text-lg font-bold text-foreground">Personal Stats</h2>
                     </div>
                     <div class="flex flex-col gap-4">
-                        <div class="flex justify-between items-center p-3 bg-muted/20 rounded-xl border border-border/30">
+                        <div
+                            class="flex justify-between items-center p-3 bg-muted/20 rounded-xl border border-border/30">
                             <div class="flex items-center gap-3">
-                                <div class="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+                                <div
+                                    class="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
                                     <i data-lucide="shopping-cart" class="w-4 h-4"></i>
                                 </div>
-                                <div class="text-xs font-bold uppercase tracking-wider text-muted-foreground">Sales Driven</div>
+                                <div class="text-xs font-bold uppercase tracking-wider text-muted-foreground">Sales
+                                    Driven
+                                </div>
                             </div>
                             <div class="font-black text-xl font-outfit text-foreground">2.4k</div>
                         </div>
@@ -181,13 +205,16 @@
                 <!-- Quick Actions -->
                 <div class="pos-card bg-white/60 shadow-lg border-border/40">
                     <div class="flex items-center gap-2 mb-5">
-                        <div class="w-8 h-8 rounded-lg bg-muted/30 text-muted-foreground flex items-center justify-center">
+                        <div
+                            class="w-8 h-8 rounded-lg bg-muted/30 text-muted-foreground flex items-center justify-center">
                             <i data-lucide="settings" class="w-4 h-4"></i>
                         </div>
                         <h2 class="text-lg font-bold text-foreground">Actions</h2>
                     </div>
                     <div class="flex flex-col gap-2">
-                        <button class="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-primary/5 text-primary hover:bg-primary/10 transition-colors font-semibold text-sm text-left" @onclick="OpenEditProfileModal">
+                        <button
+                            class="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-primary/5 text-primary hover:bg-primary/10 transition-colors font-semibold text-sm text-left"
+                            @onclick="OpenEditProfileModal">
                             <i data-lucide="pencil" class="w-4 h-4"></i> Edit Profile Info
                         </button>
                     </div>
@@ -198,22 +225,34 @@
         <!-- Edit Profile Modal -->
         @if (_showEditModal)
         {
-            <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
-                <div class="bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-border/40 w-full max-w-md p-6 animate-scale-up space-y-5">
+            <div
+                class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
+                <div
+                    class="bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-border/40 w-full max-w-md p-6 animate-scale-up space-y-5">
                     <div class="flex items-center gap-2 text-primary">
                         <i data-lucide="pencil" class="w-5 h-5"></i>
                         <h3 class="text-lg font-bold">Edit Profile Info</h3>
                     </div>
                     <div class="space-y-4">
                         <div class="space-y-1">
-                            <label class="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Full Name</label>
-                            <input type="text" @bind="_editUserName" class="w-full px-4 py-2.5 bg-white border border-border/60 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary/40 focus:outline-none font-medium" />
+                            <label class="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Full
+                                Name</label>
+                            <input type="text" @bind="_editUserName"
+                                   class="w-full px-4 py-2.5 bg-white border border-border/60 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary/40 focus:outline-none font-medium"/>
                         </div>
                     </div>
                     <div class="flex justify-end gap-3 pt-2">
-                        <button class="btn btn-ghost rounded-xl px-5 text-sm" @onclick='() => _showEditModal = false' disabled="@_isActionSubmitting">Cancel</button>
-                        <button class="btn btn-primary rounded-xl px-6 text-sm shadow-primary disabled:opacity-50 flex items-center gap-2" @onclick="HandleEditProfile" disabled="@_isActionSubmitting">
-                            @if (_isActionSubmitting) { <div class="animate-spin rounded-full h-3.5 w-3.5 border-2 border-white/20 border-t-white"></div> }
+                        <button class="btn btn-ghost rounded-xl px-5 text-sm" @onclick='() => _showEditModal = false'
+                                disabled="@_isActionSubmitting">Cancel
+                        </button>
+                        <button
+                            class="btn btn-primary rounded-xl px-6 text-sm shadow-primary disabled:opacity-50 flex items-center gap-2"
+                            @onclick="HandleEditProfile" disabled="@_isActionSubmitting">
+                            @if (_isActionSubmitting)
+                            {
+                                <div
+                                    class="animate-spin rounded-full h-3.5 w-3.5 border-2 border-white/20 border-t-white"></div>
+                            }
                             <span>Save Changes</span>
                         </button>
                     </div>
@@ -259,22 +298,37 @@
         }
     }
 
-    private void OpenEditProfileModal() { _showEditModal = true; }
+    private void OpenEditProfileModal()
+    {
+        _showEditModal = true;
+    }
 
     private async Task HandleEditProfile()
     {
         if (string.IsNullOrWhiteSpace(_editUserName)) return;
         _isActionSubmitting = true;
         await Task.Delay(1200);
-        if (_profile != null) { _profile.UserName = _editUserName; }
-        _isActionSubmitting = false; _showEditModal = false;
+        if (_profile != null)
+        {
+            _profile.UserName = _editUserName;
+        }
+
+        _isActionSubmitting = false;
+        _showEditModal = false;
         StateHasChanged();
     }
 
-    private void GoBack() { Navigation.NavigateTo("/"); }
+    private void GoBack()
+    {
+        Navigation.NavigateTo("/");
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender) { await JSRuntime.InvokeVoidAsync("initIcons"); }
+        if (firstRender)
+        {
+            await JSRuntime.InvokeVoidAsync("initIcons");
+        }
     }
+
 }

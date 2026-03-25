@@ -7,7 +7,9 @@
 <div class="animate-slide-down max-w-5xl mx-auto pb-12">
     <!-- Header with Back Navigation -->
     <div class="mb-10">
-        <button class="flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors mb-6 group" @onclick="GoBack">
+        <button
+            class="flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors mb-6 group"
+            @onclick="GoBack">
             <i data-lucide="arrow-left" class="w-4 h-4 group-hover:-translate-x-1 transition-transform"></i>
             Back to Merchants
         </button>
@@ -17,7 +19,8 @@
     {
         <div class="flex flex-col items-center justify-center p-24 relative">
             <div class="absolute w-24 h-24 bg-primary/20 blur-xl rounded-full animate-ping"></div>
-            <div class="animate-spin rounded-full h-12 w-12 border-4 border-t-primary border-primary/20 relative z-10"></div>
+            <div
+                class="animate-spin rounded-full h-12 w-12 border-4 border-t-primary border-primary/20 relative z-10"></div>
             <span class="mt-6 text-sm font-bold text-muted-foreground tracking-widest uppercase">Loading Merchant Profile...</span>
         </div>
     }
@@ -28,18 +31,20 @@
             <div class="relative h-32 bg-gradient-to-br from-blue-500 via-indigo-500 to-primary/80 overflow-hidden">
                 <div class="absolute inset-0 bg-white/10 backdrop-blur-3xl"></div>
                 <div class="absolute -top-10 -right-10 w-48 h-48 bg-white/15 rounded-full blur-2xl"></div>
-                
+
                 <!-- Role/Status Badge -->
                 <div class="absolute top-4 left-6 z-20">
                     @if (_merchant.IsActive)
                     {
-                        <span class="badge badge-success px-3 py-1.5 uppercase tracking-widest text-[10px] shadow-md flex items-center font-black">
+                        <span
+                            class="badge badge-success px-3 py-1.5 uppercase tracking-widest text-[10px] shadow-md flex items-center font-black">
                             <span class="w-1.5 h-1.5 rounded-full bg-success animate-pulse mr-1.5"></span> Active
                         </span>
                     }
                     else
                     {
-                        <span class="badge bg-muted text-muted-foreground px-3 py-1.5 uppercase tracking-widest text-[10px] shadow-md flex items-center font-black">
+                        <span
+                            class="badge bg-muted text-muted-foreground px-3 py-1.5 uppercase tracking-widest text-[10px] shadow-md flex items-center font-black">
                             Inactive
                         </span>
                     }
@@ -47,7 +52,9 @@
 
                 <!-- Edit button quick -->
                 <div class="absolute top-4 right-4 z-20">
-                    <button class="w-9 h-9 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-white hover:bg-white/40 transition-all font-bold" @onclick="() => _showEditModal = true">
+                    <button
+                        class="w-9 h-9 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-white hover:bg-white/40 transition-all font-bold"
+                        @onclick="() => _showEditModal = true">
                         <i data-lucide="pencil" class="w-4 h-4"></i>
                     </button>
                 </div>
@@ -58,14 +65,16 @@
                 <!-- Icon Overlap -->
                 <div class="relative -mt-10 mb-4 flex items-end gap-6">
                     <div class="shrink-0">
-                        <div class="w-20 h-20 rounded-2xl bg-white shadow-xl flex items-center justify-center text-primary border border-border/40 font-black font-outfit text-3xl">
+                        <div
+                            class="w-20 h-20 rounded-2xl bg-white shadow-xl flex items-center justify-center text-primary border border-border/40 font-black font-outfit text-3xl">
                             @_merchant.Name.Substring(0, 1).ToUpper()
                         </div>
                     </div>
                     <div class="pb-1 flex-1 min-w-0">
                         <h1 class="text-2xl font-black text-foreground tracking-tight truncate">@_merchant.Name</h1>
                         <p class="text-sm text-muted-foreground font-medium flex items-center gap-1.5 mt-0.5">
-                            <i data-lucide="mail" class="w-3.5 h-3.5"></i> @(_merchant.ContactEmail ?? "No email provided")
+                            <i data-lucide="mail"
+                               class="w-3.5 h-3.5"></i> @(_merchant.ContactEmail ?? "No email provided")
                         </p>
                     </div>
                 </div>
@@ -87,7 +96,9 @@
                             </div>
                             <h2 class="text-lg font-bold text-foreground">Connected Branches</h2>
                         </div>
-                        <button class="btn btn-ghost text-primary text-xs font-bold gap-1 flex items-center hover:bg-primary/5" @onclick="NavigateToAddBranch">
+                        <button
+                            class="btn btn-ghost text-primary text-xs font-bold gap-1 flex items-center hover:bg-primary/5"
+                            @onclick="NavigateToAddBranch">
                             <i data-lucide="plus" class="w-3 h-3 font-black"></i> Add Branch
                         </button>
                     </div>
@@ -95,15 +106,20 @@
                     <div class="flex flex-col gap-3">
                         @if (_branches == null || !_branches.Any())
                         {
-                            <div class="text-center py-6 text-sm text-muted-foreground font-medium italic">No branches connected.</div>
+                            <div class="text-center py-6 text-sm text-muted-foreground font-medium italic">No branches
+                                connected.
+                            </div>
                         }
                         else
                         {
                             @foreach (var br in _branches)
                             {
-                                <div class="bg-muted/20 rounded-xl p-4 border border-border/30 flex justify-between items-center group cursor-pointer hover:bg-muted/30 transition-colors" @onclick="() => NavigateToBranch(br.Id)">
+                                <div
+                                    class="bg-muted/20 rounded-xl p-4 border border-border/30 flex justify-between items-center group cursor-pointer hover:bg-muted/30 transition-colors"
+                                    @onclick="() => NavigateToBranch(br.Id)">
                                     <div class="flex items-center gap-3">
-                                        <div class="w-10 h-10 rounded-lg bg-white border flex items-center justify-center text-primary font-bold shadow-sm">
+                                        <div
+                                            class="w-10 h-10 rounded-lg bg-white border flex items-center justify-center text-primary font-bold shadow-sm">
                                             <i data-lucide="store" class="w-5 h-5"></i>
                                         </div>
                                         <div>
@@ -114,7 +130,8 @@
                                         </div>
                                     </div>
                                     <div class="flex">
-                                        <i data-lucide="chevron-right" class="w-4 h-4 text-muted-foreground group-hover:translate-x-1 transition-transform"></i>
+                                        <i data-lucide="chevron-right"
+                                           class="w-4 h-4 text-muted-foreground group-hover:translate-x-1 transition-transform"></i>
                                     </div>
                                 </div>
                             }
@@ -136,32 +153,46 @@
                         <h2 class="text-lg font-bold text-foreground">Business Stats</h2>
                     </div>
                     <div class="flex flex-col gap-4">
-                        <div class="flex justify-between items-center p-3 bg-muted/20 rounded-xl border border-border/30">
+                        <div
+                            class="flex justify-between items-center p-3 bg-muted/20 rounded-xl border border-border/30">
                             <div class="flex items-center gap-2.5">
-                                <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center">
+                                <div
+                                    class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center">
                                     <i data-lucide="dollar-sign" class="w-4 h-4"></i>
                                 </div>
-                                <div class="text-xs font-bold uppercase tracking-wider text-muted-foreground">Volume Today</div>
+                                <div class="text-xs font-bold uppercase tracking-wider text-muted-foreground">Volume
+                                    Today
+                                </div>
                             </div>
                             <div class="font-black text-xl font-outfit text-foreground">$12.4k</div>
                         </div>
-                        <div class="flex justify-between items-center p-3 bg-muted/20 rounded-xl border border-border/30">
+                        <div
+                            class="flex justify-between items-center p-3 bg-muted/20 rounded-xl border border-border/30">
                             <div class="flex items-center gap-2.5">
-                                <div class="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center">
+                                <div
+                                    class="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center">
                                     <i data-lucide="users" class="w-4 h-4"></i>
                                 </div>
-                                <div class="text-xs font-bold uppercase tracking-wider text-muted-foreground">Direct Employees</div>
+                                <div class="text-xs font-bold uppercase tracking-wider text-muted-foreground">Direct
+                                    Employees
+                                </div>
                             </div>
-                            <div class="font-black text-xl font-outfit text-foreground">@(new Random().Next(4, 15))</div>
+                            <div
+                                class="font-black text-xl font-outfit text-foreground">@(new Random().Next(4, 15))</div>
                         </div>
-                        <div class="flex justify-between items-center p-3 bg-muted/20 rounded-xl border border-border/30">
+                        <div
+                            class="flex justify-between items-center p-3 bg-muted/20 rounded-xl border border-border/30">
                             <div class="flex items-center gap-2.5">
-                                <div class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center">
+                                <div
+                                    class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center">
                                     <i data-lucide="calendar" class="w-4 h-4"></i>
                                 </div>
-                                <div class="text-xs font-bold uppercase tracking-wider text-muted-foreground">Joined At</div>
+                                <div class="text-xs font-bold uppercase tracking-wider text-muted-foreground">Joined
+                                    At
+                                </div>
                             </div>
-                            <div class="font-bold text-sm font-outfit text-foreground">@_merchant.CreatedAt.ToString("MMM dd, yyyy")</div>
+                            <div
+                                class="font-bold text-sm font-outfit text-foreground">@_merchant.CreatedAt.ToString("MMM dd, yyyy")</div>
                         </div>
                     </div>
                 </div>
@@ -169,22 +200,29 @@
                 <!-- Actions card -->
                 <div class="pos-card bg-white/60 shadow-lg border-border/40">
                     <div class="flex items-center gap-2 mb-5">
-                        <div class="w-8 h-8 rounded-lg bg-muted/30 text-muted-foreground flex items-center justify-center">
+                        <div
+                            class="w-8 h-8 rounded-lg bg-muted/30 text-muted-foreground flex items-center justify-center">
                             <i data-lucide="settings" class="w-4 h-4"></i>
                         </div>
                         <h2 class="text-lg font-bold text-foreground">Merchant Controls</h2>
                     </div>
                     <div class="flex flex-col gap-2">
-                        <button class="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-primary/5 text-primary hover:bg-primary/10 transition-colors font-semibold text-sm text-left" @onclick="() => _showEditModal = true">
+                        <button
+                            class="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-primary/5 text-primary hover:bg-primary/10 transition-colors font-semibold text-sm text-left"
+                            @onclick="() => _showEditModal = true">
                             <i data-lucide="pencil" class="w-4 h-4"></i> Edit Details
                         </button>
-                        <button class="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-muted/50 transition-colors font-semibold text-sm text-left text-foreground" @onclick="NavigateToAddBranch">
+                        <button
+                            class="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-muted/50 transition-colors font-semibold text-sm text-left text-foreground"
+                            @onclick="NavigateToAddBranch">
                             <i data-lucide="map-pin" class="w-4 h-4"></i> Add Branch
                         </button>
                         <hr class="border-border/40 my-1"/>
                         @if (_merchant.IsActive)
                         {
-                            <button class="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-destructive/10 transition-colors font-semibold text-sm text-left text-destructive" @onclick="() => _showDeactivateModal = true">
+                            <button
+                                class="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-destructive/10 transition-colors font-semibold text-sm text-left text-destructive"
+                                @onclick="() => _showDeactivateModal = true">
                                 <i data-lucide="power" class="w-4 h-4"></i> Deactivate Account
                             </button>
                         }
@@ -199,26 +237,40 @@
         <!-- Edit Modal -->
         @if (_showEditModal)
         {
-            <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
-                <div class="bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-border/40 w-full max-w-md p-6 animate-scale-up space-y-5">
+            <div
+                class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
+                <div
+                    class="bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-border/40 w-full max-w-md p-6 animate-scale-up space-y-5">
                     <div class="flex items-center gap-2 text-primary">
                         <i data-lucide="pencil" class="w-5 h-5"></i>
                         <h3 class="text-lg font-bold">Edit Details</h3>
                     </div>
                     <div class="space-y-4">
                         <div class="space-y-1">
-                            <label class="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Merchant Name</label>
-                            <input type="text" @bind="_editName" class="w-full px-4 py-2.5 bg-white border border-border/60 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary/40 focus:outline-none font-medium" />
+                            <label class="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Merchant
+                                Name</label>
+                            <input type="text" @bind="_editName"
+                                   class="w-full px-4 py-2.5 bg-white border border-border/60 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary/40 focus:outline-none font-medium"/>
                         </div>
                         <div class="space-y-1">
-                            <label class="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Contact Email</label>
-                            <input type="text" @bind="_editEmail" class="w-full px-4 py-2.5 bg-white border border-border/60 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary/40 focus:outline-none font-medium" />
+                            <label class="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Contact
+                                Email</label>
+                            <input type="text" @bind="_editEmail"
+                                   class="w-full px-4 py-2.5 bg-white border border-border/60 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary/40 focus:outline-none font-medium"/>
                         </div>
                     </div>
                     <div class="flex justify-end gap-3 pt-2">
-                        <button class="btn btn-ghost rounded-xl px-5 text-sm" @onclick='() => _showEditModal = false' disabled="@_isSubmitting">Cancel</button>
-                        <button class="btn btn-primary rounded-xl px-6 text-sm shadow-primary disabled:opacity-50 flex items-center gap-2" @onclick="HandleEditMerchant" disabled="@_isSubmitting">
-                            @if (_isSubmitting) { <div class="animate-spin rounded-full h-3.5 w-3.5 border-2 border-white/20 border-t-white"></div> }
+                        <button class="btn btn-ghost rounded-xl px-5 text-sm" @onclick='() => _showEditModal = false'
+                                disabled="@_isSubmitting">Cancel
+                        </button>
+                        <button
+                            class="btn btn-primary rounded-xl px-6 text-sm shadow-primary disabled:opacity-50 flex items-center gap-2"
+                            @onclick="HandleEditMerchant" disabled="@_isSubmitting">
+                            @if (_isSubmitting)
+                            {
+                                <div
+                                    class="animate-spin rounded-full h-3.5 w-3.5 border-2 border-white/20 border-t-white"></div>
+                            }
                             <span>Save Changes</span>
                         </button>
                     </div>
@@ -229,17 +281,27 @@
         <!-- Deactivate Modal -->
         @if (_showDeactivateModal)
         {
-            <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
-                <div class="bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-border/40 w-full max-w-md p-6 animate-scale-up space-y-5">
+            <div
+                class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
+                <div
+                    class="bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-border/40 w-full max-w-md p-6 animate-scale-up space-y-5">
                     <div class="flex items-center gap-2 text-destructive">
                         <i data-lucide="power" class="w-5 h-5"></i>
                         <h3 class="text-lg font-bold">Deactivate Account</h3>
                     </div>
-                    <p class="text-sm text-muted-foreground">Are you sure you want to deactivate <b>@_merchant.Name</b>? Doing so will halt active sessions and close digital profiles layout structures safely.</p>
+                    <p class="text-sm text-muted-foreground">Are you sure you want to deactivate <b>@_merchant.Name</b>?
+                        Doing so will halt active sessions and close digital profiles layout structures safely.</p>
                     <div class="flex justify-end gap-3 pt-2">
-                        <button class="btn btn-ghost rounded-xl px-5 text-sm" @onclick='() => _showDeactivateModal = false' disabled="@_isSubmitting">Cancel</button>
-                        <button class="btn btn-destructive rounded-xl px-6 text-sm flex items-center gap-2" @onclick="HandleDeactivateMerchant" disabled="@_isSubmitting">
-                            @if (_isSubmitting) { <div class="animate-spin rounded-full h-3.5 w-3.5 border-2 border-white/20 border-t-white"></div> }
+                        <button class="btn btn-ghost rounded-xl px-5 text-sm"
+                                @onclick='() => _showDeactivateModal = false' disabled="@_isSubmitting">Cancel
+                        </button>
+                        <button class="btn btn-destructive rounded-xl px-6 text-sm flex items-center gap-2"
+                                @onclick="HandleDeactivateMerchant" disabled="@_isSubmitting">
+                            @if (_isSubmitting)
+                            {
+                                <div
+                                    class="animate-spin rounded-full h-3.5 w-3.5 border-2 border-white/20 border-t-white"></div>
+                            }
                             <span>Deactivate</span>
                         </button>
                     </div>
@@ -279,7 +341,8 @@
 
         if (_merchant != null)
         {
-            _editName = _merchant.Name; _editEmail = _merchant.ContactEmail ?? "";
+            _editName = _merchant.Name;
+            _editEmail = _merchant.ContactEmail ?? "";
 
             // Mocked branches connected
             var branchesData = await Http.GetFromJsonAsync<PagedResult<Branch>>("sample-data/branches.json");
@@ -290,7 +353,10 @@
         }
     }
 
-    private void GoBack() { Navigation.NavigateTo("/merchants"); }
+    private void GoBack()
+    {
+        Navigation.NavigateTo("/merchants");
+    }
 
     private void NavigateToAddBranch()
     {
@@ -307,8 +373,14 @@
         if (string.IsNullOrWhiteSpace(_editName)) return;
         _isSubmitting = true;
         await Task.Delay(1000); // Simulate
-        if (_merchant != null) { _merchant.Name = _editName; _merchant.ContactEmail = _editEmail; }
-        _isSubmitting = false; _showEditModal = false;
+        if (_merchant != null)
+        {
+            _merchant.Name = _editName;
+            _merchant.ContactEmail = _editEmail;
+        }
+
+        _isSubmitting = false;
+        _showEditModal = false;
         StateHasChanged();
     }
 
@@ -316,13 +388,22 @@
     {
         _isSubmitting = true;
         await Task.Delay(1000); // Simulate
-        if (_merchant != null) { _merchant.IsActive = false; }
-        _isSubmitting = false; _showDeactivateModal = false;
+        if (_merchant != null)
+        {
+            _merchant.IsActive = false;
+        }
+
+        _isSubmitting = false;
+        _showDeactivateModal = false;
         StateHasChanged();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender) { await JSRuntime.InvokeVoidAsync("initIcons"); }
+        if (firstRender)
+        {
+            await JSRuntime.InvokeVoidAsync("initIcons");
+        }
     }
+
 }

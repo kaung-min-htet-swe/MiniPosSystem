@@ -11,6 +11,7 @@ using MiniPos.Backend.Features.BranchInventories;
 using MiniPos.Backend.Features.Categories;
 using MiniPos.Backend.Features.Orders;
 using MiniPos.Backend.Features.Products;
+using MiniPos.Backend.Features.Merchants;
 using MiniPos.Backend.Features.Users;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -28,6 +29,17 @@ var issuer = jwtSection["Issuer"]!;
 var audience = jwtSection["Audience"]!;
 var key = jwtSection["Key"]!;
 var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowBlazorOrigin",
+        policy =>
+        {
+            policy.AllowAnyOrigin()
+                .AllowAnyMethod()
+                .AllowAnyHeader();
+        });
+});
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -50,7 +62,6 @@ builder.Services
     });
 
 builder.Services.AddAuthorization();
-
 builder.Services.AddScoped<TokenService>();
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 builder.Services.AddScoped<IUserService, UserService>();
@@ -59,6 +70,7 @@ builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IBranchInventoryService, BranchInventoryService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IMerchantService, MerchantService>();
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 
 var app = builder.Build();
@@ -68,5 +80,6 @@ app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
 app.MapControllers();
+app.UseCors("AllowBlazorOrigin");
 
 app.Run();

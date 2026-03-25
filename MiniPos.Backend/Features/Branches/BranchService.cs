@@ -27,32 +27,47 @@ public class BranchService : IBranchService
         try
         {
             var query = _db.Branches.AsNoTracking().AsQueryable();
-
             if (request.MerchantId.HasValue) query = query.Where(b => b.MerchantId == request.MerchantId.Value);
-
+            
             var skip = (request.PageNumber - 1) * request.PageSize;
             var take = request.PageSize;
             var totalCount = await query.CountAsync();
-            var items = await query
-                .Skip(skip)
-                .Take(take)
-                .Include(b => b.Merchant)
-                .OrderByDescending(branch => branch.CreatedAt)
+            
+            query = query.Skip(skip).Take(take);
+            List<BranchListResponseDto> items;
+            PagedResult<BranchListResponseDto> result;
+            
+            if (request.IncludeMerchant)
+            {
+                items = await query
+                    .Select(b => new BranchListResponseDto
+                    {
+                        Id = b.Id,
+                        Name = b.Name,
+                        Address = b.Address,
+                        Merchant = new MerchantDto
+                        {
+                            Id = b.Merchant.Id,
+                            Name = b.Merchant.Name,
+                            ContactEmail = b.Merchant.ContactEmail
+                        }
+                    })
+                    .ToListAsync();
+                
+                result =
+                    new PagedResult<BranchListResponseDto>(items, totalCount, request.PageNumber, request.PageSize);
+                return Result<PagedResult<BranchListResponseDto>>.Success(result);
+            }
+            
+            items = await query
                 .Select(b => new BranchListResponseDto
                 {
                     Id = b.Id,
-                    Merchant = new MerchantDto
-                    {
-                        Id = b.Merchant.Id,
-                        Name = b.Merchant.Name,
-                        ContactEmail = b.Merchant.ContactEmail
-                    },
                     Name = b.Name,
-                    Address = b.Address
                 })
                 .ToListAsync();
 
-            var result =
+            result =
                 new PagedResult<BranchListResponseDto>(items, totalCount, request.PageNumber, request.PageSize);
             return Result<PagedResult<BranchListResponseDto>>.Success(result);
         }
@@ -67,19 +82,21 @@ public class BranchService : IBranchService
         const string errCode = "Branch.GetById";
         try
         {
-            var branch = await _db.Branches.FirstOrDefaultAsync(b => b.Id == id);
+            var branch = await _db.Branches
+                .AsNoTracking()
+                .Select(b => new BranchGetByIdResponseDto
+                {
+                    Id = b.Id,
+                    MerchantId = b.MerchantId,
+                    Name = b.Name,
+                    Address = b.Address
+                })
+                .FirstOrDefaultAsync(b => b.Id == id);
+            
             if (branch == null)
                 return Result<BranchGetByIdResponseDto>.Failure(new NotFoundError(errCode, "Branch does not exist"));
 
-            var dto = new BranchGetByIdResponseDto
-            {
-                Id = branch.Id,
-                MerchantId = branch.MerchantId,
-                Name = branch.Name,
-                Address = branch.Address
-            };
-
-            return Result<BranchGetByIdResponseDto>.Success(dto);
+            return Result<BranchGetByIdResponseDto>.Success(branch);
         }
         catch (Exception e)
         {
@@ -180,6 +197,7 @@ public class BranchService : IBranchService
 public class BranchListRequestDto : PaginationFilter
 {
     public Guid? MerchantId { get; set; }
+    public bool IncludeMerchant { get; set; } = false;
 }
 
 public class MerchantDto
@@ -192,9 +210,9 @@ public class MerchantDto
 public class BranchListResponseDto
 {
     public Guid Id { get; set; }
-    public MerchantDto Merchant { get; set; } = null!;
     public string Name { get; set; } = null!;
     public string? Address { get; set; }
+    public MerchantDto Merchant { get; set; } = null!;
 }
 
 public class BranchGetByIdResponseDto

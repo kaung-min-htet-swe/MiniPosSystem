@@ -7,7 +7,7 @@ namespace MiniPos.Backend.Features.Categories;
 public interface ICategoryService
 {
     Task<Result<PagedResult<CategoryListResponseDto>>> GetList(CategoryListRequestDto request);
-    Task<Result<CategoryGetByIdResponseDto>> GetById(Guid id);
+    Task<Result<CategoryGetByIdResponseDto>> GetById(Guid categoryId);
     Task<Result> Create(CategoryCreateRequestDto request);
     Task<Result> Update(Guid id, CategoryUpdateRequestDto request);
     Task<Result> Delete(Guid id);
@@ -36,16 +36,20 @@ public class CategoryService : ICategoryService
             var skip = (request.PageNumber - 1) * request.PageSize;
             var take = request.PageSize;
             var totalCount = await query.CountAsync();
+
             var items = await query
+                .AsNoTracking()
                 .Skip(skip)
                 .Take(take)
                 .OrderByDescending(category => category.CreatedAt)
-                .Select(category => new CategoryListResponseDto
+                .Select(c => new CategoryListResponseDto
                 {
-                    Id = category.Id,
-                    MerchantId = category.MerchantId,
-                    Name = category.Name,
-                    Description = category.Description,
+                    Id = c.Id,
+                    Name = c.Name,
+                    Description = c.Description,
+                    MerchantId = c.Merchant.Id,
+                    MerchantName = c.Merchant.Name,
+                    ProductCount = c.Products.Count(),
                 })
                 .ToListAsync();
 
@@ -60,25 +64,40 @@ public class CategoryService : ICategoryService
         }
     }
 
-    public async Task<Result<CategoryGetByIdResponseDto>> GetById(Guid id)
+    public async Task<Result<CategoryGetByIdResponseDto>> GetById(Guid categoryId)
     {
         const string errCode = "Category.GetById";
         try
         {
-            var category = await _db.Categories.FirstOrDefaultAsync(c => c.Id == id);
-            if (category == null)
-                return Result<CategoryGetByIdResponseDto>.Failure(new NotFoundError(errCode,
-                    "Category does not exist"));
+            var categoryDto = await _db.Categories
+                .AsNoTracking()
+                .Where(c => c.Id == categoryId)
+                .Select(c => new CategoryGetByIdResponseDto
+                {
+                    Id = c.Id,
+                    Name = c.Name,
+                    Description = c.Description,
+                    CreatedAt = c.CreatedAt,
+                    Merchant = new MerchantDto
+                    {
+                        Id = c.MerchantId, 
+                        Name = c.Merchant.Name
+                    },
+                    Products = c.Products.Select(p => new ProductDto
+                    {
+                        Id = p.Id,
+                        Name = p.Name
+                    }).ToList()
+                })
+                .FirstOrDefaultAsync();
 
-            var dto = new CategoryGetByIdResponseDto
+            if (categoryDto == null)
             {
-                Id = category.Id,
-                MerchantId = category.MerchantId,
-                Name = category.Name,
-                Description = category.Description,
-            };
+                return Result<CategoryGetByIdResponseDto>.Failure(
+                    new NotFoundError(errCode, "Category does not exist"));
+            }
 
-            return Result<CategoryGetByIdResponseDto>.Success(dto);
+            return Result<CategoryGetByIdResponseDto>.Success(categoryDto);
         }
         catch (Exception e)
         {
@@ -181,20 +200,36 @@ public class CategoryListRequestDto : PaginationFilter
     public Guid? MerchantId { get; set; }
 }
 
+public class MerchantDto
+{
+    public Guid Id { get; set; }
+    public string Name { get; set; } = null!;
+}
+
+public class ProductDto
+{
+    public Guid Id { get; set; }
+    public string Name { get; set; } = null!;
+}
+
 public class CategoryListResponseDto
 {
     public Guid Id { get; set; }
-    public Guid MerchantId { get; set; }
-    public string Name { get; set; } = null!;
+    public string? Name { get; set; }
     public string? Description { get; set; }
+    public Guid MerchantId { get; set; }
+    public string? MerchantName { get; set; }
+    public int ProductCount { get; set; } 
 }
 
 public class CategoryGetByIdResponseDto
 {
     public Guid Id { get; set; }
-    public Guid MerchantId { get; set; }
-    public string Name { get; set; } = null!;
+    public string? Name { get; set; }
     public string? Description { get; set; }
+    public MerchantDto? Merchant { get; set; }
+    public List<ProductDto> Products { get; set; } = new List<ProductDto>();
+    public DateTime CreatedAt { get; set; }
 }
 
 public class CategoryCreateRequestDto
