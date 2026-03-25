@@ -9,7 +9,7 @@ public interface IBranchService
     Task<Result<PagedResult<BranchListResponseDto>>> GetList(BranchListRequestDto request);
     Task<Result<BranchGetByIdResponseDto>> GetById(Guid id);
     Task<Result> Create(BranchCreateRequestDto request);
-    Task<Result> Update(Guid id, BranchUpdateRequestDto request);
+    Task<Result> Update(Guid branchId, BranchUpdateRequestDto request);
     Task<Result> Delete(Guid id);
 }
 
@@ -77,26 +77,51 @@ public class BranchService : IBranchService
         }
     }
 
-    public async Task<Result<BranchGetByIdResponseDto>> GetById(Guid id)
+    public async Task<Result<BranchGetByIdResponseDto>> GetById(Guid branchId)
     {
         const string errCode = "Branch.GetById";
         try
         {
-            var branch = await _db.Branches
-                .AsNoTracking()
-                .Select(b => new BranchGetByIdResponseDto
-                {
-                    Id = b.Id,
-                    MerchantId = b.MerchantId,
-                    Name = b.Name,
-                    Address = b.Address
-                })
-                .FirstOrDefaultAsync(b => b.Id == id);
-            
-            if (branch == null)
-                return Result<BranchGetByIdResponseDto>.Failure(new NotFoundError(errCode, "Branch does not exist"));
+            var todayStart = DateTime.Today; 
+            var tomorrowStart = todayStart.AddDays(1);
 
-            return Result<BranchGetByIdResponseDto>.Success(branch);
+            var branchData = await _db.Branches
+                .AsNoTracking()
+                .Where(b => b.Id == branchId && b.DeletedAt == null)
+                .Select(b => new
+                {
+                    b.Id,
+                    b.Name,
+                    b.Address,
+                    Merchant = new MerchantDto
+                    {
+                        Id = b.Merchant.Id,
+                        Name = b.Merchant.Name
+                    },
+                    TodayOrderCount = b.Orders.Count(o => o.CreatedAt >= todayStart && o.CreatedAt < tomorrowStart),
+        
+                    TodayOrderTotal = b.Orders
+                        .Where(o => o.CreatedAt >= todayStart && o.CreatedAt < tomorrowStart)
+                        .Sum(o => (decimal?)o.TotalAmount) ?? 0m
+                })
+                .FirstOrDefaultAsync();
+
+            if (branchData == null)
+            {
+                return Result<BranchGetByIdResponseDto>.Failure(new NotFoundError(errCode, "Branch does not exist"));
+            }
+
+            var branchDto = new BranchGetByIdResponseDto
+            {
+                Id = branchData.Id,
+                Name = branchData.Name,
+                Address = branchData.Address,
+                Merchant = branchData.Merchant,
+                TodayOrderCount = branchData.TodayOrderCount,
+                TodayOrderPrice = branchData.TodayOrderTotal, 
+            };
+
+            return Result<BranchGetByIdResponseDto>.Success(branchDto);
         }
         catch (Exception e)
         {
@@ -138,19 +163,19 @@ public class BranchService : IBranchService
         }
     }
 
-    public async Task<Result> Update(Guid id, BranchUpdateRequestDto request)
+    public async Task<Result> Update(Guid branchId, BranchUpdateRequestDto request)
     {
         const string errCode = "Branch.Update";
         try
         {
-            var branch = await _db.Branches.FirstOrDefaultAsync(b => b.Id == id);
+            var branch = await _db.Branches.AsNoTracking().FirstOrDefaultAsync(b => b.Id == branchId);
             if (branch == null)
                 return Result.Failure(new NotFoundError(errCode, "Branch does not exist"));
 
             if (branch.MerchantId != request.MerchantId)
             {
                 var isMerchantExist =
-                    await _db.Merchants.AnyAsync(m => m.Id == request.MerchantId && m.DeletedAt == null);
+                    await _db.Merchants.AnyAsync(m => m.Id == request.MerchantId);
                 if (!isMerchantExist)
                     return Result.Failure(new NotFoundError(errCode, "Merchant does not exist"));
             }
@@ -160,10 +185,8 @@ public class BranchService : IBranchService
             branch.Address = request.Address;
             branch.UpdatedAt = DateTime.UtcNow;
 
-            var result = await _db.SaveChangesAsync();
-            return result > 0
-                ? Result.Success()
-                : Result.Failure(new InternalError("Branch.Update", "Failed to update branch"));
+            await _db.SaveChangesAsync();
+            return Result.Success();
         }
         catch (Exception e)
         {
@@ -218,9 +241,11 @@ public class BranchListResponseDto
 public class BranchGetByIdResponseDto
 {
     public Guid Id { get; set; }
-    public Guid MerchantId { get; set; }
-    public string Name { get; set; } = null!;
+    public string? Name { get; set; }
     public string? Address { get; set; }
+    public decimal TodayOrderPrice { get; set; }
+    public int TodayOrderCount { get; set; }
+    public MerchantDto? Merchant { get; set; }
 }
 
 public class BranchCreateRequestDto

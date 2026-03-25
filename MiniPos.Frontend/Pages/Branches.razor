@@ -14,6 +14,24 @@
             <i data-lucide="map-pin" class="w-4 h-4 mr-2"></i> Add Branch
         </button>
     </div>
+    
+    <!-- Floating Alert Box -->
+    @if (!string.IsNullOrEmpty(_alertMessage))
+    {
+        <div class="fixed top-6 left-1/2 -translate-x-1/2 z-[100] animate-slide-down">
+            <div class="flex items-center gap-3 px-6 py-4 rounded-2xl shadow-2xl border backdrop-blur-md
+                @(_alertType == "success" ? "bg-emerald-50/90 border-emerald-200 text-emerald-800" : "bg-rose-50/90 border-rose-200 text-rose-800")">
+                <div class="shrink-0 w-10 h-10 rounded-full flex items-center justify-center
+                    @(_alertType == "success" ? "bg-emerald-100" : "bg-rose-100")">
+                    <i data-lucide="@(_alertType == "success" ? "check-circle" : "alert-circle")" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <p class="text-xs font-black uppercase tracking-widest opacity-60">@(_alertType == "success" ? "Success" : "Error")</p>
+                    <p class="text-sm font-bold">@_alertMessage</p>
+                </div>
+            </div>
+        </div>
+    }
 
     <!-- Striking Branch Cards Grid -->
     @if (_pagedBranches == null)
@@ -39,17 +57,13 @@
                             </span>
                         </div>
                         <h3 class="font-bold text-xl text-foreground mb-1">@branch.Name</h3>
+                        <p class="text-muted-foreground text-[10px] font-bold uppercase tracking-wider mb-2">@branch.Merchant?.Name</p>
                         <p class="text-sm text-muted-foreground flex items-center gap-1 mb-auto">
                             <i data-lucide="map-pin" class="w-3.5 h-3.5"></i> @(branch.Address ?? "Address not provided")
                         </p>
-                        <div class="mt-6 pt-4 border-t border-border/50 grid grid-cols-2 gap-4">
-                            <div>
-                                <div class="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Staffs</div>
-                                <div class="font-bold text-foreground font-outfit">@(new Random().Next(2, 6)) assigned</div>
-                            </div>
-                            <div class="text-right">
-                                <button class="text-xs font-bold text-primary hover:underline uppercase tracking-wide">Manage Settings</button>
-                            </div>
+                        <div class="mt-6 pt-4 border-t border-border/50 flex justify-between items-center">
+                            <div class="text-[10px] font-bold uppercase tracking-widest text-primary">View Details</div>
+                            <i data-lucide="arrow-right" class="w-4 h-4 text-primary group-hover:translate-x-1 transition-transform"></i>
                         </div>
                     </div>
                 </div>
@@ -63,11 +77,40 @@
     [Inject] private HttpClient Http { get; set; } = default!;
     [Inject] private NavigationManager Navigation { get; set; } = default!;
 
-    private PagedResult<Branch>? _pagedBranches;
+    private PagedResult<BranchListResponseDto>? _pagedBranches;
+    private string _merchantId = "3798433e-f36b-1410-8548-003fb1df8966";
+    
+    // Alert state
+    private string _alertMessage = "";
+    private string _alertType = "success";
 
     protected override async Task OnInitializedAsync()
     {
-        _pagedBranches = await Http.GetFromJsonAsync<PagedResult<Branch>>("sample-data/branches.json");
+        try
+        {
+            var response = await Http.GetAsync($"api/branches?IncludeMerchant=true&MerchantId={_merchantId}&page=1&pageSize=10");
+            if (!response.IsSuccessStatusCode)
+            {
+                await ShowAlert("Failed to load branches.", "error");
+                return;
+            }
+
+            _pagedBranches = await response.Content.ReadFromJsonAsync<PagedResult<BranchListResponseDto>>();
+        }
+        catch (Exception ex)
+        {
+            await ShowAlert($"Error loading branches: {ex.Message}", "error");
+        }
+    }
+
+    private async Task ShowAlert(string message, string type = "success")
+    {
+        _alertMessage = message;
+        _alertType = type;
+        StateHasChanged();
+        await JSRuntime.InvokeVoidAsync("initIcons");
+        _alertMessage = "";
+        StateHasChanged();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
