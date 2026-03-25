@@ -33,20 +33,40 @@ public class OrderService : IOrderService
             if (request.ProcessedById.HasValue)
                 query = query.Where(o => o.ProcessedById == request.ProcessedById.Value);
 
+            if (request.StartDate.HasValue)
+                query = query.Where(o => o.OrderDate >= request.StartDate.Value);
+
+            if (request.EndDate.HasValue)
+                query = query.Where(o => o.OrderDate <= request.EndDate.Value);
+
+            if (!string.IsNullOrWhiteSpace(request.SearchTerm))
+            {
+                query = query.Where(o => o.OrderItems.Any(oi => oi.Product.Name.Contains(request.SearchTerm)));
+            }
+
             var skip = (request.PageNumber - 1) * request.PageSize;
             var take = request.PageSize;
             var totalCount = await query.CountAsync();
             var items = await query
+                .OrderByDescending(order => order.OrderDate)
                 .Skip(skip)
                 .Take(take)
-                .OrderByDescending(order => order.CreatedAt)
                 .Select(order => new OrderListResponseDto
                 {
                     Id = order.Id,
                     BranchId = order.BranchId,
                     ProcessedById = order.ProcessedById,
                     OrderDate = order.OrderDate,
-                    TotalAmount = order.TotalAmount
+                    TotalAmount = order.TotalAmount,
+                    OrderItems = order.OrderItems.Select(oi => new OrderItemResponseDto
+                    {
+                        Id = oi.Id,
+                        ProductId = oi.ProductId,
+                        ProductName = oi.Product.Name,
+                        Quantity = oi.Quantity,
+                        UnitPrice = oi.UnitPrice,
+                        SubTotal = oi.SubTotal
+                    }).ToList()
                 })
                 .ToListAsync();
 
@@ -196,6 +216,9 @@ public class OrderListRequestDto : PaginationFilter
 {
     public Guid? BranchId { get; set; }
     public Guid? ProcessedById { get; set; }
+    public DateTime? StartDate { get; set; }
+    public DateTime? EndDate { get; set; }
+    public string? SearchTerm { get; set; }
 }
 
 public class OrderListResponseDto
@@ -205,6 +228,7 @@ public class OrderListResponseDto
     public Guid? ProcessedById { get; set; }
     public DateTime OrderDate { get; set; }
     public decimal TotalAmount { get; set; }
+    public List<OrderItemResponseDto> OrderItems { get; set; } = new();
 }
 
 public class OrderGetByIdResponseDto

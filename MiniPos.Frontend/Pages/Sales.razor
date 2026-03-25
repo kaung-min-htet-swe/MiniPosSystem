@@ -1,6 +1,7 @@
 @page "/sales"
 @using MiniPos.Frontend.Models
 @using System.Net.Http.Json
+@using System.Web
 
 <PageTitle>Sales - MiniPOS</PageTitle>
 
@@ -16,7 +17,7 @@
     <!-- Header -->
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 shrink-0">
         <div>
-            <h1 class="text-4xl font-black tracking-tight text-foreground bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 drop-shadow-sm">Sales</h1>
+            <h1 class="text-4xl font-black tracking-tight text-foreground bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 drop-shadow-sm font-outfit">Sales</h1>
             <p class="text-muted-foreground mt-2 text-sm font-medium">Review past transactions, filter by date ranges, and search for specific product sales.</p>
         </div>
         <div class="flex items-center gap-3">
@@ -51,13 +52,13 @@
                 <div class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none">
                     <i data-lucide="search" class="w-4 h-4 text-muted-foreground"></i>
                 </div>
-                <input type="text" @bind="_productSearch" @bind:event="oninput" @onkeyup="ApplyFilters" placeholder="e.g. Latte, Croissant..." class="bg-white/80 border border-border/50 text-foreground text-sm rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5 shadow-sm font-medium transition-all placeholder:text-muted-foreground/60" />
+                <input type="text" @bind="_productSearch" @bind:event="oninput" @onkeyup="HandleKeyUp" placeholder="e.g. Latte, Croissant..." class="bg-white/80 border border-border/50 text-foreground text-sm rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5 shadow-sm font-medium transition-all placeholder:text-muted-foreground/60" />
             </div>
         </div>
 
         <!-- Action Base -->
         <div class="w-full xl:w-auto flex shrink-0">
-            <button class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-black py-2.5 px-8 rounded-2xl shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 transition-all hover:-translate-y-0.5 active:scale-95 flex items-center justify-center gap-2 w-full" @onclick="ApplyFilters">
+            <button class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-black py-2.5 px-8 rounded-2xl shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 transition-all hover:-translate-y-0.5 active:scale-95 flex items-center justify-center gap-2 w-full" @onclick="LoadOrders">
                 <i data-lucide="filter" class="w-4 h-4"></i> Apply Filters
             </button>
         </div>
@@ -74,7 +75,7 @@
                 <span class="mt-6 text-sm font-bold text-muted-foreground tracking-widest uppercase">Fetching Sales History...</span>
             </div>
         }
-        else if (_filteredOrders == null || !_filteredOrders.Any())
+        else if (_orders == null || !_orders.Any())
         {
             <div class="flex-1 flex flex-col items-center justify-center p-12 text-center">
                 <div class="w-20 h-20 bg-muted/50 rounded-full flex items-center justify-center mb-4">
@@ -92,25 +93,25 @@
                         <tr>
                             <th class="p-4 pl-6 text-[10px] font-black uppercase tracking-widest text-muted-foreground whitespace-nowrap">Order Ref</th>
                             <th class="p-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground whitespace-nowrap">Date & Time</th>
-                            <th class="p-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground whitespace-nowrap">Customer</th>
+                            <th class="p-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground whitespace-nowrap">Status</th>
                             <th class="p-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground whitespace-nowrap">Items Sold</th>
                             <th class="p-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground whitespace-nowrap text-right">Total Amount</th>
                             <th class="p-4 pr-6 text-[10px] font-black uppercase tracking-widest text-muted-foreground whitespace-nowrap text-center">Receipt</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-border/40">
-                        @foreach (var order in _filteredOrders)
+                        @foreach (var order in _orders)
                         {
                             <tr class="hover:bg-primary/5 transition-colors group">
                                 <!-- Order Ref -->
                                 <td class="p-4 pl-6 align-middle">
                                     <div class="flex items-center gap-3">
-                                        <div class="w-9 h-9 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center shadow-inner">
+                                        <div class="w-9 h-9 rounded-xl bg-blue-100/50 text-blue-600 flex items-center justify-center shadow-inner border border-blue-200/50">
                                             <i data-lucide="receipt" class="w-4 h-4"></i>
                                         </div>
                                         <div>
-                                            <div class="font-bold text-foreground font-outfit text-sm">#@order.Id.ToString().Substring(0, 8).ToUpper()</div>
-                                            <div class="text-[10px] font-semibold text-muted-foreground uppercase">Cashier: @(order.ProcessedById.HasValue ? order.ProcessedById.Value.ToString().Substring(0, 8) : "System")</div>
+                                            <div class="font-bold text-foreground font-outfit text-sm">#@order.Id.ToString().Split('-').Last().ToUpper()</div>
+                                            <div class="text-[10px] font-semibold text-muted-foreground uppercase">ID: ...@order.Id.ToString().Substring(0, 8)</div>
                                         </div>
                                     </div>
                                 </td>
@@ -121,9 +122,9 @@
                                     <div class="text-xs text-muted-foreground font-medium">@order.OrderDate.ToString("hh:mm tt")</div>
                                 </td>
 
-                                <!-- Customer -->
+                                <!-- Status -->
                                 <td class="p-4 align-middle">
-                                    <span class="px-2 py-1 bg-muted/50 rounded-full text-xs font-semibold text-muted-foreground">Walk-in</span>
+                                    <span class="px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full text-[10px] font-black uppercase tracking-widest border border-emerald-200">Paid</span>
                                 </td>
 
                                 <!-- Items -->
@@ -132,14 +133,13 @@
                                         <div class="flex -space-x-2">
                                             @foreach(var item in order.OrderItems.Take(3))
                                             {
-                                                <!-- Tiny icon mock for product type -->
-                                                <div class="w-7 h-7 rounded-full bg-white border-2 border-slate-50 flex items-center justify-center shadow-sm text-xs font-black text-slate-400" title="@item.ProductName">
-                                                    @(item.ProductName.Substring(0,1))
+                                                <div class="w-7 h-7 rounded-full bg-white border-2 border-slate-50 flex items-center justify-center shadow-sm text-[10px] font-black text-slate-500 uppercase" title="@item.ProductName">
+                                                    @(item.ProductName.Length > 0 ? item.ProductName.Substring(0,1) : "?")
                                                 </div>
                                             }
                                             @if(order.OrderItems.Count > 3)
                                             {
-                                                <div class="w-7 h-7 rounded-full bg-slate-100 border-2 border-slate-50 flex items-center justify-center shadow-sm text-[10px] font-black text-slate-500">
+                                                <div class="w-7 h-7 rounded-full bg-slate-100 border-2 border-slate-50 flex items-center justify-center shadow-sm text-[9px] font-black text-slate-500">
                                                     +@(order.OrderItems.Count - 3)
                                                 </div>
                                             }
@@ -150,8 +150,8 @@
 
                                 <!-- Total Amount -->
                                 <td class="p-4 align-middle text-right">
-                                    <div class="font-black font-outfit text-base text-foreground">$@order.TotalAmount.ToString("F2")</div>
-                                    <div class="text-[10px] font-bold text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-full inline-block mt-1">Paid</div>
+                                    <div class="font-black font-outfit text-base text-foreground">$@order.TotalAmount.ToString("N2")</div>
+                                    <div class="text-[10px] font-bold text-muted-foreground/60">processed</div>
                                 </td>
 
                                 <!-- Actions -->
@@ -169,11 +169,11 @@
              <!-- Footer Summary -->
             <div class="p-4 px-6 bg-white/50 border-t border-border/50 flex justify-between items-center backdrop-blur-md">
                 <div class="text-sm font-semibold text-muted-foreground">
-                    Showing <span class="font-black text-foreground">@_filteredOrders.Count</span> matching transactions
+                    Total Transactions: <span class="font-black text-foreground">@_totalCount</span>
                 </div>
-                <div class="text-sm font-semibold text-muted-foreground flex gap-4">
-                    <span>Total Revenue (Filtered):</span>
-                    <span class="font-black font-outfit text-lg text-blue-600">$@_filteredOrders.Sum(o => o.TotalAmount).ToString("F2")</span>
+                <div class="text-sm font-semibold text-muted-foreground flex gap-4 items-center">
+                    <span>Filtered Set Revenue:</span>
+                    <span class="font-black font-outfit text-xl text-blue-600">$@_orders.Sum(o => o.TotalAmount).ToString("N2")</span>
                 </div>
             </div>
         }
@@ -192,8 +192,8 @@
     [Inject] private HttpClient Http { get; set; } = default!;
 
     private bool _isLoading = true;
-    private List<Order> _allOrders = new();
-    private List<Order> _filteredOrders = new();
+    private List<OrderListResponseDto> _orders = new();
+    private int _totalCount = 0;
 
     // Filters
     private DateTime? _startDate;
@@ -202,70 +202,61 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _isLoading = true;
+        // Default to last 30 days
+        _endDate = DateTime.Today;
+        _startDate = DateTime.Today.AddDays(-30);
         
+        await LoadOrders();
+    }
+
+    private async Task LoadOrders()
+    {
+        _isLoading = true;
+        StateHasChanged();
+
         try
         {
-            var pagedData = await Http.GetFromJsonAsync<PagedResult<Order>>("sample-data/orders.json");
-            if (pagedData != null)
+            var query = new List<string>();
+            if (_startDate.HasValue) query.Add($"startDate={_startDate.Value:yyyy-MM-dd}");
+            if (_endDate.HasValue) query.Add($"endDate={_endDate.Value:yyyy-MM-dd}T23:59:59");
+            if (!string.IsNullOrWhiteSpace(_productSearch)) query.Add($"searchTerm={HttpUtility.UrlEncode(_productSearch)}");
+            
+            var queryString = query.Any() ? "?" + string.Join("&", query) : "";
+            var result = await Http.GetFromJsonAsync<PagedResult<OrderListResponseDto>>($"api/orders{queryString}");
+            
+            if (result != null)
             {
-                _allOrders = pagedData.Data;
-                
-                // Set default dates based on the dummy data (which spans last 30 days usually)
-                if (_allOrders.Any())
-                {
-                    // Let's default to viewing all available data but set the inputs
-                    _endDate = DateTime.Today;
-                    _startDate = DateTime.Today.AddDays(-30);
-                }
-                
-                ApplyFilters();
+                _orders = result.Data;
+                _totalCount = result.TotalCount;
             }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading orders: {ex.Message}");
         }
         finally
         {
             _isLoading = false;
+            StateHasChanged();
+            await Task.Delay(50);
+            await JSRuntime.InvokeVoidAsync("initIcons");
         }
     }
 
-    private void ApplyFilters()
+    private async Task HandleKeyUp(KeyboardEventArgs e)
     {
-        var query = _allOrders.AsQueryable();
-
-        // 1. Date Range Filter
-        if (_startDate.HasValue)
+        if (e.Key == "Enter")
         {
-            query = query.Where(o => o.OrderDate.Date >= _startDate.Value.Date);
+            await LoadOrders();
         }
-        if (_endDate.HasValue)
-        {
-            // Include entire end date day
-            query = query.Where(o => o.OrderDate.Date <= _endDate.Value.Date);
-        }
-
-        // 2. Product Text Filter (Searches inside nested OrderItems)
-        if (!string.IsNullOrWhiteSpace(_productSearch))
-        {
-            var term = _productSearch.Trim();
-            query = query.Where(o => o.OrderItems.Any(i => 
-                i.ProductName != null && 
-                i.ProductName.Contains(term, StringComparison.OrdinalIgnoreCase)));
-        }
-
-        // Sort by newest first
-        _filteredOrders = query.OrderByDescending(o => o.OrderDate).ToList();
-
-        // Re-init icons when list changes
-        StateHasChanged();
-        _ = ReRenderIconsAsync();
     }
 
-    private void ResetFilters()
+    private async Task ResetFilters()
     {
         _startDate = DateTime.Today.AddDays(-30);
         _endDate = DateTime.Today;
         _productSearch = "";
-        ApplyFilters();
+        await LoadOrders();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -274,12 +265,5 @@
         {
             await JSRuntime.InvokeVoidAsync("initIcons");
         }
-    }
-
-    private async Task ReRenderIconsAsync()
-    {
-        // Give DOM time to update before painting lucide icons
-        await Task.Delay(50);
-        await JSRuntime.InvokeVoidAsync("initIcons");
     }
 }
