@@ -24,12 +24,21 @@
         <EditForm Model="@_productRequest" OnValidSubmit="HandleSubmit" class="space-y-6 relative z-10">
             <DataAnnotationsValidator/>
 
-            <!-- Success / Error Banner -->
-            @if (!string.IsNullOrEmpty(_successMessage))
+            <!-- Floating Alert Box -->
+            @if (!string.IsNullOrEmpty(_alertMessage))
             {
-                <div
-                    class="bg-success/10 border border-success/20 text-success rounded-xl p-4 text-sm font-bold flex items-center gap-2 animate-fade-in mb-4">
-                    <i data-lucide="check-circle" class="w-4 h-4"></i> @_successMessage
+                <div class="fixed top-6 left-1/2 -translate-x-1/2 z-[100] animate-slide-down">
+                    <div class="flex items-center gap-3 px-6 py-4 rounded-2xl shadow-2xl border backdrop-blur-md
+                        @(_alertType == "success" ? "bg-emerald-50/90 border-emerald-200 text-emerald-800" : "bg-rose-50/90 border-rose-200 text-rose-800")">
+                        <div class="shrink-0 w-10 h-10 rounded-full flex items-center justify-center
+                            @(_alertType == "success" ? "bg-emerald-100" : "bg-rose-100")">
+                            <i data-lucide="@(_alertType == "success" ? "check-circle" : "alert-circle")" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs font-black uppercase tracking-widest opacity-60">@(_alertType == "success" ? "Success" : "Error")</p>
+                            <p class="text-sm font-bold">@_alertMessage</p>
+                        </div>
+                    </div>
                 </div>
             }
 
@@ -179,15 +188,17 @@
     [Inject] private NavigationManager Navigation { get; set; } = default!;
 
     private ProductFormModel _productRequest = new();
-    private List<Merchant>? _merchants;
-    private List<Category> _allCategories = new();
-    private List<Category> _filteredCategories = new();
-    private List<Branch> _allBranches = new();
-    private List<Branch> _filteredBranches = new();
+    private List<MerchantDto>? _merchants;
+    private List<CategoryListResponseDto> _filteredCategories = new();
+    private List<BranchListResponseDto> _filteredBranches = new();
+    private string _merchantAdminId = "3E98433E-F36B-1410-8548-003FB1DF8966";
 
     private bool _isSubmitting = false;
     private bool _hasSubmittedAttempt = false;
-    private string _successMessage = "";
+
+    // Alert state
+    private string _alertMessage = "";
+    private string _alertType = "success";
 
     public class ProductFormModel
     {
@@ -214,32 +225,54 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var merchantData = await Http.GetFromJsonAsync<PagedResult<Merchant>>("sample-data/merchants.json");
-        _merchants = merchantData?.Data;
-
-        var categoryData = await Http.GetFromJsonAsync<PagedResult<Category>>("sample-data/categories.json");
-        if (categoryData != null) _allCategories = categoryData.Data;
-
-        var branchData = await Http.GetFromJsonAsync<PagedResult<Branch>>("sample-data/branches.json");
-        if (branchData != null) _allBranches = branchData.Data;
+        try
+        {
+            var response = await Http.GetAsync($"api/merchants?merchantAdminId={_merchantAdminId}");
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<PagedResult<MerchantDto>>();
+                _merchants = result?.Data;
+            }
+        }
+        catch (Exception ex)
+        {
+            await ShowAlert($"Initialization error: {ex.Message}", "error");
+        }
     }
 
-    private void OnMerchantChanged(ChangeEventArgs e)
+    private async Task OnMerchantChanged(ChangeEventArgs e)
     {
         var val = e.Value?.ToString() ?? "";
         _productRequest.MerchantId = val;
-        _productRequest.CategoryId = ""; // Reset dependent dropdowns
+        _productRequest.CategoryId = ""; 
         _productRequest.BranchId = "";
+        _filteredCategories.Clear();
+        _filteredBranches.Clear();
 
-        if (Guid.TryParse(val, out var merchantGuid))
+        if (Guid.TryParse(val, out var merchantId))
         {
-            _filteredCategories = _allCategories.Where(c => c.MerchantId == merchantGuid).ToList();
-            _filteredBranches = _allBranches.Where(b => b.Merchant != null && b.Merchant.Id == merchantGuid).ToList();
+            await LoadCategories(merchantId);
+            await LoadBranches(merchantId);
         }
-        else
+    }
+
+    private async Task LoadCategories(Guid merchantId)
+    {
+        var response = await Http.GetAsync($"api/categories?MerchantId={merchantId}");
+        if (response.IsSuccessStatusCode)
         {
-            _filteredCategories.Clear();
-            _filteredBranches.Clear();
+            var result = await response.Content.ReadFromJsonAsync<PagedResult<CategoryListResponseDto>>();
+            _filteredCategories = result?.Data ?? new List<CategoryListResponseDto>();
+        }
+    }
+
+    private async Task LoadBranches(Guid merchantId)
+    {
+        var response = await Http.GetAsync($"api/branches?MerchantId={merchantId}");
+        if (response.IsSuccessStatusCode)
+        {
+            var result = await response.Content.ReadFromJsonAsync<PagedResult<BranchListResponseDto>>();
+            _filteredBranches = result?.Data ?? new List<BranchListResponseDto>();
         }
     }
 
@@ -254,15 +287,50 @@
         if (string.IsNullOrEmpty(_productRequest.MerchantId) || string.IsNullOrEmpty(_productRequest.CategoryId)) return;
 
         _isSubmitting = true;
-        _successMessage = "";
 
-        await Task.Delay(1500); // Simulate API Submit
-        _isSubmitting = false;
-        _successMessage = "Product created successfully!";
+        try
+        {
+            var request = new ProductCreateRequestDto
+            {
+                MerchantId = Guid.Parse(_productRequest.MerchantId),
+                CategoryId = Guid.Parse(_productRequest.CategoryId),
+                Name = _productRequest.Name,
+                Sku = _productRequest.Sku,
+                Price = _productRequest.Price
+            };
 
-        // Redirect after delay
-        await Task.Delay(1000);
-        Navigation.NavigateTo("/products");
+            var response = await Http.PostAsJsonAsync("api/products", request);
+            if (response.IsSuccessStatusCode)
+            {
+                await ShowAlert("Product created successfully!");
+                await Task.Delay(1500);
+                Navigation.NavigateTo("/products");
+            }
+            else
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                await ShowAlert($"Creation failed: {error}", "error");
+            }
+        }
+        catch (Exception ex)
+        {
+            await ShowAlert($"Network error: {ex.Message}", "error");
+        }
+        finally
+        {
+            _isSubmitting = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task ShowAlert(string message, string type = "success")
+    {
+        _alertMessage = message;
+        _alertType = type;
+        StateHasChanged();
+        await JSRuntime.InvokeVoidAsync("initIcons");
+        _alertMessage = "";
+        StateHasChanged();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
