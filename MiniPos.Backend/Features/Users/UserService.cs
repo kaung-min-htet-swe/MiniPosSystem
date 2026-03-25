@@ -36,27 +36,50 @@ public class UserService : IUserService
     {
         try
         {
-            var query = _db.Users.AsNoTracking().AsQueryable();
-
-            var skip = (request.PageNumber - 1) * request.PageSize;
-            var take = request.PageSize;
-            var totalCount = await query.CountAsync();
-            var users = await query
-                .Skip(skip)
-                .Take(take)
-                .OrderByDescending(user => user.CreatedAt)
-                .ToListAsync();
-            var userDtos = users.Select(user => new UserListResponseDto
+            if (request.IncludeCashierRole)
             {
-                Id = user.Id,
-                UserName = user.Username,
-                Email = user.Email,
-                Role = user.Role
-            }).ToList();
+                var query = _db.Users
+                    .Where(u => u.Role == nameof(UserRole.Cashier))
+                    .AsNoTracking()
+                    .AsQueryable();
+                var skip = (request.PageNumber - 1) * request.PageSize;
+                var take = request.PageSize;
+                var totalCount = await query.CountAsync();
+                
+                var users = await query
+                    .Skip(skip)
+                    .Take(take)
+                    .Select(u => new UserListResponseDto
+                    {
+                        Id = u.Id,
+                        UserName = u.Username,
+                        Email = u.Email,
+                        Role = u.Role,
 
-            var result =
-                new PagedResult<UserListResponseDto>(userDtos, totalCount, request.PageNumber, request.PageSize);
-            return Result<PagedResult<UserListResponseDto>>.Success(result);
+                        Merchant = u.Merchant != null
+                            ? new Merchant
+                            {
+                                Id = u.Merchant.Id,
+                                Name = u.Merchant.Name
+                            }
+                            : null,
+
+                        Branch = u.Branch != null
+                            ? new Branch
+                            {
+                                Id = u.Branch.Id,
+                                Name = u.Branch.Name
+                            }
+                            : null,
+                    })
+                    .ToListAsync();
+
+                var result =
+                    new PagedResult<UserListResponseDto>(users, totalCount, request.PageNumber, request.PageSize);
+                return Result<PagedResult<UserListResponseDto>>.Success(result);   
+            }
+
+            return Result<PagedResult<UserListResponseDto>>.Failure(new UnAuthorized("User.List", "UnAuthorized."));
         }
         catch (Exception e)
         {
@@ -166,7 +189,7 @@ public class UserService : IUserService
             return Result<UserCreateResponseDto>.Failure(new BadRequestError("User.Create",
                 "Merchant details are required for Merchant role"));
 
-        var merchant = new Merchant
+        var merchant = new Database.EfAppDbContextModels.Merchant
         {
             Name = merchantDto.Name,
             ContactEmail = merchantDto.ContactEmail,
@@ -201,22 +224,23 @@ public class UserService : IUserService
             return Result<UserCreateResponseDto>.Failure(new BadRequestError(errCode,
                 "Processor and Branch is required to create a new cashier."));
 
-        var merchantId = Guid.Parse(request.ProcessedById);
+        var merchantId = Guid.Parse(request.MerchantId!);
         var branchId = Guid.Parse(request.BranchId);
         var isBranchExist = await _db.Branches
             .AsNoTracking()
-            .Include(b => b.Merchant)
             .Select(b => new { b.Id, MerchantId = b.Merchant.Id })
             .AnyAsync(b => b.Id == branchId && b.MerchantId == merchantId);
         if (!isBranchExist)
-            return Result<UserCreateResponseDto>.Failure(new NotFoundError(errCode, "Branch does not exist with this merchant"));
+            return Result<UserCreateResponseDto>.Failure(new NotFoundError(errCode,
+                "Branch does not exist with this merchant"));
 
         var user = new User
         {
             Email = request.Email,
             Role = nameof(UserRole.Cashier),
             Username = request.UserName,
-            BranchId = branchId
+            BranchId = branchId,
+            MerchantId = merchantId,
         };
         var passwordHash = _passwordHasher.HashPassword(user, request.Password);
         user.PasswordHash = passwordHash;
@@ -238,7 +262,7 @@ public class UserService : IUserService
                 Email = u.Email,
                 Role = u.Role,
                 UserName = u.Username,
-                Merchant = new MerchantDto
+                Merchant = new Merchant
                 {
                     Id = u.Merchant.Id,
                     Name = u.Merchant.Name,
@@ -264,13 +288,13 @@ public class UserService : IUserService
                 Email = u.Email,
                 Role = u.Role,
                 UserName = u.Username,
-                Branch = new BranchDto
+                Branch = new Branch
                 {
                     Id = u.Branch!.Id,
                     Name = u.Branch.Name,
                     Address = u.Branch!.Address
                 },
-                Merchant = new MerchantDto
+                Merchant = new Merchant
                 {
                     Id = u.Branch.Merchant.Id,
                     Name = u.Branch.Merchant.Name,
@@ -286,23 +310,34 @@ public class UserService : IUserService
     }
 }
 
+public class Merchant
+{
+    public Guid Id { get; set; }
+    public string Name { get; set; }
+    public string? ContactEmail { get; set; }
+}
+
+public class Branch
+{
+    public Guid Id { get; set; }
+    public string Name { get; set; }
+    public string Address { get; set; }
+}
+
 public class UserListRequestDto : PaginationFilter
 {
+    public bool IncludeCashierRole { get; set; } = false;
+    public bool IncludeMerchantRole { get; set; } = false;
 }
 
 public class UserListResponseDto
 {
     public Guid Id { get; set; }
-    public string UserName { get; set; }
-    public string Email { get; set; }
-    public string Role { get; set; }
-}
-
-public class MerchantDto
-{
-    public Guid Id { get; set; }
-    public string Name { get; set; }
-    public string? ContactEmail { get; set; }
+    public string UserName { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string Role { get; set; } = string.Empty;
+    public Merchant? Merchant { get; set; }
+    public Branch? Branch { get; set; }
 }
 
 public class UserGetByIdRequestDto
@@ -311,22 +346,16 @@ public class UserGetByIdRequestDto
     public string Role { get; set; }
 }
 
-public class BranchDto
-{
-    public Guid Id { get; set; }
-    public string Name { get; set; }
-    public string Address { get; set; }
-}
-
 public class UserGetByIdResponseDto
 {
     public Guid Id { get; set; }
-    public string UserName { get; set; }
-    public string Email { get; set; }
-    public string Role { get; set; }
-
-    public MerchantDto? Merchant { get; set; }
-    public BranchDto? Branch { get; set; }
+    public string UserName { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string Role { get; set; } = string.Empty;
+    public string TotalSales { get; set; } = string.Empty;
+    public Merchant? Merchant { get; set; }
+    public Branch? Branch { get; set; }
+    public DateTime? JoinedDate { get; set; }
 }
 
 public class MerchantCreateDto
@@ -341,9 +370,7 @@ public class UserCreateRequestDto
     public string Email { get; set; }
     public string Role { get; set; }
     public string Password { get; set; }
-
     public MerchantCreateDto? Merchant { get; set; }
-
     public string? MerchantId { get; set; }
     public string? ProcessedById { get; set; }
     public string? BranchId { get; set; }
