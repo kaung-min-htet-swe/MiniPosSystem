@@ -45,7 +45,7 @@ public class UserService : IUserService
                 var skip = (request.PageNumber - 1) * request.PageSize;
                 var take = request.PageSize;
                 var totalCount = await query.CountAsync();
-                
+
                 var users = await query
                     .Skip(skip)
                     .Take(take)
@@ -70,13 +70,13 @@ public class UserService : IUserService
                                 Id = u.Branch.Id,
                                 Name = u.Branch.Name
                             }
-                            : null,
+                            : null
                     })
                     .ToListAsync();
 
                 var result =
                     new PagedResult<UserListResponseDto>(users, totalCount, request.PageNumber, request.PageSize);
-                return Result<PagedResult<UserListResponseDto>>.Success(result);   
+                return Result<PagedResult<UserListResponseDto>>.Success(result);
             }
 
             return Result<PagedResult<UserListResponseDto>>.Failure(new UnAuthorized("User.List", "UnAuthorized."));
@@ -138,6 +138,7 @@ public class UserService : IUserService
 
             user.Email = request.Email;
             user.Username = request.UserName;
+            user.UpdatedAt = DateTime.UtcNow;
 
             var result = await _db.SaveChangesAsync();
             return result > 0
@@ -240,7 +241,7 @@ public class UserService : IUserService
             Role = nameof(UserRole.Cashier),
             Username = request.UserName,
             BranchId = branchId,
-            MerchantId = merchantId,
+            MerchantId = merchantId
         };
         var passwordHash = _passwordHasher.HashPassword(user, request.Password);
         user.PasswordHash = passwordHash;
@@ -261,7 +262,7 @@ public class UserService : IUserService
                 Id = u.Id,
                 Email = u.Email,
                 Role = u.Role,
-                UserName = u.Username,
+                UserName = u.Username
             })
             .FirstOrDefaultAsync(u => u.Id == id && u.Role == nameof(UserRole.MerchantAdmin));
         if (merchantAdmin is null)
@@ -283,16 +284,20 @@ public class UserService : IUserService
                 Email = u.Email,
                 Role = u.Role,
                 JoinedDate = u.CreatedAt,
-                Merchant = u.Merchant != null ? new Merchant 
-                { 
-                    Id = u.Merchant.Id, 
-                    Name = u.Merchant.Name 
-                } : null,
-                Branch = u.Branch != null ? new Branch 
-                { 
-                    Id = u.Branch.Id, 
-                    Name = u.Branch.Name 
-                } : null,
+                Merchant = u.Merchant != null
+                    ? new Merchant
+                    {
+                        Id = u.Merchant.Id,
+                        Name = u.Merchant.Name
+                    }
+                    : null,
+                Branch = u.Branch != null
+                    ? new Branch
+                    {
+                        Id = u.Branch.Id,
+                        Name = u.Branch.Name
+                    }
+                    : null,
                 TotalSales = u.Orders
                     .Where(o => o.DeletedAt == null)
                     .Sum(o => (decimal?)o.TotalAmount ?? 0)

@@ -206,7 +206,7 @@
         if (Guid.TryParse(val, out var merchantGuid))
         {
             _filteredCategories = _allCategories.Where(c => c.MerchantId == merchantGuid).ToList();
-            _filteredBranches = _allBranches.Where(b => b.MerchantId == merchantGuid).ToList();
+            _filteredBranches = _allBranches.Where(b => b.Merchant != null && b.Merchant.Id == merchantGuid).ToList();
         }
         else
         {

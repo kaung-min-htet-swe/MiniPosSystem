@@ -285,7 +285,7 @@
             var branchesData = await Http.GetFromJsonAsync<PagedResult<Branch>>("sample-data/branches.json");
             if (branchesData != null)
             {
-                _branches = branchesData.Data.Where(b => b.MerchantId == _merchant.Id).ToList();
+                _branches = branchesData.Data.Where(b => b.Merchant != null && b.Merchant.Id == _merchant.Id).ToList();
             }
         }
     }
