@@ -17,7 +17,7 @@ public interface IUserService
 public enum UserRole
 {
     Admin,
-    Merchant,
+    MerchantAdmin,
     Cashier
 }
 
@@ -94,7 +94,7 @@ public class UserService : IUserService
         {
             return request.Role switch
             {
-                nameof(UserRole.Merchant) => await GetMerchantById(request.Id),
+                nameof(UserRole.MerchantAdmin) => await GetMerchantById(request.Id),
                 nameof(UserRole.Cashier) => await GetCashierById(request.Id),
                 _ => Result<UserGetByIdResponseDto>.Failure(new BadRequestError(errCode, "Invalid user role specified"))
             };
@@ -116,7 +116,7 @@ public class UserService : IUserService
 
             return request.Role switch
             {
-                nameof(UserRole.Merchant) => await CreateMerchant(request),
+                nameof(UserRole.MerchantAdmin) => await CreateMerchant(request),
                 nameof(UserRole.Cashier) => await CreateCashier(request),
                 _ => Result<UserCreateResponseDto>.Failure(new BadRequestError(errCode, "Invalid user role specified"))
             };
@@ -200,20 +200,20 @@ public class UserService : IUserService
             return Result<UserCreateResponseDto>.Failure(new InternalError(errCode,
                 "Failed to create merchant for user"));
 
-        var user = new User
+        var merchantAdmin = new User
         {
             Email = request.Email,
-            Role = nameof(UserRole.Merchant),
+            Role = nameof(UserRole.MerchantAdmin),
             Username = request.UserName,
             MerchantId = merchant.Id
         };
-        var passwordHash = _passwordHasher.HashPassword(user, request.Password);
-        user.PasswordHash = passwordHash;
+        var passwordHash = _passwordHasher.HashPassword(merchantAdmin, request.Password);
+        merchantAdmin.PasswordHash = passwordHash;
 
-        await _db.Users.AddAsync(user);
+        await _db.Users.AddAsync(merchantAdmin);
         var result = await _db.SaveChangesAsync();
         return result > 0
-            ? Result<UserCreateResponseDto>.Success(new UserCreateResponseDto { Id = user.Id })
+            ? Result<UserCreateResponseDto>.Success(new UserCreateResponseDto { Id = merchantAdmin.Id })
             : Result<UserCreateResponseDto>.Failure(new InternalError("User.Create", "Failed to create user"));
     }
 
@@ -255,21 +255,15 @@ public class UserService : IUserService
     private async Task<Result<UserGetByIdResponseDto>> GetMerchantById(Guid id)
     {
         var merchantAdmin = await _db.Users
-            .Include(user => user.Merchant)
+            .AsNoTracking()
             .Select(u => new UserGetByIdResponseDto
             {
                 Id = u.Id,
                 Email = u.Email,
                 Role = u.Role,
                 UserName = u.Username,
-                Merchant = new Merchant
-                {
-                    Id = u.Merchant.Id,
-                    Name = u.Merchant.Name,
-                    ContactEmail = u.Merchant.ContactEmail
-                }
             })
-            .FirstOrDefaultAsync(u => u.Id == id && u.Role == nameof(UserRole.Merchant));
+            .FirstOrDefaultAsync(u => u.Id == id && u.Role == nameof(UserRole.MerchantAdmin));
         if (merchantAdmin is null)
             return Result<UserGetByIdResponseDto>.Failure(new NotFoundError("User.GetMerchantById",
                 "Merchant admin does not exist"));
@@ -280,31 +274,31 @@ public class UserService : IUserService
     private async Task<Result<UserGetByIdResponseDto>> GetCashierById(Guid id)
     {
         var cashier = await _db.Users
-            .Include(u => u.Branch)
-            .ThenInclude(b => b!.Merchant)
+            .AsNoTracking()
+            .Where(u => u.Id == id && u.DeletedAt == null)
             .Select(u => new UserGetByIdResponseDto
             {
                 Id = u.Id,
+                UserName = u.Username,
                 Email = u.Email,
                 Role = u.Role,
-                UserName = u.Username,
-                Branch = new Branch
-                {
-                    Id = u.Branch!.Id,
-                    Name = u.Branch.Name,
-                    Address = u.Branch!.Address
-                },
-                Merchant = new Merchant
-                {
-                    Id = u.Branch.Merchant.Id,
-                    Name = u.Branch.Merchant.Name,
-                    ContactEmail = u.Branch.Merchant.ContactEmail
-                }
+                JoinedDate = u.CreatedAt,
+                Merchant = u.Merchant != null ? new Merchant 
+                { 
+                    Id = u.Merchant.Id, 
+                    Name = u.Merchant.Name 
+                } : null,
+                Branch = u.Branch != null ? new Branch 
+                { 
+                    Id = u.Branch.Id, 
+                    Name = u.Branch.Name 
+                } : null,
+                TotalSales = u.Orders
+                    .Where(o => o.DeletedAt == null)
+                    .Sum(o => (decimal?)o.TotalAmount ?? 0)
+                    .ToString("N2")
             })
-            .FirstOrDefaultAsync(u => u.Id == id && u.Role == nameof(UserRole.Cashier));
-        if (cashier is null)
-            return Result<UserGetByIdResponseDto>.Failure(new NotFoundError("User.GetCashierById",
-                "Cashier does not exist"));
+            .FirstOrDefaultAsync();
 
         return Result<UserGetByIdResponseDto>.Success(cashier);
     }
