@@ -35,4 +35,14 @@ public class CookieService
         }
         return null;
     }
+
+    public async Task<string?> GetAccessToken()
+    {
+        return await GetCookie("X-Access-Token");
+    }
+
+    public async Task<string?> GetRefreshToken()
+    {
+        return await GetCookie("X-Refresh-Token");
+    }
 }

@@ -37,7 +37,7 @@ public class AuthenticationController:ControllerBase
         if (result.IsSuccess)
         {
             SetAuthCookies(result.Data!.Token, result.Data.Id);
-            return Ok(result.Data);
+            return Ok();
         }
         
         var statusCode = ErrorHttpMapper.GetStatusCode(result.Error!);
@@ -73,8 +73,6 @@ public class AuthenticationController:ControllerBase
 
         Response.Cookies.Append("X-Access-Token", tokenResponse.AccessToken, accessCookieOptions);
         Response.Cookies.Append("X-Refresh-Token", tokenResponse.RefreshToken, refreshCookieOptions);
-        
-        // Non-HttpOnly cookie for frontend to know user is logged in
         Response.Cookies.Append("X-User-Id", userId.ToString(), new CookieOptions 
         { 
             HttpOnly = false, 

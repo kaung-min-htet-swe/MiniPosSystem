@@ -141,6 +141,7 @@
 
         try
         {
+            Console.WriteLine($"[DEBUG] HttpClient BaseAddress: {Http.BaseAddress}");
             var request = new HttpRequestMessage(HttpMethod.Post, "api/auth/signin");
             request.Content = JsonContent.Create(new SigninRequestDto 
             { 
@@ -150,14 +151,9 @@
             request.SetBrowserRequestCredentials(Microsoft.AspNetCore.Components.WebAssembly.Http.BrowserRequestCredentials.Include);
             
             var response = await Http.SendAsync(request);
-
             if (response.IsSuccessStatusCode)
             {
-                var result = await response.Content.ReadFromJsonAsync<SigninResponseDto>();
-                if (result != null)
-                {
-                    Nav.NavigateTo("/");
-                }
+                Nav.NavigateTo("/");
             }
             else
             {
