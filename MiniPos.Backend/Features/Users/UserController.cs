@@ -1,5 +1,6 @@
 using Mapper;
 using Microsoft.AspNetCore.Mvc;
+using MiniPos.Backend.Extensions;
 
 namespace MiniPos.Backend.Features.Users;
 
@@ -15,7 +16,7 @@ public class UserController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetList([FromQuery] UserListRequestDto filter)
+    public async Task<IActionResult> GetList([FromQuery] UserListRequest filter)
     {
         var result = await _userService.GetList(filter);
         if (!result.IsSuccess)
@@ -25,76 +26,85 @@ public class UserController : ControllerBase
         }
 
         var pagedResult = result.Data!;
-        if (pagedResult.TotalCount == 0)
-        {
-            return NotFound(pagedResult);
-        }
+        if (pagedResult.TotalCount == 0) return NotFound(pagedResult);
 
         return Ok(result.Data);
     }
 
-    [HttpGet("{id}")]
-    public async Task<IActionResult> GetById(Guid id, [FromQuery] string role)
+    [HttpGet("{userId}")]
+    public async Task<IActionResult> GetById(Guid userId, [FromQuery] string role)
     {
-        var result = await _userService.GetById(new UserGetByIdRequestDto{Id = id, Role = role});
+        var result = await _userService.GetById(new UserGetByIdRequest { UserId = userId, Role = role });
         if (result.IsSuccess)
             return Ok(result.Data);
-        
+
         var statusCode = ErrorHttpMapper.GetStatusCode(result.Error!);
         return StatusCode(statusCode, new { message = result.Error!.Message });
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] UserCreateRequestDto request)
+    public async Task<IActionResult> Create([FromBody] UserCreateRequest request)
     {
-        request.ProcessedById = "3798433e-f36b-1410-8548-003fb1df8966";
+        request.ProcessedById = User.GetUserId();
         var result = await _userService.Create(request);
+        if (result.IsSuccess) return Created();
+
+        var statusCode = ErrorHttpMapper.GetStatusCode(result.Error!);
+        return StatusCode(statusCode, new { message = result.Error!.Message });
+    }
+
+    [HttpPut("{userId}")]
+    public async Task<IActionResult> Update(Guid userId, [FromBody] UserUpdateRequest request)
+    {
+        request.ProcessedById = User.GetUserId();
+        request.UserId = userId;
+
+        var result = await _userService.Update(request);
         if (result.IsSuccess)
+            return Ok();
+
+        var statusCode = ErrorHttpMapper.GetStatusCode(result.Error!);
+        return StatusCode(statusCode, new { message = result.Error!.Message });
+    }
+
+    [HttpPost("{userId}/reset-password")]
+    public async Task<IActionResult> UpdatePassword(Guid userId, [FromBody] UserResetPasswordRequest request)
+    {
+        request.ProcessedById = User.GetUserId();
+        request.UserId = userId;
+
+        var result = await _userService.ResetPassword(request);
+        if (result.IsSuccess)
+            return Ok();
+
+        var statusCode = ErrorHttpMapper.GetStatusCode(result.Error!);
+        return StatusCode(statusCode, new { message = result.Error!.Message });
+    }
+
+    [HttpPost("{userId}/reassign-branch")]
+    public async Task<IActionResult> ReassignBranch(Guid userId, [FromBody] UserAssignBranchRequest request)
+    {
+        request.ProcessedById = User.GetUserId();
+        request.UserId = userId;
+
+        var result = await _userService.AssignBranch(request);
+        if (result.IsSuccess)
+            return Ok();
+
+        var statusCode = ErrorHttpMapper.GetStatusCode(result.Error!);
+        return StatusCode(statusCode, new { message = result.Error!.Message });
+    }
+
+    [HttpDelete("{userId}")]
+    public async Task<IActionResult> Delete(Guid userId)
+    {
+        var request = new UserDeactivateRequest
         {
-            return Created();
-        }
+            UserId = userId,
+            ProcessedById = User.GetUserId(),
+        };
 
-        var statusCode = ErrorHttpMapper.GetStatusCode(result.Error!);
-        return StatusCode(statusCode, new { message = result.Error!.Message });
-    }
-
-    [HttpPut("{id}")]
-    public async Task<IActionResult> Update(Guid id, [FromBody] UserUpdateRequestDto request)
-    {
-        var result = await _userService.Update(id, request);
-        if (result.IsSuccess)
-            return Ok();
-
-        var statusCode = ErrorHttpMapper.GetStatusCode(result.Error!);
-        return StatusCode(statusCode, new { message = result.Error!.Message });
-    }
-
-    [HttpPost("{id}/reset-password")]
-    public async Task<IActionResult> UpdatePassword(Guid id, [FromBody] UserUpdatePasswordRequestDto request)
-    {
-        var result = await _userService.ResetPassword(id, request);
-        if (result.IsSuccess)
-            return Ok();
-
-        var statusCode = ErrorHttpMapper.GetStatusCode(result.Error!);
-        return StatusCode(statusCode, new { message = result.Error!.Message });
-    }
-    
-    [HttpPost("{id}/reassign-branch")]
-    public async Task<IActionResult> ReassignBranch(Guid id, [FromBody] UserAssignBranchRequestDto request)
-    {
-        var result = await _userService.AssignBranch(id, request.BranchId);
-        if (result.IsSuccess)
-            return Ok();
-
-        var statusCode = ErrorHttpMapper.GetStatusCode(result.Error!);
-        return StatusCode(statusCode, new { message = result.Error!.Message });
-    }
-    
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> Delete(Guid id)
-    {
-        var result = await _userService.Delete(id);
+        var result = await _userService.Deactivate(request);
         if (result.IsSuccess)
             return NoContent();
 

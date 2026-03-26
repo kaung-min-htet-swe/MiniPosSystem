@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿namespace Database.EfAppDbContextModels;
 
-namespace Database.EfAppDbContextModels;
-
-public partial class User
+public class User
 {
     public Guid Id { get; set; }
 
@@ -11,11 +8,11 @@ public partial class User
 
     public Guid? BranchId { get; set; }
 
-    public string Username { get; set; } = null!;
+    public string? Username { get; set; } = null!;
 
     public string PasswordHash { get; set; } = null!;
 
-    public string Email { get; set; } = null!;
+    public string? Email { get; set; } = null!;
 
     public string Role { get; set; } = null!;
 

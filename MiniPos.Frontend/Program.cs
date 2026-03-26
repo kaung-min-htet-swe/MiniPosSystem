@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
-using Microsoft.Extensions.DependencyInjection;
 using MiniPos.Frontend;
 using MiniPos.Frontend.Services;
 
@@ -10,7 +9,7 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.AddTransient<CredentialsHandler>();
 builder.Services.AddHttpClient("MiniPos.Api",
-    client => client.BaseAddress = new Uri("http://localhost:5107/"))
+        client => client.BaseAddress = new Uri("http://localhost:5107/"))
     .AddHttpMessageHandler<CredentialsHandler>();
 
 builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("MiniPos.Api"));

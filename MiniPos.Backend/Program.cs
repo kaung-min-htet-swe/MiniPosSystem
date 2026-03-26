@@ -9,11 +9,11 @@ using MiniPos.Backend.Features.Auth;
 using MiniPos.Backend.Features.Branches;
 using MiniPos.Backend.Features.BranchInventories;
 using MiniPos.Backend.Features.Categories;
+using MiniPos.Backend.Features.Dashboard;
+using MiniPos.Backend.Features.Merchants;
 using MiniPos.Backend.Features.Orders;
 using MiniPos.Backend.Features.Products;
-using MiniPos.Backend.Features.Merchants;
 using MiniPos.Backend.Features.Users;
-using MiniPos.Backend.Features.Dashboard;
 
 var builder = WebApplication.CreateBuilder(args);
 

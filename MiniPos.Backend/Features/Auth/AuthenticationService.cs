@@ -8,8 +8,8 @@ namespace MiniPos.Backend.Features.Auth;
 
 public interface IAuthenticationService
 {
-    Task<Result<SignupResponseDto>> Signup(SignupRequestDto request);
-    Task<Result<SigninResponseDto>> Signin(SigninRequestDto request);
+    Task<Result<SignupResponse>> Signup(SignupRequest request);
+    Task<Result<SigninResponse>> Signin(SigninRequest request);
     Task<Result<SignoutResponseDto>> Signout(SignoutRequestDto request);
 }
 
@@ -33,9 +33,9 @@ public class AuthenticationService : IAuthenticationService
         _tokenService = tokenService;
     }
 
-    public async Task<Result<SignupResponseDto>> Signup(SignupRequestDto request)
+    public async Task<Result<SignupResponse>> Signup(SignupRequest request)
     {
-        var user = await _userService.Create(new UserCreateRequestDto
+        var user = await _userService.Create(new UserCreateRequest
         {
             UserName = request.UserName,
             Email = request.Email,
@@ -47,32 +47,32 @@ public class AuthenticationService : IAuthenticationService
             BranchId = request.BranchId
         });
 
-        if (!user.IsSuccess) return Result<SignupResponseDto>.Failure(user.Error!);
+        if (!user.IsSuccess) return Result<SignupResponse>.Failure(user.Error!);
 
         var token = await _tokenService.IssueTokenAsync(request.UserName);
-        var result = new SignupResponseDto
+        var result = new SignupResponse
         {
             Id = user.Data!.Id,
             Token = token
         };
 
-        return Result<SignupResponseDto>.Success(result);
+        return Result<SignupResponse>.Success(result);
     }
 
-    public async Task<Result<SigninResponseDto>> Signin(SigninRequestDto request)
+    public async Task<Result<SigninResponse>> Signin(SigninRequest request)
     {
         var errCode = "AuthenticationService.Signin";
         try
         {
             var user = await _db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Email == request.Email);
-            if(user is null) return Result<SigninResponseDto>.Failure(new UnAuthorized(errCode, "Invalid credentials"));
+            if(user is null) return Result<SigninResponse>.Failure(new UnAuthorized(errCode, "Invalid credentials"));
             
             var result = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, request.Password);
             if(result == PasswordVerificationResult.Failed) 
-                return  Result<SigninResponseDto>.Failure(new UnAuthorized(errCode, "Invalid credentials"));
+                return  Result<SigninResponse>.Failure(new UnAuthorized(errCode, "Invalid credentials"));
             
             var token = await _tokenService.IssueTokenAsync(user.Username);
-            return Result<SigninResponseDto>.Success(new SigninResponseDto
+            return Result<SigninResponse>.Success(new SigninResponse
             {
                 Id = user.Id,
                 Token = token
@@ -81,7 +81,7 @@ public class AuthenticationService : IAuthenticationService
         }
         catch (Exception e)
         {
-            return Result<SigninResponseDto>.Failure(new InternalError(errCode, e.Message));
+            return Result<SigninResponse>.Failure(new InternalError(errCode, e.Message));
         }
     }
 
@@ -91,34 +91,34 @@ public class AuthenticationService : IAuthenticationService
     }
 }
 
-public class SignupRequestDto
+public class SignupRequest
 {
-    public required string UserName { get; set; }
-    public required string Email { get; set; }
-    public required string Role { get; set; }
-    public required string Password { get; set; }
-    public MerchantCreateDto? Merchant { get; set; }
-    public string? MerchantId { get; set; }
-    public string? ProcessedById { get; set; }
-    public string? BranchId { get; set; }
+    public string? UserName { get; set; }
+    public string? Email { get; set; }
+    public string? Role { get; set; }
+    public string? Password { get; set; }
+    public Guid MerchantId { get; set; }
+    public Guid ProcessedById { get; set; }
+    public Guid BranchId { get; set; }
+    public MerchantCreationDto? Merchant { get; set; }
 }
 
-public class SignupResponseDto
+public class SignupResponse
 {
-    public required Guid Id { get; set; }
-    public required TokenResponse Token { get; set; }
+    public Guid Id { get; set; }
+    public TokenResponse? Token { get; set; }
 }
 
-public class SigninRequestDto
+public class SigninRequest
 {
-    public required string Email { get; set; }
-    public required string Password { get; set; }
+    public string? Email { get; set; }
+    public string? Password { get; set; }
 }
 
-public class SigninResponseDto
+public class SigninResponse
 {
-    public required Guid Id { get; set; }
-    public required TokenResponse Token { get; set; }
+    public Guid Id { get; set; }
+    public TokenResponse? Token { get; set; }
 }
 
 public class SignoutRequestDto

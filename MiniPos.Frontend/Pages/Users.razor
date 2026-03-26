@@ -1,6 +1,5 @@
 @page "/users"
 @using MiniPos.Frontend.Models
-@using System.Net.Http.Json
 @using MiniPos.Frontend.Services
 
 <PageTitle>Users - MiniPOS</PageTitle>
@@ -10,7 +9,8 @@
     <div class="fixed top-6 left-1/2 -translate-x-1/2 z-[100] animate-slide-down">
         <div class="px-6 py-4 rounded-2xl shadow-2xl backdrop-blur-md flex items-center gap-4 border
             @(_alertType == "success" ? "bg-success border-success/30 text-white" : "bg-destructive border-destructive/30 text-white")">
-            <i data-lucide="@(_alertType == "success" ? "check-circle-2" : "alert-circle")" class="w-6 h-6 shrink-0"></i>
+            <i data-lucide="@(_alertType == "success" ? "check-circle-2" : "alert-circle")"
+               class="w-6 h-6 shrink-0"></i>
             <span class="font-bold tracking-wide">@_alertMessage</span>
             <button @onclick='() => _alertMessage = ""' class="ml-4 hover:opacity-70 transition-opacity">
                 <i data-lucide="x" class="w-4 h-4"></i>
@@ -64,7 +64,7 @@
                         Icon = "user",
                         AvatarGradient = "from-slate-400 to-slate-500",
                         IsActive = false,
-                        BranchName = "Unassigned",
+                        BranchName = "Unassigned"
                         // LeftStatLabel = "Total Sales", 
                         // LeftStatValue = "-", 
                         // LeftStatClass = "text-muted-foreground", 
@@ -147,7 +147,7 @@
     [Inject] private HttpClient Http { get; set; } = default!;
     [Inject] private NavigationManager Navigation { get; set; } = default!;
     [Inject] private CookieService Cookies { get; set; } = default!;
-    
+
     public class UserUI
     {
         public string BadgeClass { get; set; } = "";
@@ -165,8 +165,8 @@
     }
 
     private PagedResult<User>? _pagedUsers;
-    private Dictionary<Guid, UserUI> _userUIs = new();
-    
+    private readonly Dictionary<Guid, UserUI> _userUIs = new();
+
     // Alert state
     private string _alertMessage = "";
     private string _alertType = "success";
@@ -176,7 +176,7 @@
         try
         {
             _pagedUsers = await Http.GetFromJsonAsync<PagedResult<User>>("/api/users?IncludeCashierRole=true");
-            
+
             if (_pagedUsers != null)
             {
                 foreach (var user in _pagedUsers.Data)
@@ -188,21 +188,21 @@
                             BadgeClass = "badge-primary", Icon = "shield-check",
                             AvatarGradient = "from-primary to-purple-500", IsActive = true,
                             BranchName = user.Branch?.Name ?? "Unassigned",
-                            MerchantName = user.Merchant?.Name ?? "",
+                            MerchantName = user.Merchant?.Name ?? ""
                         },
                         "Cashier" => new UserUI
                         {
                             BadgeClass = "badge-success", Icon = "calculator",
                             AvatarGradient = "from-success to-emerald-400", IsActive = true,
                             BranchName = user.Branch?.Name ?? "Unassigned",
-                            MerchantName = user.Merchant?.Name ?? "",
+                            MerchantName = user.Merchant?.Name ?? ""
                         },
                         "Merchant" or "Manager" => new UserUI
                         {
                             BadgeClass = "badge-warning", Icon = "briefcase",
                             AvatarGradient = "from-warning to-yellow-400", IsActive = false,
                             BranchName = user.Branch?.Name ?? "Unassigned",
-                            MerchantName = user.Merchant?.Name ?? "",
+                            MerchantName = user.Merchant?.Name ?? ""
                         },
                         _ => new UserUI
                         {
