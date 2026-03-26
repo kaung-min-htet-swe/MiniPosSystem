@@ -15,7 +15,7 @@ public class BranchInventoryController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetList([FromQuery] BranchInventoryListRequestDto filter)
+    public async Task<IActionResult> GetList([FromQuery] BranchInventoryListRequest filter)
     {
         var result = await _branchInventoryService.GetList(filter);
         if (result.IsSuccess)
@@ -37,7 +37,7 @@ public class BranchInventoryController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> CreateProduct([FromBody] BranchInventoryCreateRequestDto request)
+    public async Task<IActionResult> Create([FromBody] BranchInventoryCreateRequest request)
     {
         var result = await _branchInventoryService.Create(request);
         if (result.IsSuccess)
@@ -48,7 +48,7 @@ public class BranchInventoryController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> Update(Guid id, [FromBody] BranchInventoryUpdateRequestDto request)
+    public async Task<IActionResult> Update(Guid id, [FromBody] BranchInventoryUpdateRequest request)
     {
         var result = await _branchInventoryService.Update(id, request);
         if (result.IsSuccess)

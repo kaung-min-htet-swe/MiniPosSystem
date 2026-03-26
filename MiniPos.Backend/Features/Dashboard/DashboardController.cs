@@ -14,7 +14,7 @@ public class DashboardController : ControllerBase
         _dashboardService = dashboardService;
     }
 
-    [HttpGet]
+    [HttpGet("stats")]
     public async Task<IActionResult> GetStats()
     {
         var result = await _dashboardService.GetStats();
@@ -22,6 +22,6 @@ public class DashboardController : ControllerBase
             return Ok(result.Data);
 
         var statusCode = ErrorHttpMapper.GetStatusCode(result.Error!);
-        return StatusCode(statusCode, new { message = result.Error!.Message });
+        return StatusCode(statusCode, new { message = result.Error?.Message });
     }
 }

@@ -7,7 +7,7 @@ namespace MiniPos.Backend.Features.Dashboard;
 
 public interface IDashboardService
 {
-    Task<Result<DashboardResponseDto>> GetStats();
+    Task<Result<DashboardResponse>> GetStats();
 }
 
 public class DashboardService : IDashboardService
@@ -19,7 +19,7 @@ public class DashboardService : IDashboardService
         _db = db;
     }
 
-    public async Task<Result<DashboardResponseDto>> GetStats()
+    public async Task<Result<DashboardResponse>> GetStats()
     {
         try
         {
@@ -36,7 +36,7 @@ public class DashboardService : IDashboardService
             var recentOrders = orders
                 .OrderByDescending(o => o.OrderDate)
                 .Take(5)
-                .Select(o => new OrderListResponseDto
+                .Select(o => new OrderListResponse
                 {
                     Id = o.Id,
                     BranchId = o.BranchId,
@@ -61,7 +61,7 @@ public class DashboardService : IDashboardService
                 });
             }
 
-            var response = new DashboardResponseDto
+            var response = new DashboardResponse
             {
                 TotalRevenue = revenue,
                 TotalTransactions = transactions,
@@ -71,22 +71,22 @@ public class DashboardService : IDashboardService
                 DailySales = dailySales
             };
 
-            return Result<DashboardResponseDto>.Success(response);
+            return Result<DashboardResponse>.Success(response);
         }
         catch (Exception e)
         {
-            return Result<DashboardResponseDto>.Failure(new InternalError("Dashboard.GetStats", e.Message));
+            return Result<DashboardResponse>.Failure(new InternalError("Dashboard.GetStats", e.Message));
         }
     }
 }
 
-public class DashboardResponseDto
+public class DashboardResponse
 {
     public decimal TotalRevenue { get; set; }
     public int TotalTransactions { get; set; }
     public int TotalMerchants { get; set; }
     public int TotalBranches { get; set; }
-    public List<OrderListResponseDto> RecentOrders { get; set; } = new();
+    public List<OrderListResponse> RecentOrders { get; set; } = new();
     public List<DailySaleDto> DailySales { get; set; } = new();
 }
 

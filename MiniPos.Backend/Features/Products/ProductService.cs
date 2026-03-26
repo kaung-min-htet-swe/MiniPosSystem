@@ -6,10 +6,10 @@ namespace MiniPos.Backend.Features.Products;
 
 public interface IProductService
 {
-    Task<Result<PagedResult<ProductListResponseDto>>> GetList(ProductListRequestDto request);
-    Task<Result<ProductGetByIdResponseDto>> GetById(Guid id);
-    Task<Result<ProductCreateResponseDto>> Create(ProductCreateRequestDto request);
-    Task<Result> Update(Guid id, ProductUpdateRequestDto request);
+    Task<Result<PagedResult<ProductListResponse>>> GetList(ProductListRequest request);
+    Task<Result<ProductGetByIdResponse>> GetById(Guid id);
+    Task<Result<ProductCreateResponse>> Create(ProductCreateRequest request);
+    Task<Result> Update(Guid id, ProductUpdateRequest request);
     Task<Result> Delete(Guid id);
 }
 
@@ -22,7 +22,7 @@ public class ProductService : IProductService
         _db = db;
     }
 
-    public async Task<Result<PagedResult<ProductListResponseDto>>> GetList(ProductListRequestDto request)
+    public async Task<Result<PagedResult<ProductListResponse>>> GetList(ProductListRequest request)
     {
         try
         {
@@ -45,7 +45,7 @@ public class ProductService : IProductService
                 .OrderByDescending(p => p.CreatedAt)
                 .Skip(skip)
                 .Take(take)
-                .Select(p => new ProductListResponseDto
+                .Select(p => new ProductListResponse
                 {
                     Id = p.Id,
                     MerchantId = p.MerchantId,
@@ -58,23 +58,23 @@ public class ProductService : IProductService
                 })
                 .ToListAsync();
 
-            var result = new PagedResult<ProductListResponseDto>(products, totalCount, request.PageNumber, request.PageSize);
-            return Result<PagedResult<ProductListResponseDto>>.Success(result);
+            var result = new PagedResult<ProductListResponse>(products, totalCount, request.PageNumber, request.PageSize);
+            return Result<PagedResult<ProductListResponse>>.Success(result);
         }
         catch (Exception e)
         {
-            return Result<PagedResult<ProductListResponseDto>>.Failure(new InternalError("Product.GetList", e.Message));
+            return Result<PagedResult<ProductListResponse>>.Failure(new InternalError("Product.GetList", e.Message));
         }
     }
 
-    public async Task<Result<ProductGetByIdResponseDto>> GetById(Guid id)
+    public async Task<Result<ProductGetByIdResponse>> GetById(Guid id)
     {
         try
         {
             var product = await _db.Products
                 .AsNoTracking()
                 .Where(p => p.Id == id)
-                .Select(p => new ProductGetByIdResponseDto
+                .Select(p => new ProductGetByIdResponse
                 {
                     Id = p.Id,
                     MerchantId = p.MerchantId,
@@ -88,31 +88,31 @@ public class ProductService : IProductService
                 .FirstOrDefaultAsync();
 
             if (product is null)
-                return Result<ProductGetByIdResponseDto>.Failure(new NotFoundError("Product.GetById", "Product not found"));
+                return Result<ProductGetByIdResponse>.Failure(new NotFoundError("Product.GetById", "Product not found"));
 
-            return Result<ProductGetByIdResponseDto>.Success(product);
+            return Result<ProductGetByIdResponse>.Success(product);
         }
         catch (Exception e)
         {
-            return Result<ProductGetByIdResponseDto>.Failure(new InternalError("Product.GetById", e.Message));
+            return Result<ProductGetByIdResponse>.Failure(new InternalError("Product.GetById", e.Message));
         }
     }
 
-    public async Task<Result<ProductCreateResponseDto>> Create(ProductCreateRequestDto request)
+    public async Task<Result<ProductCreateResponse>> Create(ProductCreateRequest request)
     {
         try
         {
             var merchantExists = await _db.Merchants.AnyAsync(m => m.Id == request.MerchantId && m.IsActive);
             if (!merchantExists)
-                return Result<ProductCreateResponseDto>.Failure(new NotFoundError("Product.Create", "Merchant not found or inactive"));
+                return Result<ProductCreateResponse>.Failure(new NotFoundError("Product.Create", "Merchant not found or inactive"));
 
             var categoryExists = await _db.Categories.AnyAsync(c => c.Id == request.CategoryId);
             if (!categoryExists)
-                return Result<ProductCreateResponseDto>.Failure(new NotFoundError("Product.Create", "Category not found"));
+                return Result<ProductCreateResponse>.Failure(new NotFoundError("Product.Create", "Category not found"));
 
             var isSkuExists = await _db.Products.AnyAsync(p => p.Sku == request.Sku && p.MerchantId == request.MerchantId);
             if (isSkuExists)
-                return Result<ProductCreateResponseDto>.Failure(new ConflictError("Product.Create", "Product with this SKU already exists for this merchant"));
+                return Result<ProductCreateResponse>.Failure(new ConflictError("Product.Create", "Product with this SKU already exists for this merchant"));
 
             var product = new Product
             {
@@ -129,16 +129,16 @@ public class ProductService : IProductService
             var result = await _db.SaveChangesAsync();
 
             return result > 0 
-                ? Result<ProductCreateResponseDto>.Success(new ProductCreateResponseDto { Id = product.Id })
-                : Result<ProductCreateResponseDto>.Failure(new InternalError("Product.Create", "Failed to create product"));
+                ? Result<ProductCreateResponse>.Success(new ProductCreateResponse { Id = product.Id })
+                : Result<ProductCreateResponse>.Failure(new InternalError("Product.Create", "Failed to create product"));
         }
         catch (Exception e)
         {
-            return Result<ProductCreateResponseDto>.Failure(new InternalError("Product.Create", e.Message));
+            return Result<ProductCreateResponse>.Failure(new InternalError("Product.Create", e.Message));
         }
     }
 
-    public async Task<Result> Update(Guid id, ProductUpdateRequestDto request)
+    public async Task<Result> Update(Guid id, ProductUpdateRequest request)
     {
         try
         {
@@ -203,14 +203,14 @@ public class ProductService : IProductService
     }
 }
 
-public class ProductListRequestDto : PaginationFilter
+public class ProductListRequest : PaginationFilter
 {
     public Guid? MerchantId { get; set; }
     public Guid? CategoryId { get; set; }
     public string? SearchTerm { get; set; }
 }
 
-public class ProductListResponseDto
+public class ProductListResponse
 {
     public Guid Id { get; set; }
     public Guid MerchantId { get; set; }
@@ -222,11 +222,11 @@ public class ProductListResponseDto
     public DateTime? UpdatedAt { get; set; }
 }
 
-public class ProductGetByIdResponseDto : ProductListResponseDto
+public class ProductGetByIdResponse : ProductListResponse
 {
 }
 
-public class ProductCreateRequestDto
+public class ProductCreateRequest
 {
     public Guid MerchantId { get; set; }
     public Guid CategoryId { get; set; }
@@ -235,12 +235,12 @@ public class ProductCreateRequestDto
     public decimal Price { get; set; }
 }
 
-public class ProductCreateResponseDto
+public class ProductCreateResponse
 {
     public Guid Id { get; set; }
 }
 
-public class ProductUpdateRequestDto
+public class ProductUpdateRequest
 {
     public Guid? CategoryId { get; set; }
     public string? Name { get; set; }

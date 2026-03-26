@@ -15,7 +15,7 @@ public class MerchantController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetList([FromQuery] MerchantListRequestDto filter)
+    public async Task<IActionResult> GetList([FromQuery] MerchantListRequest filter)
     {
         var result = await _merchantService.GetList(filter);
         if (!result.IsSuccess)
@@ -45,7 +45,7 @@ public class MerchantController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] MerchantCreateRequestDto request)
+    public async Task<IActionResult> Create([FromBody] MerchantCreateRequest request)
     {
         var result = await _merchantService.Create(request);
         if (result.IsSuccess)
@@ -58,7 +58,7 @@ public class MerchantController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> Update(Guid id, [FromBody] MerchantUpdateRequestDto request)
+    public async Task<IActionResult> Update(Guid id, [FromBody] MerchantUpdateRequest request)
     {
         var result = await _merchantService.Update(id, request);
         if (result.IsSuccess)

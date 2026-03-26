@@ -10,7 +10,7 @@ public interface IAuthenticationService
 {
     Task<Result<SignupResponse>> Signup(SignupRequest request);
     Task<Result<SigninResponse>> Signin(SigninRequest request);
-    Task<Result<SignoutResponseDto>> Signout(SignoutRequestDto request);
+    Task<Result<SignoutResponse>> Signout();
 }
 
 public class AuthenticationService : IAuthenticationService
@@ -19,18 +19,21 @@ public class AuthenticationService : IAuthenticationService
     private readonly IPasswordHasher<User> _passwordHasher;
     private readonly TokenService _tokenService;
     private readonly IUserService _userService;
+    // private readonly IHttpContextAccessor _httpContextAccessor;
 
     public AuthenticationService(
         AppDbContext db,
         IPasswordHasher<User> passwordHasher,
         IUserService userService,
         TokenService tokenService
+        // IHttpContextAccessor httpContextAccessor
     )
     {
         _db = db;
         _passwordHasher = passwordHasher;
         _userService = userService;
         _tokenService = tokenService;
+        // _httpContextAccessor = httpContextAccessor;
     }
 
     public async Task<Result<SignupResponse>> Signup(SignupRequest request)
@@ -65,19 +68,18 @@ public class AuthenticationService : IAuthenticationService
         try
         {
             var user = await _db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Email == request.Email);
-            if(user is null) return Result<SigninResponse>.Failure(new UnAuthorized(errCode, "Invalid credentials"));
-            
+            if (user is null) return Result<SigninResponse>.Failure(new UnAuthorized(errCode, "Invalid credentials"));
+
             var result = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, request.Password);
-            if(result == PasswordVerificationResult.Failed) 
-                return  Result<SigninResponse>.Failure(new UnAuthorized(errCode, "Invalid credentials"));
-            
+            if (result == PasswordVerificationResult.Failed)
+                return Result<SigninResponse>.Failure(new UnAuthorized(errCode, "Invalid credentials"));
+
             var token = await _tokenService.IssueTokenAsync(user.Username);
             return Result<SigninResponse>.Success(new SigninResponse
             {
                 Id = user.Id,
                 Token = token
             });
-
         }
         catch (Exception e)
         {
@@ -85,9 +87,11 @@ public class AuthenticationService : IAuthenticationService
         }
     }
 
-    public Task<Result<SignoutResponseDto>> Signout(SignoutRequestDto request)
+    public async Task<Result<SignoutResponse>> Signout()
     {
-        throw new NotImplementedException();
+        // _httpContextAccessor.HttpContext?.Response.Cookies.Delete("token");
+        // return Result<SignoutResponse>.Success(new SignoutResponse { Message = "Logged out successfully" });
+        return null;
     }
 }
 
@@ -121,10 +125,7 @@ public class SigninResponse
     public TokenResponse? Token { get; set; }
 }
 
-public class SignoutRequestDto
+public class SignoutResponse
 {
-}
-
-public class SignoutResponseDto
-{
+    public string Message { get; set; } = string.Empty;
 }

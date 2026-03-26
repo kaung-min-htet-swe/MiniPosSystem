@@ -6,10 +6,10 @@ namespace MiniPos.Backend.Features.Merchants;
 
 public interface IMerchantService
 {
-    Task<Result<PagedResult<MerchantListResponseDto>>> GetList(MerchantListRequestDto request);
-    Task<Result<MerchantGetByIdResponseDto>> GetById(Guid id);
-    Task<Result<MerchantCreateResponseDto>> Create(MerchantCreateRequestDto request);
-    Task<Result> Update(Guid id, MerchantUpdateRequestDto request);
+    Task<Result<PagedResult<MerchantListResponse>>> GetList(MerchantListRequest request);
+    Task<Result<MerchantGetByIdResponse>> GetById(Guid id);
+    Task<Result<MerchantCreateResponse>> Create(MerchantCreateRequest request);
+    Task<Result> Update(Guid id, MerchantUpdateRequest request);
     Task<Result> Delete(Guid id);
 }
 
@@ -22,7 +22,7 @@ public class MerchantService : IMerchantService
         _db = db;
     }
 
-    public async Task<Result<PagedResult<MerchantListResponseDto>>> GetList(MerchantListRequestDto request)
+    public async Task<Result<PagedResult<MerchantListResponse>>> GetList(MerchantListRequest request)
     {
         try
         {
@@ -48,29 +48,29 @@ public class MerchantService : IMerchantService
                     mu.Role == "Merchant"))
                 .ToListAsync();
             
-            var dto = merchants.Select(m => new MerchantListResponseDto {
+            var dto = merchants.Select(m => new MerchantListResponse {
                 Id = m.Id,
                 Name = m.Name,
                 ContactEmail = m.ContactEmail,
             }).ToList();
 
-            var result = new PagedResult<MerchantListResponseDto>(dto, totalCount, request.PageNumber, request.PageSize);
-            return Result<PagedResult<MerchantListResponseDto>>.Success(result);
+            var result = new PagedResult<MerchantListResponse>(dto, totalCount, request.PageNumber, request.PageSize);
+            return Result<PagedResult<MerchantListResponse>>.Success(result);
         }
         catch (Exception e)
         {
-            return Result<PagedResult<MerchantListResponseDto>>.Failure(new InternalError("Merchant.GetList", e.Message));
+            return Result<PagedResult<MerchantListResponse>>.Failure(new InternalError("Merchant.GetList", e.Message));
         }
     }
 
-    public async Task<Result<MerchantGetByIdResponseDto>> GetById(Guid id)
+    public async Task<Result<MerchantGetByIdResponse>> GetById(Guid id)
     {
         try
         {
             var merchant = await _db.Merchants
                 .AsNoTracking()
                 .Where(m => m.Id == id && m.DeletedAt == null)
-                .Select(m => new MerchantGetByIdResponseDto
+                .Select(m => new MerchantGetByIdResponse
                 {
                     Id = m.Id,
                     Name = m.Name,
@@ -82,17 +82,17 @@ public class MerchantService : IMerchantService
                 .FirstOrDefaultAsync();
 
             if (merchant == null)
-                return Result<MerchantGetByIdResponseDto>.Failure(new NotFoundError("Merchant.GetById", "Merchant not found"));
+                return Result<MerchantGetByIdResponse>.Failure(new NotFoundError("Merchant.GetById", "Merchant not found"));
 
-            return Result<MerchantGetByIdResponseDto>.Success(merchant);
+            return Result<MerchantGetByIdResponse>.Success(merchant);
         }
         catch (Exception e)
         {
-            return Result<MerchantGetByIdResponseDto>.Failure(new InternalError("Merchant.GetById", e.Message));
+            return Result<MerchantGetByIdResponse>.Failure(new InternalError("Merchant.GetById", e.Message));
         }
     }
 
-    public async Task<Result<MerchantCreateResponseDto>> Create(MerchantCreateRequestDto request)
+    public async Task<Result<MerchantCreateResponse>> Create(MerchantCreateRequest request)
     {
         try
         {
@@ -108,15 +108,15 @@ public class MerchantService : IMerchantService
             await _db.Merchants.AddAsync(merchant);
             await _db.SaveChangesAsync();
 
-            return Result<MerchantCreateResponseDto>.Success(new MerchantCreateResponseDto { Id = merchant.Id });
+            return Result<MerchantCreateResponse>.Success(new MerchantCreateResponse { Id = merchant.Id });
         }
         catch (Exception e)
         {
-            return Result<MerchantCreateResponseDto>.Failure(new InternalError("Merchant.Create", e.Message));
+            return Result<MerchantCreateResponse>.Failure(new InternalError("Merchant.Create", e.Message));
         }
     }
 
-    public async Task<Result> Update(Guid id, MerchantUpdateRequestDto request)
+    public async Task<Result> Update(Guid id, MerchantUpdateRequest request)
     {
         try
         {
@@ -158,20 +158,20 @@ public class MerchantService : IMerchantService
     }
 }
 
-public class MerchantListRequestDto : PaginationFilter
+public class MerchantListRequest : PaginationFilter
 {
     public string? MerchantAdminId { get; set; }
     public string? SearchTerm { get; set; }
 }
 
-public class MerchantListResponseDto
+public class MerchantListResponse
 {
     public Guid Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public string? ContactEmail { get; set; }
 }
 
-public class MerchantGetByIdResponseDto
+public class MerchantGetByIdResponse
 {
     public Guid Id { get; set; }
     public string Name { get; set; } = string.Empty;
@@ -181,18 +181,18 @@ public class MerchantGetByIdResponseDto
     public DateTime? UpdatedAt { get; set; }
 }
 
-public class MerchantCreateRequestDto
+public class MerchantCreateRequest
 {
     public string Name { get; set; } = string.Empty;
     public string? ContactEmail { get; set; }
 }
 
-public class MerchantCreateResponseDto
+public class MerchantCreateResponse
 {
     public Guid Id { get; set; }
 }
 
-public class MerchantUpdateRequestDto
+public class MerchantUpdateRequest
 {
     public string Name { get; set; } = string.Empty;
     public string? ContactEmail { get; set; }

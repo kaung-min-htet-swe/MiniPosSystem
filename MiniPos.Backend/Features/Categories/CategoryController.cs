@@ -15,7 +15,7 @@ public class CategoryController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetList([FromQuery] CategoryListRequestDto filter)
+    public async Task<IActionResult> GetList([FromQuery] CategoryListRequest filter)
     {
         var result = await _categoryService.GetList(filter);
         if (result.IsSuccess)
@@ -37,7 +37,7 @@ public class CategoryController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> CreateCategory([FromBody] CategoryCreateRequestDto request)
+    public async Task<IActionResult> Create([FromBody] CategoryCreateRequest request)
     {
         var result = await _categoryService.Create(request);
         if (result.IsSuccess)
@@ -48,7 +48,7 @@ public class CategoryController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> Update(Guid id, [FromBody] CategoryUpdateRequestDto request)
+    public async Task<IActionResult> Update(Guid id, [FromBody] CategoryUpdateRequest request)
     {
         var result = await _categoryService.Update(id, request);
         if (result.IsSuccess)

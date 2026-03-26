@@ -15,7 +15,7 @@ public class OrderController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetList([FromQuery] OrderListRequestDto filter)
+    public async Task<IActionResult> GetList([FromQuery] OrderListRequest filter)
     {
         var result = await _orderService.GetList(filter);
         if (result.IsSuccess)
@@ -37,7 +37,7 @@ public class OrderController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> CreateOrder([FromBody] OrderCreateRequestDto request)
+    public async Task<IActionResult> CreateOrder([FromBody] OrderCreateRequest request)
     {
         var result = await _orderService.Create(request);
         if (result.IsSuccess)

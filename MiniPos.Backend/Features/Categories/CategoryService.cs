@@ -6,10 +6,10 @@ namespace MiniPos.Backend.Features.Categories;
 
 public interface ICategoryService
 {
-    Task<Result<PagedResult<CategoryListResponseDto>>> GetList(CategoryListRequestDto request);
-    Task<Result<CategoryGetByIdResponseDto>> GetById(Guid categoryId);
-    Task<Result> Create(CategoryCreateRequestDto request);
-    Task<Result> Update(Guid id, CategoryUpdateRequestDto request);
+    Task<Result<PagedResult<CategoryListResponse>>> GetList(CategoryListRequest request);
+    Task<Result<CategoryGetByIdResponse>> GetById(Guid categoryId);
+    Task<Result> Create(CategoryCreateRequest request);
+    Task<Result> Update(Guid id, CategoryUpdateRequest request);
     Task<Result> Delete(Guid id);
 }
 
@@ -22,7 +22,7 @@ public class CategoryService : ICategoryService
         _db = db;
     }
 
-    public async Task<Result<PagedResult<CategoryListResponseDto>>> GetList(CategoryListRequestDto request)
+    public async Task<Result<PagedResult<CategoryListResponse>>> GetList(CategoryListRequest request)
     {
         try
         {
@@ -42,7 +42,7 @@ public class CategoryService : ICategoryService
                 .Skip(skip)
                 .Take(take)
                 .OrderByDescending(category => category.CreatedAt)
-                .Select(c => new CategoryListResponseDto
+                .Select(c => new CategoryListResponse
                 {
                     Id = c.Id,
                     Name = c.Name,
@@ -54,17 +54,17 @@ public class CategoryService : ICategoryService
                 .ToListAsync();
 
             var result =
-                new PagedResult<CategoryListResponseDto>(items, totalCount, request.PageNumber, request.PageSize);
-            return Result<PagedResult<CategoryListResponseDto>>.Success(result);
+                new PagedResult<CategoryListResponse>(items, totalCount, request.PageNumber, request.PageSize);
+            return Result<PagedResult<CategoryListResponse>>.Success(result);
         }
         catch (Exception e)
         {
-            return Result<PagedResult<CategoryListResponseDto>>.Failure(
+            return Result<PagedResult<CategoryListResponse>>.Failure(
                 new InternalError("Category.GetList", e.Message));
         }
     }
 
-    public async Task<Result<CategoryGetByIdResponseDto>> GetById(Guid categoryId)
+    public async Task<Result<CategoryGetByIdResponse>> GetById(Guid categoryId)
     {
         const string errCode = "Category.GetById";
         try
@@ -72,7 +72,7 @@ public class CategoryService : ICategoryService
             var categoryDto = await _db.Categories
                 .AsNoTracking()
                 .Where(c => c.Id == categoryId)
-                .Select(c => new CategoryGetByIdResponseDto
+                .Select(c => new CategoryGetByIdResponse
                 {
                     Id = c.Id,
                     Name = c.Name,
@@ -93,19 +93,19 @@ public class CategoryService : ICategoryService
 
             if (categoryDto == null)
             {
-                return Result<CategoryGetByIdResponseDto>.Failure(
+                return Result<CategoryGetByIdResponse>.Failure(
                     new NotFoundError(errCode, "Category does not exist"));
             }
 
-            return Result<CategoryGetByIdResponseDto>.Success(categoryDto);
+            return Result<CategoryGetByIdResponse>.Success(categoryDto);
         }
         catch (Exception e)
         {
-            return Result<CategoryGetByIdResponseDto>.Failure(new InternalError(errCode, e.Message));
+            return Result<CategoryGetByIdResponse>.Failure(new InternalError(errCode, e.Message));
         }
     }
 
-    public async Task<Result> Create(CategoryCreateRequestDto request)
+    public async Task<Result> Create(CategoryCreateRequest request)
     {
         const string errCode = "Category.Create";
         try
@@ -140,7 +140,7 @@ public class CategoryService : ICategoryService
         }
     }
 
-    public async Task<Result> Update(Guid id, CategoryUpdateRequestDto request)
+    public async Task<Result> Update(Guid id, CategoryUpdateRequest request)
     {
         const string errCode = "Category.Update";
         try
@@ -195,7 +195,7 @@ public class CategoryService : ICategoryService
     }
 }
 
-public class CategoryListRequestDto : PaginationFilter
+public class CategoryListRequest : PaginationFilter
 {
     public Guid? MerchantId { get; set; }
 }
@@ -212,7 +212,7 @@ public class ProductDto
     public string Name { get; set; } = null!;
 }
 
-public class CategoryListResponseDto
+public class CategoryListResponse
 {
     public Guid Id { get; set; }
     public string? Name { get; set; }
@@ -222,7 +222,7 @@ public class CategoryListResponseDto
     public int ProductCount { get; set; } 
 }
 
-public class CategoryGetByIdResponseDto
+public class CategoryGetByIdResponse
 {
     public Guid Id { get; set; }
     public string? Name { get; set; }
@@ -232,14 +232,14 @@ public class CategoryGetByIdResponseDto
     public DateTime CreatedAt { get; set; }
 }
 
-public class CategoryCreateRequestDto
+public class CategoryCreateRequest
 {
     public Guid MerchantId { get; set; }
     public string Name { get; set; } = null!;
     public string? Description { get; set; }
 }
 
-public class CategoryUpdateRequestDto
+public class CategoryUpdateRequest
 {
     public Guid MerchantId { get; set; }
     public string Name { get; set; } = null!;

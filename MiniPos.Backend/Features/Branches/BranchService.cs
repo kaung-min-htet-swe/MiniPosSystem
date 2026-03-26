@@ -6,10 +6,10 @@ namespace MiniPos.Backend.Features.Branches;
 
 public interface IBranchService
 {
-    Task<Result<PagedResult<BranchListResponseDto>>> GetList(BranchListRequestDto request);
-    Task<Result<BranchGetByIdResponseDto>> GetById(Guid id);
-    Task<Result> Create(BranchCreateRequestDto request);
-    Task<Result> Update(Guid branchId, BranchUpdateRequestDto request);
+    Task<Result<PagedResult<BranchListResponse>>> GetList(BranchListRequest request);
+    Task<Result<BranchGetByIdResponse>> GetById(Guid id);
+    Task<Result> Create(BranchCreateRequest request);
+    Task<Result> Update(Guid branchId, BranchUpdateRequest request);
     Task<Result> Delete(Guid id);
 }
 
@@ -22,7 +22,7 @@ public class BranchService : IBranchService
         _db = db;
     }
 
-    public async Task<Result<PagedResult<BranchListResponseDto>>> GetList(BranchListRequestDto request)
+    public async Task<Result<PagedResult<BranchListResponse>>> GetList(BranchListRequest request)
     {
         try
         {
@@ -34,13 +34,13 @@ public class BranchService : IBranchService
             var totalCount = await query.CountAsync();
             
             query = query.Skip(skip).Take(take);
-            List<BranchListResponseDto> items;
-            PagedResult<BranchListResponseDto> result;
+            List<BranchListResponse> items;
+            PagedResult<BranchListResponse> result;
             
             if (request.IncludeMerchant)
             {
                 items = await query
-                    .Select(b => new BranchListResponseDto
+                    .Select(b => new BranchListResponse
                     {
                         Id = b.Id,
                         Name = b.Name,
@@ -55,12 +55,12 @@ public class BranchService : IBranchService
                     .ToListAsync();
                 
                 result =
-                    new PagedResult<BranchListResponseDto>(items, totalCount, request.PageNumber, request.PageSize);
-                return Result<PagedResult<BranchListResponseDto>>.Success(result);
+                    new PagedResult<BranchListResponse>(items, totalCount, request.PageNumber, request.PageSize);
+                return Result<PagedResult<BranchListResponse>>.Success(result);
             }
             
             items = await query
-                .Select(b => new BranchListResponseDto
+                .Select(b => new BranchListResponse
                 {
                     Id = b.Id,
                     Name = b.Name,
@@ -68,16 +68,16 @@ public class BranchService : IBranchService
                 .ToListAsync();
 
             result =
-                new PagedResult<BranchListResponseDto>(items, totalCount, request.PageNumber, request.PageSize);
-            return Result<PagedResult<BranchListResponseDto>>.Success(result);
+                new PagedResult<BranchListResponse>(items, totalCount, request.PageNumber, request.PageSize);
+            return Result<PagedResult<BranchListResponse>>.Success(result);
         }
         catch (Exception e)
         {
-            return Result<PagedResult<BranchListResponseDto>>.Failure(new InternalError("Branch.GetList", e.Message));
+            return Result<PagedResult<BranchListResponse>>.Failure(new InternalError("Branch.GetList", e.Message));
         }
     }
 
-    public async Task<Result<BranchGetByIdResponseDto>> GetById(Guid branchId)
+    public async Task<Result<BranchGetByIdResponse>> GetById(Guid branchId)
     {
         const string errCode = "Branch.GetById";
         try
@@ -108,10 +108,10 @@ public class BranchService : IBranchService
 
             if (branchData == null)
             {
-                return Result<BranchGetByIdResponseDto>.Failure(new NotFoundError(errCode, "Branch does not exist"));
+                return Result<BranchGetByIdResponse>.Failure(new NotFoundError(errCode, "Branch does not exist"));
             }
 
-            var branchDto = new BranchGetByIdResponseDto
+            var branchDto = new BranchGetByIdResponse
             {
                 Id = branchData.Id,
                 Name = branchData.Name,
@@ -121,15 +121,15 @@ public class BranchService : IBranchService
                 TodayOrderPrice = branchData.TodayOrderTotal, 
             };
 
-            return Result<BranchGetByIdResponseDto>.Success(branchDto);
+            return Result<BranchGetByIdResponse>.Success(branchDto);
         }
         catch (Exception e)
         {
-            return Result<BranchGetByIdResponseDto>.Failure(new InternalError(errCode, e.Message));
+            return Result<BranchGetByIdResponse>.Failure(new InternalError(errCode, e.Message));
         }
     }
 
-    public async Task<Result> Create(BranchCreateRequestDto request)
+    public async Task<Result> Create(BranchCreateRequest request)
     {
         const string errCode = "Branch.Create";
         try
@@ -163,7 +163,7 @@ public class BranchService : IBranchService
         }
     }
 
-    public async Task<Result> Update(Guid branchId, BranchUpdateRequestDto request)
+    public async Task<Result> Update(Guid branchId, BranchUpdateRequest request)
     {
         const string errCode = "Branch.Update";
         try
@@ -217,7 +217,7 @@ public class BranchService : IBranchService
     }
 }
 
-public class BranchListRequestDto : PaginationFilter
+public class BranchListRequest : PaginationFilter
 {
     public Guid? MerchantId { get; set; }
     public bool IncludeMerchant { get; set; } = false;
@@ -230,7 +230,7 @@ public class MerchantDto
     public string? ContactEmail { get; set; }
 }
 
-public class BranchListResponseDto
+public class BranchListResponse
 {
     public Guid Id { get; set; }
     public string Name { get; set; } = null!;
@@ -238,7 +238,7 @@ public class BranchListResponseDto
     public MerchantDto Merchant { get; set; } = null!;
 }
 
-public class BranchGetByIdResponseDto
+public class BranchGetByIdResponse
 {
     public Guid Id { get; set; }
     public string? Name { get; set; }
@@ -248,14 +248,14 @@ public class BranchGetByIdResponseDto
     public MerchantDto? Merchant { get; set; }
 }
 
-public class BranchCreateRequestDto
+public class BranchCreateRequest
 {
     public Guid MerchantId { get; set; }
     public string Name { get; set; } = null!;
     public string? Address { get; set; }
 }
 
-public class BranchUpdateRequestDto
+public class BranchUpdateRequest
 {
     public Guid MerchantId { get; set; }
     public string Name { get; set; } = null!;

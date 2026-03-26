@@ -6,10 +6,10 @@ namespace MiniPos.Backend.Features.BranchInventories;
 
 public interface IBranchInventoryService
 {
-    Task<Result<PagedResult<BranchInventoryListResponseDto>>> GetList(BranchInventoryListRequestDto request);
-    Task<Result<BranchInventoryGetByIdResponseDto>> GetById(Guid id);
-    Task<Result> Create(BranchInventoryCreateRequestDto request);
-    Task<Result> Update(Guid id, BranchInventoryUpdateRequestDto request);
+    Task<Result<PagedResult<BranchInventoryListResponse>>> GetList(BranchInventoryListRequest request);
+    Task<Result<BranchInventoryGetByIdResponse>> GetById(Guid id);
+    Task<Result> Create(BranchInventoryCreateRequest request);
+    Task<Result> Update(Guid id, BranchInventoryUpdateRequest request);
     Task<Result> Delete(Guid id);
 }
 
@@ -22,20 +22,20 @@ public class BranchInventoryService : IBranchInventoryService
         _db = db;
     }
 
-    public async Task<Result<PagedResult<BranchInventoryListResponseDto>>> GetList(
-        BranchInventoryListRequestDto request)
+    public async Task<Result<PagedResult<BranchInventoryListResponse>>> GetList(
+        BranchInventoryListRequest request)
+{
+    try
     {
-        try
-        {
-            var isMerchantExists = await _db.Merchants.AnyAsync(merchant => merchant.Id == request.MerchantId);
-            if (!isMerchantExists)
-                return Result<PagedResult<BranchInventoryListResponseDto>>.Failure(new NotFoundError("Product.GetList",
-                    "Merchant does not exist"));
+        var isMerchantExists = await _db.Merchants.AnyAsync(merchant => merchant.Id == request.MerchantId);
+        if (!isMerchantExists)
+            return Result<PagedResult<BranchInventoryListResponse>>.Failure(new NotFoundError("Product.GetList",
+                "Merchant does not exist"));
 
-            var isBranchExists = await _db.Branches.AnyAsync(branch => branch.Id == request.BranchId);
-            if (!isBranchExists)
-                return Result<PagedResult<BranchInventoryListResponseDto>>.Failure(new NotFoundError("Product.GetList",
-                    "Branch does not exist"));
+        var isBranchExists = await _db.Branches.AnyAsync(branch => branch.Id == request.BranchId);
+        if (!isBranchExists)
+            return Result<PagedResult<BranchInventoryListResponse>>.Failure(new NotFoundError("Product.GetList",
+                "Branch does not exist"));
 
             var query = _db.BranchInventories
                 .Where(inventory => inventory.BranchId == request.BranchId)
@@ -53,7 +53,7 @@ public class BranchInventoryService : IBranchInventoryService
                 .Take(take)
                 .OrderByDescending(product => product.CreatedAt)
                 .Include(inventory => inventory.Product)
-                .Select(inventory => new BranchInventoryListResponseDto
+                .Select(inventory => new BranchInventoryListResponse
                 {
                     Id = inventory.Id,
                     Name = inventory.Product.Name,
@@ -64,18 +64,18 @@ public class BranchInventoryService : IBranchInventoryService
                 .ToListAsync();
 
             var result =
-                new PagedResult<BranchInventoryListResponseDto>(items, totalCount, request.PageNumber,
+                new PagedResult<BranchInventoryListResponse>(items, totalCount, request.PageNumber,
                     request.PageSize);
-            return Result<PagedResult<BranchInventoryListResponseDto>>.Success(result);
+            return Result<PagedResult<BranchInventoryListResponse>>.Success(result);
         }
         catch (Exception e)
         {
-            return Result<PagedResult<BranchInventoryListResponseDto>>.Failure(new InternalError("Product.GetList",
+            return Result<PagedResult<BranchInventoryListResponse>>.Failure(new InternalError("Product.GetList",
                 e.Message));
         }
     }
 
-    public async Task<Result<BranchInventoryGetByIdResponseDto>> GetById(Guid id)
+    public async Task<Result<BranchInventoryGetByIdResponse>> GetById(Guid id)
     {
         const string errCode = "Product.GetById";
         try
@@ -85,7 +85,7 @@ public class BranchInventoryService : IBranchInventoryService
                     .AsNoTracking()
                     .Include(inventory => inventory.Product)
                     .Where(inventory => inventory.Id == id)
-                    .Select(inventory => new BranchInventoryGetByIdResponseDto
+                    .Select(inventory => new BranchInventoryGetByIdResponse
                     {
                         Id = inventory.Id,
                         StockQuantity = inventory.StockQuantity,
@@ -96,17 +96,17 @@ public class BranchInventoryService : IBranchInventoryService
                     .ToListAsync();
 
             return products.Count == 0
-                ? Result<BranchInventoryGetByIdResponseDto>.Failure(
+                ? Result<BranchInventoryGetByIdResponse>.Failure(
                     new NotFoundError(errCode, "Product does not exist"))
-                : Result<BranchInventoryGetByIdResponseDto>.Success(products[0]);
+                : Result<BranchInventoryGetByIdResponse>.Success(products[0]);
         }
         catch (Exception e)
         {
-            return Result<BranchInventoryGetByIdResponseDto>.Failure(new InternalError(errCode, e.Message));
+            return Result<BranchInventoryGetByIdResponse>.Failure(new InternalError(errCode, e.Message));
         }
     }
 
-    public async Task<Result> Create(BranchInventoryCreateRequestDto request)
+    public async Task<Result> Create(BranchInventoryCreateRequest request)
     {
         const string errCode = "Product.Create";
         try
@@ -166,7 +166,7 @@ public class BranchInventoryService : IBranchInventoryService
         }
     }
 
-    public async Task<Result> Update(Guid id, BranchInventoryUpdateRequestDto request)
+    public async Task<Result> Update(Guid id, BranchInventoryUpdateRequest request)
     {
         const string errCode = "Product.Update";
         try
@@ -221,14 +221,14 @@ public class BranchInventoryService : IBranchInventoryService
     }
 }
 
-public class BranchInventoryListRequestDto : PaginationFilter
+public class BranchInventoryListRequest : PaginationFilter
 {
     public Guid MerchantId { get; set; }
     public Guid BranchId { get; set; }
     public Guid? CategoryId { get; set; }
 }
 
-public class BranchInventoryListResponseDto
+public class BranchInventoryListResponse
 {
     public Guid Id { get; set; }
     public string Name { get; set; }
@@ -238,7 +238,7 @@ public class BranchInventoryListResponseDto
     public string? CategoryName { get; set; }
 }
 
-public class BranchInventoryGetByIdResponseDto
+public class BranchInventoryGetByIdResponse
 {
     public Guid Id { get; set; }
     public string Name { get; set; } = null!;
@@ -248,7 +248,7 @@ public class BranchInventoryGetByIdResponseDto
     public string? CategoryName { get; set; }
 }
 
-public class BranchInventoryCreateRequestDto
+public class BranchInventoryCreateRequest
 {
     public Guid MerchantId { get; set; }
     public Guid BranchId { get; set; }
@@ -259,7 +259,7 @@ public class BranchInventoryCreateRequestDto
     public int StockQuantity { get; set; }
 }
 
-public class BranchInventoryUpdateRequestDto
+public class BranchInventoryUpdateRequest
 {
     public decimal? Price { get; set; }
     public int? StockQuantity { get; set; }

@@ -49,9 +49,17 @@ public class AuthenticationController : ControllerBase
     [HttpPost("signout")]
     public async Task<IActionResult> Signout()
     {
-        Response.Cookies.Delete("X-Access-Token");
-        Response.Cookies.Delete("X-Refresh-Token");
-        Response.Cookies.Delete("X-User-Id");
+        var result = await _authService.Signout();
+        if (result.IsSuccess)
+        {
+            // The service handles deleting the 'token' cookie, 
+            // but the controller was deleting these other cookies.
+            // Keeping both for now or consolidating if appropriate.
+            Response.Cookies.Delete("X-Access-Token");
+            Response.Cookies.Delete("X-Refresh-Token");
+            Response.Cookies.Delete("X-User-Id");
+            return Ok(result.Data);
+        }
         return Ok(new { message = "Logged out successfully" });
     }
 

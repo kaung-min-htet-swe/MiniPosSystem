@@ -15,7 +15,7 @@ public class ProductController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetList([FromQuery] ProductListRequestDto filter)
+    public async Task<IActionResult> GetList([FromQuery] ProductListRequest filter)
     {
         var result = await _productService.GetList(filter);
         if (!result.IsSuccess)
@@ -45,7 +45,7 @@ public class ProductController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] ProductCreateRequestDto request)
+    public async Task<IActionResult> Create([FromBody] ProductCreateRequest request)
     {
         var result = await _productService.Create(request);
         if (result.IsSuccess)
@@ -58,7 +58,7 @@ public class ProductController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> Update(Guid id, [FromBody] ProductUpdateRequestDto request)
+    public async Task<IActionResult> Update(Guid id, [FromBody] ProductUpdateRequest request)
     {
         var result = await _productService.Update(id, request);
         if (result.IsSuccess)

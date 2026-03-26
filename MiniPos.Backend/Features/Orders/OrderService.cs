@@ -7,9 +7,9 @@ namespace MiniPos.Backend.Features.Orders;
 
 public interface IOrderService
 {
-    Task<Result<PagedResult<OrderListResponseDto>>> GetList(OrderListRequestDto request);
-    Task<Result<OrderGetByIdResponseDto>> GetById(Guid id);
-    Task<Result> Create(OrderCreateRequestDto request);
+    Task<Result<PagedResult<OrderListResponse>>> GetList(OrderListRequest request);
+    Task<Result<OrderGetByIdResponse>> GetById(Guid id);
+    Task<Result> Create(OrderCreateRequest request);
     Task<Result> Delete(Guid id);
 }
 
@@ -22,7 +22,7 @@ public class OrderService : IOrderService
         _db = db;
     }
 
-    public async Task<Result<PagedResult<OrderListResponseDto>>> GetList(OrderListRequestDto request)
+    public async Task<Result<PagedResult<OrderListResponse>>> GetList(OrderListRequest request)
     {
         try
         {
@@ -51,7 +51,7 @@ public class OrderService : IOrderService
                 .OrderByDescending(order => order.OrderDate)
                 .Skip(skip)
                 .Take(take)
-                .Select(order => new OrderListResponseDto
+                .Select(order => new OrderListResponse
                 {
                     Id = order.Id,
                     BranchId = order.BranchId,
@@ -70,16 +70,16 @@ public class OrderService : IOrderService
                 })
                 .ToListAsync();
 
-            var result = new PagedResult<OrderListResponseDto>(items, totalCount, request.PageNumber, request.PageSize);
-            return Result<PagedResult<OrderListResponseDto>>.Success(result);
+            var result = new PagedResult<OrderListResponse>(items, totalCount, request.PageNumber, request.PageSize);
+            return Result<PagedResult<OrderListResponse>>.Success(result);
         }
         catch (Exception e)
         {
-            return Result<PagedResult<OrderListResponseDto>>.Failure(new InternalError("Order.GetList", e.Message));
+            return Result<PagedResult<OrderListResponse>>.Failure(new InternalError("Order.GetList", e.Message));
         }
     }
 
-    public async Task<Result<OrderGetByIdResponseDto>> GetById(Guid id)
+    public async Task<Result<OrderGetByIdResponse>> GetById(Guid id)
     {
         const string errCode = "Order.GetById";
         try
@@ -90,9 +90,9 @@ public class OrderService : IOrderService
                 .FirstOrDefaultAsync(o => o.Id == id);
 
             if (order == null)
-                return Result<OrderGetByIdResponseDto>.Failure(new NotFoundError(errCode, "Order does not exist"));
+                return Result<OrderGetByIdResponse>.Failure(new NotFoundError(errCode, "Order does not exist"));
 
-            var dto = new OrderGetByIdResponseDto
+            var dto = new OrderGetByIdResponse
             {
                 Id = order.Id,
                 BranchId = order.BranchId,
@@ -110,15 +110,15 @@ public class OrderService : IOrderService
                 }).ToList()
             };
 
-            return Result<OrderGetByIdResponseDto>.Success(dto);
+            return Result<OrderGetByIdResponse>.Success(dto);
         }
         catch (Exception e)
         {
-            return Result<OrderGetByIdResponseDto>.Failure(new InternalError(errCode, e.Message));
+            return Result<OrderGetByIdResponse>.Failure(new InternalError(errCode, e.Message));
         }
     }
 
-    public async Task<Result> Create(OrderCreateRequestDto request)
+    public async Task<Result> Create(OrderCreateRequest request)
     {
         const string errCode = "Order.Create";
         try
@@ -212,7 +212,7 @@ public class OrderService : IOrderService
     }
 }
 
-public class OrderListRequestDto : PaginationFilter
+public class OrderListRequest : PaginationFilter
 {
     public Guid? BranchId { get; set; }
     public Guid? ProcessedById { get; set; }
@@ -221,7 +221,7 @@ public class OrderListRequestDto : PaginationFilter
     public string? SearchTerm { get; set; }
 }
 
-public class OrderListResponseDto
+public class OrderListResponse
 {
     public Guid Id { get; set; }
     public Guid BranchId { get; set; }
@@ -231,7 +231,7 @@ public class OrderListResponseDto
     public List<OrderItemResponseDto> OrderItems { get; set; } = new();
 }
 
-public class OrderGetByIdResponseDto
+public class OrderGetByIdResponse
 {
     public Guid Id { get; set; }
     public Guid BranchId { get; set; }
@@ -251,7 +251,7 @@ public class OrderItemResponseDto
     public decimal SubTotal { get; set; }
 }
 
-public class OrderCreateRequestDto
+public class OrderCreateRequest
 {
     public Guid BranchId { get; set; }
     public Guid ProcessedById { get; set; }

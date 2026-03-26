@@ -15,7 +15,7 @@ public class BranchController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetList([FromQuery] BranchListRequestDto filter)
+    public async Task<IActionResult> GetList([FromQuery] BranchListRequest filter)
     {
         var result = await _branchService.GetList(filter);
         if (result.IsSuccess)
@@ -37,7 +37,7 @@ public class BranchController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> CreateBranch([FromBody] BranchCreateRequestDto request)
+    public async Task<IActionResult> CreateBranch([FromBody] BranchCreateRequest request)
     {
         var result = await _branchService.Create(request);
         if (result.IsSuccess)
@@ -48,7 +48,7 @@ public class BranchController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> Update(Guid id, [FromBody] BranchUpdateRequestDto request)
+    public async Task<IActionResult> Update(Guid id, [FromBody] BranchUpdateRequest request)
     {
         var result = await _branchService.Update(id, request);
         if (result.IsSuccess)
