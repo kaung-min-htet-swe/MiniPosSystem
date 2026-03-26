@@ -4,21 +4,48 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Mini POS Merchant</title>
+    <title>MiniPOS</title>
     <base href="/" />
     
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
     
     <!-- Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
 
     <link rel="stylesheet" href="css/app.css" />
     <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
-    <!-- If you add any scoped CSS files, uncomment the following to load them -->
-    <!-- <link href="MiniPos.Frontend.styles.css" rel="stylesheet" /> -->
+    
+    <script>
+        window.cookieHelper = {
+            getCookie: function (name) {
+                const value = `; ${document.cookie}`;
+                const parts = value.split(`; ${name}=`);
+                if (parts.length === 2) return parts.pop().split(';').shift();
+                return null;
+            },
+            setCookie: function (name, value, days) {
+                let expires = "";
+                if (days) {
+                    const date = new Date();
+                    date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+                    expires = "; expires=" + date.toUTCString();
+                }
+                document.cookie = name + "=" + (value || "") + expires + "; path=/; SameSite=Lax; Secure";
+            },
+            deleteCookie: function (name) {
+                document.cookie = name + '=; Max-Age=-99999999; path=/;';
+            }
+        };
+        
+        window.initIcons = () => {
+            if (window.lucide) {
+                lucide.createIcons();
+            }
+        };
+    </script>
 </head>
 
 <body class="bg-background text-foreground font-sans antialiased">
@@ -40,12 +67,6 @@
     </div>
     
     <script src="_framework/blazor.webassembly.js"></script>
-    <script>
-        // Initialize Lucide icons after Blazor renders
-        window.initIcons = () => {
-            lucide.createIcons();
-        };
-    </script>
 </body>
 
 </html>
