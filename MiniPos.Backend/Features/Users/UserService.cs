@@ -231,15 +231,10 @@ public class UserService : IUserService
         if (!isAdminExist)
             return Result<UserCreateResponse>.Failure(new NotFoundError("User.Create", "Admin does not exist"));
 
-        var merchantDto = request.Merchant;
-        if (merchantDto == null)
-            return Result<UserCreateResponse>.Failure(new BadRequestError("User.Create",
-                "Merchant details are required for Merchant role"));
-
         var merchant = new Merchant
         {
-            Name = merchantDto.Name,
-            ContactEmail = merchantDto.ContactEmail,
+            Name = request.MerchantName,
+            ContactEmail = request.MerchantEmail,
             IsActive = true
         };
         await _db.Merchants.AddAsync(merchant);
@@ -401,19 +396,14 @@ public class UserGetByIdResponse
     public DateTime? JoinedDate { get; set; }
 }
 
-public class MerchantCreationDto
-{
-    public string? Name { get; set; }
-    public string? ContactEmail { get; set; }
-}
-
 public class UserCreateRequest
 {
     public string? UserName { get; set; }
     public string? Email { get; set; }
     public string? Role { get; set; }
     public string? Password { get; set; }
-    public MerchantCreationDto? Merchant { get; set; }
+    public string? MerchantName { get; set; }
+    public string? MerchantEmail { get; set; }
     public Guid MerchantId { get; set; }
     public Guid BranchId { get; set; }
     public Guid ProcessedById { get; set; }

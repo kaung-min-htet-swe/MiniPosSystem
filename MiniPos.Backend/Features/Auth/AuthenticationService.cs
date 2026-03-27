@@ -44,7 +44,8 @@ public class AuthenticationService : IAuthenticationService
             Email = request.Email,
             Role = request.Role,
             Password = request.Password,
-            Merchant = request.Merchant,
+            MerchantName = request.MerchantName,
+            MerchantEmail = request.MerchantEmail,
             MerchantId = request.MerchantId,
             ProcessedById = request.ProcessedById,
             BranchId = request.BranchId
@@ -101,10 +102,11 @@ public class SignupRequest
     public string? Email { get; set; }
     public string? Role { get; set; }
     public string? Password { get; set; }
+    public string? MerchantName { get; set; }
+    public string? MerchantEmail { get; set; }
     public Guid MerchantId { get; set; }
     public Guid ProcessedById { get; set; }
     public Guid BranchId { get; set; }
-    public MerchantCreationDto? Merchant { get; set; }
 }
 
 public class SignupResponse
