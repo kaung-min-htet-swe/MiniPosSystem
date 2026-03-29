@@ -19,25 +19,22 @@
     </div>
 }
 
-<div class="animate-slide-down max-w-4xl mx-auto pb-12">
-    <!-- Header with Back Navigation -->
-    <div class="mb-10">
+<div class="animate-slide-down mx-auto pb-10 max-w-5xl">
+    <!-- Back Navigation -->
+    <div class="mb-4">
         <button
-            class="flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors mb-6 group"
+            class="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 hover:text-primary transition-all group"
             @onclick="GoBack">
-            <i data-lucide="arrow-left" class="w-4 h-4 group-hover:-translate-x-1 transition-transform"></i>
-            Back to Staff Directory
+            <i data-lucide="arrow-left" class="w-3 h-3 group-hover:-translate-x-1 transition-transform"></i>
+            Back
         </button>
     </div>
 
     @if (_user == null)
     {
-        <div class="flex flex-col items-center justify-center p-24 relative">
-            <div class="absolute w-24 h-24 bg-primary/20 blur-xl rounded-full animate-ping"></div>
-            <div
-                class="animate-spin rounded-full h-12 w-12 border-4 border-t-primary border-primary/20 relative z-10"></div>
-            <span
-                class="mt-6 text-sm font-bold text-muted-foreground tracking-widest uppercase">Loading Profile...</span>
+        <div class="flex flex-col items-center justify-center p-24">
+            <div class="animate-spin rounded-full h-8 w-8 border-2 border-primary/20 border-t-primary mb-4"></div>
+            <span class="text-[10px] font-black text-muted-foreground tracking-widest uppercase">Loading Profile</span>
         </div>
     }
     else
@@ -47,62 +44,48 @@
             ? $"{nameParts[0][0]}{nameParts[nameParts.Length - 1][0]}".ToUpper()
             : _user.UserName.Substring(0, Math.Min(2, _user.UserName.Length)).ToUpper();
 
-        <!-- Profile Hero Card -->
-        <div class="pos-card p-0 overflow-hidden bg-white/60 shadow-xl border-border/40 mb-8">
-            <!-- Hero Banner -->
-            <div class="relative h-40 bg-gradient-to-br @_ui.BannerGradient overflow-hidden">
-                <div class="absolute inset-0 bg-white/10 backdrop-blur-3xl"></div>
-                <div class="absolute -top-10 -right-10 w-48 h-48 bg-white/15 rounded-full blur-2xl"></div>
-                <div class="absolute -bottom-10 -left-10 w-48 h-48 bg-black/10 rounded-full blur-2xl"></div>
-                <!-- Decorative pattern -->
-                <div class="absolute inset-0 opacity-10"
-                     style="background-image: radial-gradient(circle, rgba(255,255,255,0.3) 1px, transparent 1px); background-size: 20px 20px;"></div>
+        <!-- Compact Hero Header -->
+        <div class="pos-card p-0 overflow-hidden bg-white/60 mb-8 border-border/40 shadow-sm transition-all hover:shadow-md group/hero">
+            <div class="relative px-8 py-10 flex flex-col md:flex-row items-center md:items-end gap-6 overflow-hidden">
+                <!-- Decorative Glows -->
+                <div class="absolute -right-20 -top-20 w-64 h-64 bg-primary/5 rounded-full blur-3xl pointer-events-none group-hover/hero:bg-primary/10 transition-all duration-1000"></div>
+                <div class="absolute -left-20 -bottom-20 w-48 h-48 bg-purple-500/5 rounded-full blur-3xl pointer-events-none group-hover/hero:bg-purple-500/10 transition-all duration-1000"></div>
 
-                <!-- Edit button -->
-                <div class="absolute top-4 right-4 z-20">
-                    <button
-                        class="w-9 h-9 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-white hover:bg-white/40 transition-all"
-                        @onclick="OpenEditProfileModal">
-                        <i data-lucide="pencil" class="w-4 h-4"></i>
-                    </button>
-                </div>
-
-                <!-- Role Badge -->
-                <div class="absolute top-4 left-6 z-20">
-                    <span
-                        class="badge @_ui.BadgeClass px-3 py-1.5 uppercase tracking-widest text-[10px] shadow-md flex items-center font-black">
-                        <i data-lucide="@_ui.Icon" class="w-3.5 h-3.5 mr-1.5"></i> @_user.Role
-                    </span>
-                </div>
-            </div>
-
-            <!-- Profile Info (overlapping avatar) -->
-            <div class="px-8 pb-8 relative">
                 <!-- Avatar -->
-                <div class="relative -mt-14 mb-4 flex items-end gap-6">
-                    <div class="relative shrink-0">
-                        <div
-                            class="w-28 h-28 rounded-full bg-gradient-to-tr @_ui.AvatarGradient shadow-xl flex items-center justify-center text-white text-4xl font-bold font-outfit border-4 border-white ring-4 ring-white/50">
-                            @initials
-                        </div>
-                        <div
-                            class="absolute bottom-2 right-2 w-5 h-5 @(_ui.IsActive ? "bg-success" : "bg-muted") border-[3px] border-white rounded-full shadow-sm"
-                            title="@(_ui.IsActive ? "Online" : "Offline")"></div>
+                <div class="relative shrink-0">
+                    <div class="w-24 h-24 rounded-2xl bg-gradient-to-tr @_ui.AvatarGradient shadow-xl flex items-center justify-center text-white text-3xl font-black font-outfit border-4 border-white">
+                        @initials
                     </div>
-                    <div class="pb-2 flex-1 min-w-0">
-                        <h1 class="text-2xl font-black text-foreground tracking-tight truncate">@_user.UserName</h1>
-                        <p class="text-sm text-muted-foreground font-medium flex items-center gap-1.5 mt-0.5">
-                            <i data-lucide="mail" class="w-3.5 h-3.5"></i> @_user.Email
-                        </p>
-                    </div>
-                    <div class="pb-2 shrink-0 hidden sm:flex items-center gap-2">
-                        <span
-                            class="flex items-center gap-1.5 text-xs font-bold @(_ui.IsActive ? "text-success" : "text-muted-foreground")">
-                            <span
-                                class="w-2 h-2 rounded-full @(_ui.IsActive ? "bg-success animate-pulse" : "bg-muted")"></span>
-                            @(_ui.IsActive ? "Online Now" : "Offline")
+                </div>
+
+                <!-- Profile Info -->
+                <div class="flex-1 text-center md:text-left min-w-0 z-10">
+                    <div class="flex flex-col md:flex-row md:items-center gap-2 mb-2">
+                        <h1 class="text-3xl font-black text-foreground tracking-tight truncate">@_user.UserName</h1>
+                        <span class="badge @_ui.BadgeClass px-2 py-0.5 uppercase tracking-widest text-[9px] font-black w-fit mx-auto md:mx-0">
+                            @_user.Role
                         </span>
                     </div>
+                    <div class="flex flex-wrap items-center justify-center md:justify-start gap-4 text-xs font-semibold text-muted-foreground">
+                        <div class="flex items-center gap-1.5 opacity-60">
+                            <i data-lucide="mail" class="w-3.5 h-3.5"></i> @_user.Email
+                        </div>
+                        <div class="flex items-center gap-1.5 opacity-60">
+                            <i data-lucide="calendar" class="w-3.5 h-3.5"></i> Joined @_ui.JoinedDate
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Action Buttons -->
+                <div class="flex gap-2 z-10">
+                    <button class="p-2.5 rounded-xl bg-muted/20 border border-border/40 text-muted-foreground hover:bg-white hover:text-primary transition-all"
+                            @onclick="OpenEditProfileModal" title="Edit Profile">
+                        <i data-lucide="pencil" class="w-4 h-4"></i>
+                    </button>
+                    <button class="p-2.5 rounded-xl bg-muted/20 border border-border/40 text-muted-foreground hover:bg-white hover:text-destructive transition-all"
+                            @onclick="() => _showDeactivateModal = true" title="Deactivate Account">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    </button>
                 </div>
             </div>
         </div>
@@ -110,188 +93,140 @@
         <!-- Details Grid -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-            <!-- Left Column: Account & Assignment -->
-            <div class="lg:col-span-2 flex flex-col gap-6">
+            <!-- Primary Information -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Account & Role Details -->
+                <div class="pos-card p-6 bg-white/60 border-border/40 shadow-sm animate-slide-up">
+                    <h3 class="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 mb-6 flex items-center gap-2">
+                        <i data-lucide="user" class="w-3 h-3"></i> Profile Details
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-10">
+                        <div class="space-y-1">
+                            <p class="text-[10px] font-black uppercase tracking-wider text-muted-foreground/60">Full Name</p>
+                            <p class="text-sm font-bold text-foreground">@_user.UserName</p>
+                        </div>
+                        <div class="space-y-1">
+                            <p class="text-[10px] font-black uppercase tracking-wider text-muted-foreground/60">Email Address</p>
+                            <p class="text-sm font-bold text-foreground">@_user.Email</p>
+                        </div>
+                        <div class="space-y-1">
+                            <p class="text-[10px] font-black uppercase tracking-wider text-muted-foreground/60">Access Role</p>
+                            <div class="flex items-center gap-2">
+                                <i data-lucide="@_ui.Icon" class="w-3.5 h-3.5 @_ui.RoleColorClass"></i>
+                                <span class="text-sm font-bold text-foreground">@_user.Role</span>
+                            </div>
+                        </div>
+                        <div class="space-y-1">
+                            <p class="text-[10px] font-black uppercase tracking-wider text-muted-foreground/60">System Identifier</p>
+                            <p class="text-[11px] font-mono text-muted-foreground truncate">@_user.Id</p>
+                        </div>
+                    </div>
 
-                <!-- Account Information -->
-                <div class="pos-card bg-white/60 shadow-lg border-border/40">
-                    <div class="flex items-center gap-2 mb-6">
-                        <div class="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
-                            <i data-lucide="user" class="w-4 h-4"></i>
-                        </div>
-                        <h2 class="text-lg font-bold text-foreground">Account Information</h2>
-                    </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                        <div class="bg-muted/20 rounded-xl p-4 border border-border/30">
-                            <div class="text-[10px] uppercase font-black tracking-widest text-muted-foreground mb-1">
-                                Full Name
-                            </div>
-                            <div class="text-sm font-semibold text-foreground">@_user.UserName</div>
-                        </div>
-                        <div class="bg-muted/20 rounded-xl p-4 border border-border/30">
-                            <div class="text-[10px] uppercase font-black tracking-widest text-muted-foreground mb-1">
-                                Email
-                            </div>
-                            <div class="text-sm font-semibold text-foreground">@_user.Email</div>
-                        </div>
-                        <div class="bg-muted/20 rounded-xl p-4 border border-border/30">
-                            <div class="text-[10px] uppercase font-black tracking-widest text-muted-foreground mb-1">
-                                Role
-                            </div>
-                            <div class="text-sm font-semibold text-foreground flex items-center gap-2">
-                                <i data-lucide="@_ui.Icon" class="w-3.5 h-3.5 @_ui.RoleColorClass"></i> @_user.Role
+                    <!-- Conditional Section: Merchant/Admin -->
+                    @if (_user.Role is "Merchant" or "Admin" or "Manager")
+                    {
+                        <div class="mt-8 pt-8 border-t border-border/20">
+                            <h3 class="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 mb-6 flex items-center gap-2">
+                                <i data-lucide="building" class="w-3 h-3"></i> Merchant Association
+                            </h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-10">
+                                <div class="space-y-1">
+                                    <p class="text-[10px] font-black uppercase tracking-wider text-muted-foreground/60">Business Entity</p>
+                                    <p class="text-sm font-bold text-foreground">@(_merchantName ?? "—")</p>
+                                </div>
+                                <div class="space-y-1">
+                                    <p class="text-[10px] font-black uppercase tracking-wider text-muted-foreground/60">Contact Email</p>
+                                    <p class="text-sm font-bold text-foreground">@(_merchantEmail ?? "—")</p>
+                                </div>
                             </div>
                         </div>
-                        <div class="bg-muted/20 rounded-xl p-4 border border-border/30">
-                            <div class="text-[10px] uppercase font-black tracking-widest text-muted-foreground mb-1">
-                                User ID
+                    }
+
+                    <!-- Conditional Section: Cashier -->
+                    @if (_user.Role == "Cashier")
+                    {
+                        <div class="mt-8 pt-8 border-t border-border/20">
+                            <h3 class="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 mb-6 flex items-center gap-2">
+                                <i data-lucide="store" class="w-3 h-3"></i> Branch Assignment
+                            </h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-10">
+                                <div class="space-y-1">
+                                    <p class="text-[10px] font-black uppercase tracking-wider text-muted-foreground/60">Branch Name</p>
+                                    <p class="text-sm font-bold text-foreground">@(_branchName ?? "Unassigned")</p>
+                                </div>
+                                <div class="space-y-1">
+                                    <p class="text-[10px] font-black uppercase tracking-wider text-muted-foreground/60">Location</p>
+                                    <p class="text-sm font-bold text-foreground truncate">@(_branchAddress ?? "—")</p>
+                                </div>
                             </div>
-                            <div class="text-xs font-mono text-muted-foreground truncate">@_user.Id</div>
                         </div>
-                    </div>
+                    }
                 </div>
-
-                <!-- Merchant Info (for Merchant role) -->
-                @if (_user.Role is "Merchant" or "Admin")
-                {
-                    <div class="pos-card bg-white/60 shadow-lg border-border/40 animate-fade-in">
-                        <div class="flex items-center gap-2 mb-6">
-                            <div class="w-8 h-8 rounded-lg bg-warning/10 text-warning flex items-center justify-center">
-                                <i data-lucide="building" class="w-4 h-4"></i>
-                            </div>
-                            <h2 class="text-lg font-bold text-foreground">Merchant Details</h2>
-                        </div>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                            <div class="bg-muted/20 rounded-xl p-4 border border-border/30">
-                                <div
-                                    class="text-[10px] uppercase font-black tracking-widest text-muted-foreground mb-1">
-                                    Business Name
-                                </div>
-                                <div class="text-sm font-semibold text-foreground">@(_merchantName ?? "—")</div>
-                            </div>
-                            <div class="bg-muted/20 rounded-xl p-4 border border-border/30">
-                                <div
-                                    class="text-[10px] uppercase font-black tracking-widest text-muted-foreground mb-1">
-                                    Business Email
-                                </div>
-                                <div class="text-sm font-semibold text-foreground">@(_merchantEmail ?? "—")</div>
-                            </div>
-                        </div>
-                    </div>
-                }
-
-                <!-- Branch Info (for Cashier role) -->
-                @if (_user.Role == "Cashier")
-                {
-                    <div class="pos-card bg-white/60 shadow-lg border-border/40 animate-fade-in">
-                        <div class="flex items-center gap-2 mb-6">
-                            <div class="w-8 h-8 rounded-lg bg-success/10 text-success flex items-center justify-center">
-                                <i data-lucide="store" class="w-4 h-4"></i>
-                            </div>
-                            <h2 class="text-lg font-bold text-foreground">Branch Assignment</h2>
-                        </div>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                            <div class="bg-muted/20 rounded-xl p-4 border border-border/30">
-                                <div
-                                    class="text-[10px] uppercase font-black tracking-widest text-muted-foreground mb-1">
-                                    Branch Name
-                                </div>
-                                <div class="text-sm font-semibold text-foreground">@(_branchName ?? "Unassigned")</div>
-                            </div>
-                            <div class="bg-muted/20 rounded-xl p-4 border border-border/30">
-                                <div
-                                    class="text-[10px] uppercase font-black tracking-widest text-muted-foreground mb-1">
-                                    Branch Address
-                                </div>
-                                <div class="text-sm font-semibold text-foreground">@(_branchAddress ?? "—")</div>
-                            </div>
-                        </div>
-                    </div>
-                }
             </div>
 
-            <!-- Right Column: Quick Stats & Actions -->
-            <div class="flex flex-col gap-6">
-
-                <!-- Quick Stats -->
-                <div class="pos-card bg-white/60 shadow-lg border-border/40">
-                    <div class="flex items-center gap-2 mb-6">
-                        <div class="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
-                            <i data-lucide="bar-chart-3" class="w-4 h-4"></i>
-                        </div>
-                        <h2 class="text-lg font-bold text-foreground">Activity</h2>
-                    </div>
-                    <div class="flex flex-col gap-4">
-                        <div
-                            class="flex justify-between items-center p-3 bg-muted/20 rounded-xl border border-border/30">
+            <!-- Side Panels: Stats & Actions -->
+            <div class="space-y-6">
+                <!-- Activity Quick Stats -->
+                <div class="pos-card p-6 bg-white/60 border-border/40 shadow-sm animate-slide-up" style="animation-delay: 100ms;">
+                    <h3 class="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 mb-6 flex items-center gap-2">
+                        <i data-lucide="bar-chart-3" class="w-3 h-3"></i> Performance metrics
+                    </h3>
+                    
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between p-4 bg-muted/20 border border-border/40 rounded-2xl">
                             <div class="flex items-center gap-3">
-                                <div
-                                    class="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
-                                    <i data-lucide="shopping-cart" class="w-4 h-4"></i>
+                                <div class="w-9 h-9 rounded-xl bg-primary text-white flex items-center justify-center shadow-lg shadow-primary/20">
+                                    <i data-lucide="shopping-bag" class="w-4 h-4"></i>
                                 </div>
-                                <div class="text-xs font-bold uppercase tracking-wider text-muted-foreground">Total
-                                    Sales
+                                <div>
+                                    <p class="text-xl font-black text-foreground">@_ui.TotalSales</p>
+                                    <p class="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Total Revenue</p>
                                 </div>
                             </div>
-                            <div class="font-black text-xl font-outfit text-foreground">@_ui.TotalSales</div>
-                        </div>
-                        @* <div class="flex justify-between items-center p-3 bg-muted/20 rounded-xl border border-border/30"> *@
-                        @*     <div class="flex items-center gap-3"> *@
-                        @*         <div class="w-9 h-9 rounded-lg bg-success/10 text-success flex items-center justify-center"> *@
-                        @*             <i data-lucide="clock" class="w-4 h-4"></i> *@
-                        @*         </div> *@
-                        @*         <div class="text-xs font-bold uppercase tracking-wider text-muted-foreground">Shift Today</div> *@
-                        @*     </div> *@
-                        @*     <div class="font-black text-xl font-outfit text-foreground">@_ui.ShiftToday</div> *@
-                        @* </div> *@
-                        <div
-                            class="flex justify-between items-center p-3 bg-muted/20 rounded-xl border border-border/30">
-                            <div class="flex items-center gap-3">
-                                <div
-                                    class="w-9 h-9 rounded-lg bg-warning/10 text-warning flex items-center justify-center">
-                                    <i data-lucide="calendar-days" class="w-4 h-4"></i>
-                                </div>
-                                <div class="text-xs font-bold uppercase tracking-wider text-muted-foreground">Joined
-                                </div>
-                            </div>
-                            <div class="font-bold text-sm text-foreground">@_ui.JoinedDate</div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Quick Actions -->
-                <div class="pos-card bg-white/60 shadow-lg border-border/40">
-                    <div class="flex items-center gap-2 mb-5">
-                        <div
-                            class="w-8 h-8 rounded-lg bg-muted/30 text-muted-foreground flex items-center justify-center">
-                            <i data-lucide="settings" class="w-4 h-4"></i>
-                        </div>
-                        <h2 class="text-lg font-bold text-foreground">Actions</h2>
-                    </div>
+                <!-- Account Actions -->
+                <div class="pos-card p-6 bg-white/60 border-border/40 shadow-sm animate-slide-up" style="animation-delay: 200ms;">
+                    <h3 class="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 mb-6 flex items-center gap-2">
+                        <i data-lucide="settings" class="w-3 h-3"></i> Operations
+                    </h3>
+
                     <div class="flex flex-col gap-2">
-                        <button
-                            class="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-primary/5 text-primary hover:bg-primary/10 transition-colors font-semibold text-sm text-left"
-                            @onclick="OpenEditProfileModal">
-                            <i data-lucide="pencil" class="w-4 h-4"></i> Edit Profile
+                        <button class="w-full flex items-center justify-between px-4 py-3 rounded-xl bg-primary/5 text-primary hover:bg-primary/10 transition-all text-xs font-bold border border-primary/10"
+                                @onclick="OpenEditProfileModal">
+                            <span class="flex items-center gap-3">
+                                <i data-lucide="edit-3" class="w-3.5 h-3.5 text-primary/60"></i> Edit Profile
+                            </span>
+                            <i data-lucide="chevron-right" class="w-3 h-3 opacity-40"></i>
                         </button>
-                        <button
-                            class="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-muted/50 transition-colors font-semibold text-sm text-left text-foreground"
-                            @onclick="() => _showResetPasswordModal = true">
-                            <i data-lucide="key" class="w-4 h-4"></i> Reset Password
+                        
+                        <button class="w-full flex items-center justify-between px-4 py-3 rounded-xl hover:bg-muted/30 transition-all text-xs font-bold text-foreground"
+                                @onclick="() => _showResetPasswordModal = true">
+                            <span class="flex items-center gap-3">
+                                <i data-lucide="key" class="w-3.5 h-3.5 text-muted-foreground/40"></i> Refresh Password
+                            </span>
+                            <i data-lucide="chevron-right" class="w-3 h-3 opacity-40"></i>
                         </button>
+
                         @if (_user.Role == "Cashier")
                         {
-                            <button
-                                class="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-muted/50 transition-colors font-semibold text-sm text-left text-foreground"
-                                @onclick="OpenAssignBranchModal">
-                                <i data-lucide="arrow-right-left" class="w-4 h-4"></i> Reassign Branch
+                            <button class="w-full flex items-center justify-between px-4 py-3 rounded-xl hover:bg-muted/30 transition-all text-xs font-bold text-foreground"
+                                    @onclick="OpenAssignBranchModal">
+                                <span class="flex items-center gap-3">
+                                    <i data-lucide="refresh-cw" class="w-3.5 h-3.5 text-muted-foreground/40"></i> Shift Branch
+                                </span>
+                                <i data-lucide="chevron-right" class="w-3 h-3 opacity-40"></i>
                             </button>
                         }
-                        <div class="h-px bg-border/40 my-1"></div>
-                        <button
-                            class="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-destructive/10 transition-colors font-semibold text-sm text-left text-destructive"
-                            @onclick="() => _showDeactivateModal = true">
-                            <i data-lucide="trash-2" class="w-4 h-4"></i> Deactivate Account
+
+                        <button class="w-full flex items-center justify-between px-4 py-3 mt-2 rounded-xl bg-destructive/5 text-destructive hover:bg-destructive/10 transition-all text-xs font-bold border border-destructive/10"
+                                @onclick="() => _showDeactivateModal = true">
+                            <span class="flex items-center gap-3">
+                                <i data-lucide="user-minus" class="w-3.5 h-3.5 text-destructive/60"></i> Deactivate
+                            </span>
                         </button>
                     </div>
                 </div>
@@ -303,41 +238,35 @@
         <!-- Edit Profile Modal -->
         @if (_showEditModal)
         {
-            <div
-                class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
-                <div
-                    class="bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-border/40 w-full max-w-md p-6 animate-scale-up space-y-5">
-                    <div class="flex items-center gap-2 text-primary">
-                        <i data-lucide="pencil" class="w-5 h-5"></i>
-                        <h3 class="text-lg font-bold">Edit Profile</h3>
+            <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
+                <div class="bg-white/95 rounded-3xl shadow-2xl border border-border/40 w-full max-w-sm p-8 animate-scale-up space-y-6">
+                    <div class="space-y-1">
+                        <h3 class="text-xl font-black text-foreground tracking-tight">Update Profile</h3>
+                        <p class="text-xs font-bold text-muted-foreground/60 uppercase tracking-widest">Personal Identification</p>
                     </div>
+                    
                     <div class="space-y-4">
-                        <div class="space-y-1">
-                            <label class="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Full
-                                Name</label>
-                            <input type="text" @bind="_editUserName"
-                                   class="w-full px-4 py-2.5 bg-white border border-border/60 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary/40 focus:outline-none font-medium"/>
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Full Name</label>
+                            <input type="text" @bind="_editUserName" placeholder="Display Name"
+                                   class="w-full px-4 py-3 bg-muted/20 border border-border/40 rounded-2xl text-sm focus:ring-2 focus:ring-primary/20 focus:outline-none font-bold transition-all"/>
                         </div>
-                        <div class="space-y-1">
-                            <label class="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Email
-                                Address</label>
-                            <input type="email" @bind="_editEmail"
-                                   class="w-full px-4 py-2.5 bg-white border border-border/60 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary/40 focus:outline-none font-medium"/>
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Email Address</label>
+                            <input type="email" @bind="_editEmail" placeholder="name@example.com"
+                                   class="w-full px-4 py-3 bg-muted/20 border border-border/40 rounded-2xl text-sm focus:ring-2 focus:ring-primary/20 focus:outline-none font-bold transition-all"/>
                         </div>
                     </div>
-                    <div class="flex justify-end gap-3 pt-2">
-                        <button class="btn btn-ghost rounded-xl px-5 text-sm" @onclick='() => _showEditModal = false'
-                                disabled="@_isActionSubmitting">Cancel
+
+                    <div class="flex flex-col gap-2 pt-2">
+                        <button class="w-full py-3 bg-primary text-white rounded-2xl text-xs font-black uppercase tracking-widest shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all flex items-center justify-center gap-2"
+                                @onclick="HandleEditProfile" disabled="@_isActionSubmitting">
+                            @if (_isActionSubmitting) { <div class="animate-spin rounded-full h-3 w-3 border-2 border-white/20 border-t-white"></div> }
+                            Apply Changes
                         </button>
-                        <button
-                            class="btn btn-primary rounded-xl px-6 text-sm shadow-primary disabled:opacity-50 flex items-center gap-2"
-                            @onclick="HandleEditProfile" disabled="@_isActionSubmitting">
-                            @if (_isActionSubmitting)
-                            {
-                                <div
-                                    class="animate-spin rounded-full h-3.5 w-3.5 border-2 border-white/20 border-t-white"></div>
-                            }
-                            <span>Save Changes</span>
+                        <button class="w-full py-3 text-muted-foreground hover:text-foreground text-xs font-bold uppercase tracking-widest transition-all"
+                                @onclick='() => _showEditModal = false' disabled="@_isActionSubmitting">
+                            Dismiss
                         </button>
                     </div>
                 </div>
@@ -347,41 +276,35 @@
         <!-- Reset Password Modal -->
         @if (_showResetPasswordModal)
         {
-            <div
-                class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
-                <div
-                    class="bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-border/40 w-full max-w-md p-6 animate-scale-up space-y-5">
-                    <div class="flex items-center gap-2 text-primary">
-                        <i data-lucide="key" class="w-5 h-5"></i>
-                        <h3 class="text-lg font-bold">Reset Password</h3>
+            <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
+                <div class="bg-white/95 rounded-3xl shadow-2xl border border-border/40 w-full max-w-sm p-8 animate-scale-up space-y-6">
+                    <div class="space-y-1">
+                        <h3 class="text-xl font-black text-foreground tracking-tight">Security Refresh</h3>
+                        <p class="text-xs font-bold text-muted-foreground/60 uppercase tracking-widest">Password Reset Flow</p>
                     </div>
+
                     <div class="space-y-4">
-                        <div class="space-y-1">
-                            <label class="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">New
-                                Password</label>
-                            <input type="password" @bind="_newPassword"
-                                   class="w-full px-4 py-2.5 bg-white border border-border/60 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary/40 focus:outline-none font-medium"/>
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">New Security Key</label>
+                            <input type="password" @bind="_newPassword" placeholder="Minimum 8 characters"
+                                   class="w-full px-4 py-3 bg-muted/20 border border-border/40 rounded-2xl text-sm focus:ring-2 focus:ring-primary/20 focus:outline-none font-bold transition-all"/>
                         </div>
-                        <div class="space-y-1">
-                            <label class="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Confirm
-                                Password</label>
-                            <input type="password" @bind="_confirmPassword"
-                                   class="w-full px-4 py-2.5 bg-white border border-border/60 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary/40 focus:outline-none font-medium"/>
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Verify Key</label>
+                            <input type="password" @bind="_confirmPassword" placeholder="Repeat password"
+                                   class="w-full px-4 py-3 bg-muted/20 border border-border/40 rounded-2xl text-sm focus:ring-2 focus:ring-primary/20 focus:outline-none font-bold transition-all"/>
                         </div>
                     </div>
-                    <div class="flex justify-end gap-3 pt-2">
-                        <button class="btn btn-ghost rounded-xl px-5 text-sm"
-                                @onclick='() => _showResetPasswordModal = false' disabled="@_isActionSubmitting">Cancel
+
+                    <div class="flex flex-col gap-2 pt-2">
+                        <button class="w-full py-3 bg-primary text-white rounded-2xl text-xs font-black uppercase tracking-widest shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all flex items-center justify-center gap-2"
+                                @onclick="HandleResetPassword" disabled="@_isActionSubmitting">
+                            @if (_isActionSubmitting) { <div class="animate-spin rounded-full h-3 w-3 border-2 border-white/20 border-t-white"></div> }
+                            Update Security Key
                         </button>
-                        <button
-                            class="btn btn-primary rounded-xl px-6 text-sm shadow-primary disabled:opacity-50 flex items-center gap-2"
-                            @onclick="HandleResetPassword" disabled="@_isActionSubmitting">
-                            @if (_isActionSubmitting)
-                            {
-                                <div
-                                    class="animate-spin rounded-full h-3.5 w-3.5 border-2 border-white/20 border-t-white"></div>
-                            }
-                            <span>Reset Password</span>
+                        <button class="w-full py-3 text-muted-foreground hover:text-foreground text-xs font-bold uppercase tracking-widest transition-all"
+                                @onclick='() => _showResetPasswordModal = false' disabled="@_isActionSubmitting">
+                            Dismiss
                         </button>
                     </div>
                 </div>
@@ -391,21 +314,19 @@
         <!-- Reassign Branch Modal -->
         @if (_showReassignModal)
         {
-            <div
-                class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
-                <div
-                    class="bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-border/40 w-full max-w-md p-6 animate-scale-up space-y-5">
-                    <div class="flex items-center gap-2 text-primary">
-                        <i data-lucide="store" class="w-5 h-5"></i>
-                        <h3 class="text-lg font-bold">Reassign Branch</h3>
+            <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
+                <div class="bg-white/95 rounded-3xl shadow-2xl border border-border/40 w-full max-w-sm p-8 animate-scale-up space-y-6">
+                    <div class="space-y-1">
+                        <h3 class="text-xl font-black text-foreground tracking-tight">Assignment</h3>
+                        <p class="text-xs font-bold text-muted-foreground/60 uppercase tracking-widest">Branch Relocation</p>
                     </div>
-                    <div class="space-y-4">
-                        <div class="space-y-1">
-                            <label class="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Select
-                                Target Branch</label>
+
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Target Branch</label>
+                        <div class="relative group">
                             <select @bind="_selectedBranchId"
-                                    class="w-full px-4 py-2.5 bg-white border border-border/60 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary/40 focus:outline-none font-medium appearance-none cursor-pointer">
-                                <option value="">Choose a branch...</option>
+                                    class="w-full px-4 py-3 bg-muted/20 border border-border/40 rounded-2xl text-sm focus:ring-2 focus:ring-primary/20 focus:outline-none font-bold appearance-none cursor-pointer transition-all">
+                                <option value="">Select location...</option>
                                 @if (_branches != null)
                                 {
                                     @foreach (var b in _branches)
@@ -414,21 +335,19 @@
                                     }
                                 }
                             </select>
+                            <i data-lucide="chevron-down" class="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/40 pointer-events-none group-hover:text-primary transition-colors"></i>
                         </div>
                     </div>
-                    <div class="flex justify-end gap-3 pt-2">
-                        <button class="btn btn-ghost rounded-xl px-5 text-sm"
-                                @onclick='() => _showReassignModal = false' disabled="@_isActionSubmitting">Cancel
+
+                    <div class="flex flex-col gap-2 pt-2">
+                        <button class="w-full py-3 bg-primary text-white rounded-2xl text-xs font-black uppercase tracking-widest shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all flex items-center justify-center gap-2"
+                                @onclick="HandleReassignBranch" disabled="@_isActionSubmitting">
+                            @if (_isActionSubmitting) { <div class="animate-spin rounded-full h-3 w-3 border-2 border-white/20 border-t-white"></div> }
+                            Confirm Transfer
                         </button>
-                        <button
-                            class="btn btn-primary rounded-xl px-6 text-sm shadow-primary disabled:opacity-50 flex items-center gap-2"
-                            @onclick="HandleReassignBranch" disabled="@_isActionSubmitting">
-                            @if (_isActionSubmitting)
-                            {
-                                <div
-                                    class="animate-spin rounded-full h-3.5 w-3.5 border-2 border-white/20 border-t-white"></div>
-                            }
-                            <span>Reassign</span>
+                        <button class="w-full py-3 text-muted-foreground hover:text-foreground text-xs font-bold uppercase tracking-widest transition-all"
+                                @onclick='() => _showReassignModal = false' disabled="@_isActionSubmitting">
+                            Dismiss
                         </button>
                     </div>
                 </div>
@@ -438,29 +357,28 @@
         <!-- Deactivate Modal -->
         @if (_showDeactivateModal)
         {
-            <div
-                class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
-                <div
-                    class="bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-border/40 w-full max-w-md p-6 animate-scale-up space-y-5">
-                    <div class="flex items-center gap-2 text-destructive">
-                        <i data-lucide="alert-triangle" class="w-5 h-5"></i>
-                        <h3 class="text-lg font-bold">Deactivate Account</h3>
+            <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
+                <div class="bg-white/95 rounded-3xl shadow-2xl border border-border/40 w-full max-w-sm p-8 animate-scale-up space-y-6">
+                    <div class="space-y-1">
+                        <h3 class="text-xl font-black text-destructive tracking-tight">Access Revocation</h3>
+                        <p class="text-xs font-bold text-muted-foreground/60 uppercase tracking-widest">Deactivation Protocol</p>
                     </div>
-                    <p class="text-sm text-muted-foreground">Are you sure you want to deactivate <b>@_user.UserName</b>?
-                        This actor will lose full access systems permissions immediately.</p>
-                    <div class="flex justify-end gap-3 pt-2">
-                        <button class="btn btn-ghost rounded-xl px-5 text-sm"
-                                @onclick='() => _showDeactivateModal = false' disabled="@_isActionSubmitting">Cancel
+
+                    <div class="p-4 bg-destructive/5 border border-destructive/10 rounded-2xl">
+                        <p class="text-xs font-bold text-destructive/80 leading-relaxed text-center">
+                            Revoking access for <span class="text-destructive font-black">@_user.UserName</span> will immediately invalidate all active sessions and permissions.
+                        </p>
+                    </div>
+
+                    <div class="flex flex-col gap-2 pt-2">
+                        <button class="w-full py-3 bg-destructive text-white rounded-2xl text-xs font-black uppercase tracking-widest shadow-lg shadow-destructive/20 hover:shadow-destructive/40 transition-all flex items-center justify-center gap-2"
+                                @onclick="HandleDeactivateAccount" disabled="@_isActionSubmitting">
+                            @if (_isActionSubmitting) { <div class="animate-spin rounded-full h-3 w-3 border-2 border-white/20 border-t-white"></div> }
+                            Revoke Access
                         </button>
-                        <button
-                            class="btn btn-destructive rounded-xl px-6 text-sm disabled:opacity-50 flex items-center gap-2"
-                            @onclick="HandleDeactivateAccount" disabled="@_isActionSubmitting">
-                            @if (_isActionSubmitting)
-                            {
-                                <div
-                                    class="animate-spin rounded-full h-3.5 w-3.5 border-2 border-white/20 border-t-white"></div>
-                            }
-                            <span>Deactivate</span>
+                        <button class="w-full py-3 text-muted-foreground hover:text-foreground text-xs font-bold uppercase tracking-widest transition-all"
+                                @onclick='() => _showDeactivateModal = false' disabled="@_isActionSubmitting">
+                            Dismiss
                         </button>
                     </div>
                 </div>

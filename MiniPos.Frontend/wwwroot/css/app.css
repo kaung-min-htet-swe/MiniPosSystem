@@ -652,7 +652,7 @@ a {
 
 .dashboard-content {
     flex: 1;
-    padding: 1.25rem;
+    padding: 1rem;
     overflow-y: auto;
     position: relative;
 }
