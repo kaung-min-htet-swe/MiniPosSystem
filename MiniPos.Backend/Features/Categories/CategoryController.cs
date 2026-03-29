@@ -1,8 +1,10 @@
 using Mapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MiniPos.Backend.Features.Categories;
 
+[Authorize]
 [ApiController]
 [Route("api/categories")]
 public class CategoryController : ControllerBase

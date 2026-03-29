@@ -229,7 +229,7 @@
                         else
                         {
                             <i data-lucide="user-plus" class="w-4 h-4 text-white/80"></i>
-                            <span>Create @_selectedRole</span>
+                            <span>Create</span>
                         }
                     </button>
                 </div>
@@ -240,35 +240,90 @@
     else
     {
         <!-- Success Card View -->
-        <div class="pos-card overflow-hidden bg-white/60 shadow-xl border-border/40 animate-scale-in">
-            <div class="p-12 flex flex-col items-center text-center">
-                <div class="w-24 h-24 rounded-full bg-success/10 flex items-center justify-center mb-8 animate-bounce-subtle">
-                    <i data-lucide="check-circle-2" class="w-12 h-12 text-success"></i>
+        <div class="max-w-xl mx-auto animate-scale-in">
+            <div class="pos-card overflow-hidden bg-white/40 shadow-2xl border-white/20 backdrop-blur-xl relative group">
+                <!-- Background decorative glow -->
+                <div class="absolute -right-20 -top-20 w-64 h-64 bg-success/10 rounded-full blur-3xl pointer-events-none group-hover:bg-success/20 transition-all duration-1000"></div>
+                <div class="absolute -left-20 -bottom-20 w-64 h-64 bg-primary/10 rounded-full blur-3xl pointer-events-none group-hover:bg-primary/20 transition-all duration-1000"></div>
+
+                <div class="p-10 flex flex-col items-center text-center relative z-10">
+                    <!-- Icon with animated rings -->
+                    <div class="relative mb-8">
+                        <div class="absolute inset-0 bg-success/20 rounded-full animate-ping opacity-20"></div>
+                        <div class="absolute -inset-4 bg-success/10 rounded-full animate-pulse-subtle opacity-40"></div>
+                        <div class="w-24 h-24 rounded-full bg-gradient-to-br from-success to-emerald-600 flex items-center justify-center shadow-[0_0_30px_rgba(16,185,129,0.4)] transition-transform hover:scale-110 duration-500">
+                            <i data-lucide="check-circle-2" class="w-12 h-12 text-white drop-shadow-md"></i>
+                        </div>
+                    </div>
+
+                    <h2 class="text-3xl font-extrabold text-foreground mb-2 bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">Account Ready!</h2>
+                    <p class="text-muted-foreground mb-10 font-medium">New member registered and added to the network.</p>
+
+                    <!-- Account Details Card -->
+                    <div class="w-full bg-white/40 border border-white/40 rounded-3xl p-6 mb-10 backdrop-blur-sm text-left shadow-inner animate-slide-up">
+                        <div class="flex items-center justify-between mb-6 pb-4 border-b border-border/20">
+                            <span class="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Account Summary</span>
+                            <span class="px-3 py-1 bg-success/10 text-success text-[10px] font-bold uppercase tracking-wider rounded-full border border-success/20">Active</span>
+                        </div>
+                        
+                        <div class="space-y-4">
+                            <div class="flex items-start gap-4">
+                                <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0 border border-primary/20">
+                                    <i data-lucide="user" class="w-5 h-5"></i>
+                                </div>
+                                <div class="overflow-hidden">
+                                    <p class="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-0.5">Full Name</p>
+                                    <p class="text-base font-bold text-foreground truncate">@_lastCreatedUserName</p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start gap-4">
+                                <div class="w-10 h-10 rounded-xl bg-violet-500/10 flex items-center justify-center text-violet-500 shrink-0 border border-violet-500/20">
+                                    <i data-lucide="mail" class="w-5 h-5"></i>
+                                </div>
+                                <div class="overflow-hidden">
+                                    <p class="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-0.5">Email Address</p>
+                                    <p class="text-base font-bold text-foreground truncate">@_lastCreatedEmail</p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start gap-4">
+                                <div class="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-500 shrink-0 border border-orange-500/20">
+                                    <i data-lucide="shield" class="w-5 h-5"></i>
+                                </div>
+                                <div class="overflow-hidden">
+                                    <p class="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-0.5">Access Role</p>
+                                    <p class="text-base font-bold text-foreground truncate flex items-center gap-2">
+                                        @_lastCreatedRole
+                                        <i class="w-1 h-1 rounded-full bg-muted-foreground opacity-40"></i>
+                                        <span class="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Full Access</span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex flex-col gap-3 w-full animate-slide-up" style="animation-delay: 150ms;">
+                        <button class="w-full bg-gradient-to-r from-primary to-primary-600 text-white rounded-2xl py-4 font-bold shadow-xl shadow-primary/25 flex items-center justify-center gap-2 hover:-translate-y-0.5 hover:shadow-primary/30 active:scale-[0.98] transition-all duration-300"
+                                @onclick="ResetForm">
+                            <i data-lucide="user-plus" class="w-5 h-5"></i>
+                            Register Another Member
+                        </button>
+                        <button class="w-full bg-white/40 border border-border/40 text-foreground rounded-2xl py-4 font-bold hover:bg-white active:scale-[0.98] transition-all duration-300 flex items-center justify-center gap-2"
+                                @onclick="GoBack">
+                            <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                            Back to Staff Directory
+                        </button>
+                    </div>
                 </div>
 
-                <h2 class="text-3xl font-bold text-foreground mb-4">Registration Successful!</h2>
-                <div class="bg-success/5 border border-success/10 rounded-2xl p-6 mb-10 max-w-md">
-                    <p class="text-success font-medium">
-                        @_successMessage
+                <div class="p-6 bg-muted/30 border-t border-border/20 text-center backdrop-blur-md">
+                    <p class="text-[10px] text-muted-foreground font-bold uppercase tracking-widest flex items-center justify-center gap-2">
+                         <i data-lucide="zap" class="w-3 h-3 text-orange-500 animate-pulse"></i>
+                         Account is now authorized and ready for login
                     </p>
                 </div>
-
-                <div class="flex flex-col sm:flex-row gap-4 w-full max-w-md">
-                    <button class="flex-1 btn btn-primary rounded-xl py-4 font-bold shadow-lg shadow-primary/20 flex items-center justify-center gap-2 hover:-translate-y-0.5 transition-all"
-                            @onclick="ResetForm">
-                        <i data-lucide="user-plus" class="w-5 h-5"></i>
-                        Add Another Staff
-                    </button>
-                    <button class="flex-1 btn btn-ghost border border-border/60 rounded-xl py-4 font-bold hover:bg-white transition-all flex items-center justify-center gap-2 hover:-translate-y-0.5"
-                            @onclick="GoBack">
-                        <i data-lucide="users" class="w-5 h-5"></i>
-                        Staff Directory
-                    </button>
-                </div>
-            </div>
-
-            <div class="p-6 bg-muted/20 border-t border-border/40 text-center">
-                <p class="text-xs text-muted-foreground font-medium">The new account is now active and the staff member can log in to the system immediately.</p>
             </div>
         </div>
     }
@@ -307,13 +362,16 @@
     private string _alertMessage = "";
     private string _alertType = "success";
 
+    // Last created info for success view
+    private string? _lastCreatedUserName;
+    private string? _lastCreatedEmail;
+    private string? _lastCreatedRole;
+
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            // Load merchants and branches for cashier assignment dropdowns
-            var userId = "3E98433E-F36B-1410-8548-003FB1DF8966";
-            var response = await Http.GetAsync($"api/merchants?MerchantAdminId={userId}");
+            var response = await Http.GetAsync($"api/merchants");
             if (!response.IsSuccessStatusCode)
             {
                 _errorMessage = "Failed to load merchants.";
@@ -322,16 +380,6 @@
 
             var merchantData = await response.Content.ReadFromJsonAsync<PagedResult<Merchant>>();
             _merchants = merchantData?.Data;
-
-            if (_merchants != null && _merchants.Count > 0)
-            {
-                response = await Http.GetAsync($"/api/branches?merchantId={_merchants[0].Id}");
-                if (response.IsSuccessStatusCode)
-                {
-                    var branchData = await response.Content.ReadFromJsonAsync<PagedResult<Branch>>();
-                    _branches = branchData?.Data;
-                }
-            }
         }
         catch (Exception ex)
         {
@@ -339,7 +387,7 @@
             await ShowAlert("Initialization failed.", "error");
         }
     }
-
+    
     private void SelectRole(string role)
     {
         _selectedRole = role;
@@ -395,6 +443,12 @@
             if (response.IsSuccessStatusCode)
             {
                 _successMessage = $"{_selectedRole} account for \"{_userName}\" created successfully!";
+                
+                // Store last created info
+                _lastCreatedUserName = _userName;
+                _lastCreatedEmail = _email;
+                _lastCreatedRole = _selectedRole;
+
                 _userName = "";
                 _email = "";
                 _password = "";
@@ -469,7 +523,10 @@
         {
             try
             {
-                var response = await Http.GetAsync($"/api/branches?merchantId={_merchantId}");
+                var request = new HttpRequestMessage(HttpMethod.Get, $"api/branches?merchantId={_merchantId}");
+                request.SetBrowserRequestCredentials(Microsoft.AspNetCore.Components.WebAssembly.Http.BrowserRequestCredentials.Include);
+
+                var response = await Http.SendAsync(request);
                 if (response.IsSuccessStatusCode)
                 {
                     var branchData = await response.Content.ReadFromJsonAsync<PagedResult<Branch>>();

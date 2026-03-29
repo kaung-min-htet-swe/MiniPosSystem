@@ -53,7 +53,7 @@ public class AuthenticationService : IAuthenticationService
 
         if (!user.IsSuccess) return Result<SignupResponse>.Failure(user.Error!);
 
-        var token = await _tokenService.IssueTokenAsync(request.UserName);
+        var token = await _tokenService.IssueTokenAsync(user.Data!.Id, request.UserName!);
         var result = new SignupResponse
         {
             Id = user.Data!.Id,
@@ -75,7 +75,7 @@ public class AuthenticationService : IAuthenticationService
             if (result == PasswordVerificationResult.Failed)
                 return Result<SigninResponse>.Failure(new UnAuthorized(errCode, "Invalid credentials"));
 
-            var token = await _tokenService.IssueTokenAsync(user.Username);
+            var token = await _tokenService.IssueTokenAsync(user.Id, user.Username!);
             return Result<SigninResponse>.Success(new SigninResponse
             {
                 Id = user.Id,

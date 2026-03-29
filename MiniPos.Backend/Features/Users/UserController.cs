@@ -1,9 +1,11 @@
 using Mapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MiniPos.Backend.Extensions;
 
 namespace MiniPos.Backend.Features.Users;
 
+[Authorize]
 [ApiController]
 [Route("api/users")]
 public class UserController : ControllerBase
@@ -18,6 +20,9 @@ public class UserController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetList([FromQuery] UserListRequest filter)
     {
+        var userId = User.GetUserId();
+        filter.ProcessedBy = userId;
+
         var result = await _userService.GetList(filter);
         if (!result.IsSuccess)
         {
@@ -32,9 +37,16 @@ public class UserController : ControllerBase
     }
 
     [HttpGet("{userId}")]
-    public async Task<IActionResult> GetById(Guid userId, [FromQuery] string role)
+    public async Task<IActionResult> GetById(Guid userId)
     {
-        var result = await _userService.GetById(new UserGetByIdRequest { UserId = userId, Role = role });
+        var processedById = User.GetUserId();
+        var request = new UserGetByIdRequest
+        {
+            UserId = userId,
+            ProcessedById = processedById,
+            Role = nameof(UserRole.Cashier)
+        };
+        var result = await _userService.GetById(request);
         if (result.IsSuccess)
             return Ok(result.Data);
 

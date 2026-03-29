@@ -95,15 +95,46 @@ body {
 @keyframes pulse-ring {
     0% {
         transform: scale(0.95);
-        box-shadow: 0 0 0 0 rgba(var(--primary), 0.7);
+        box-shadow: 0 0 0 0 hsla(var(--success), 0.7);
     }
     70% {
         transform: scale(1);
-        box-shadow: 0 0 0 10px rgba(var(--primary), 0);
+        box-shadow: 0 0 0 10px hsla(var(--success), 0);
     }
     100% {
         transform: scale(0.95);
-        box-shadow: 0 0 0 0 rgba(var(--primary), 0);
+        box-shadow: 0 0 0 0 hsla(var(--success), 0);
+    }
+}
+
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes bounceSubtle {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-8px);
     }
 }
 
@@ -117,6 +148,18 @@ body {
 
 .animate-pulse-subtle {
     animation: pulse-ring 2s infinite;
+}
+
+.animate-scale-in {
+    animation: scaleIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.animate-slide-up {
+    animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-bounce-subtle {
+    animation: bounceSubtle 2s infinite ease-in-out;
 }
 
 /* Utilities */

@@ -1,8 +1,10 @@
 using Mapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MiniPos.Backend.Features.BranchInventories;
 
+[Authorize]
 [ApiController]
 [Route("api/inventories")]
 public class BranchInventoryController : ControllerBase

@@ -1,9 +1,11 @@
 using Mapper;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using MiniPos.Backend.Extensions;
 
 namespace MiniPos.Backend.Features.Auth;
 
+[AllowAnonymous]
 [ApiController]
 [Route("api/auth")]
 public class AuthenticationController : ControllerBase
@@ -36,10 +38,10 @@ public class AuthenticationController : ControllerBase
     public async Task<IActionResult> Signin([FromBody] SigninRequest request)
     {
         var result = await _authService.Signin(request);
-        if (result.IsSuccess)
+        if (result is { IsSuccess: true, Data:  {Token: not null} } )
         {
             SetAuthCookies(result.Data!.Token, result.Data.Id);
-            return Ok();
+            return Ok(result.Data.Token);
         }
 
         var statusCode = ErrorHttpMapper.GetStatusCode(result.Error!);

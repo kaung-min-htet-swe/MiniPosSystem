@@ -1,8 +1,11 @@
 using Mapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using MiniPos.Backend.Extensions;
 
 namespace MiniPos.Backend.Features.Merchants;
 
+[Authorize]
 [ApiController]
 [Route("api/merchants")]
 public class MerchantController : ControllerBase
@@ -17,6 +20,8 @@ public class MerchantController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetList([FromQuery] MerchantListRequest filter)
     {
+        var userId = User.GetUserId();
+        filter.MerchantAdminId = userId;
         var result = await _merchantService.GetList(filter);
         if (!result.IsSuccess)
         {

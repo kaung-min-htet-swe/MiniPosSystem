@@ -1,8 +1,10 @@
 using Mapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MiniPos.Backend.Features.Dashboard;
 
+[Authorize]
 [ApiController]
 [Route("api/dashboard")]
 public class DashboardController : ControllerBase
@@ -14,7 +16,7 @@ public class DashboardController : ControllerBase
         _dashboardService = dashboardService;
     }
 
-    [HttpGet("stats")]
+    [HttpGet()]
     public async Task<IActionResult> GetStats()
     {
         var result = await _dashboardService.GetStats();

@@ -1,8 +1,10 @@
 using Mapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MiniPos.Backend.Features.Orders;
 
+[Authorize]
 [ApiController]
 [Route("api/orders")]
 public class OrderController : ControllerBase

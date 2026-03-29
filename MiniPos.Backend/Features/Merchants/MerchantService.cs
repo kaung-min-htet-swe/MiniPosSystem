@@ -1,6 +1,7 @@
 using Common;
 using Database.EfAppDbContextModels;
 using Microsoft.EntityFrameworkCore;
+using MiniPos.Backend.Features.Users;
 
 namespace MiniPos.Backend.Features.Merchants;
 
@@ -32,13 +33,13 @@ public class MerchantService : IMerchantService
 
             if (!string.IsNullOrWhiteSpace(request.SearchTerm))
             {
-                query = query.Where(m => m.Name.Contains(request.SearchTerm));
+                query = query.Where(m => m.Name != null && m.Name.Contains(request.SearchTerm));
             }
 
             var skip = (request.PageNumber - 1) * request.PageSize;
             var take = request.PageSize;
             var totalCount = await query.CountAsync();
-            var merchantAdminId = Guid.Parse(request.MerchantAdminId!);
+            var merchantAdminId = request.MerchantAdminId;
             var merchants = await _db.Merchants
                 .AsNoTracking()
                 .Skip(skip)
@@ -160,7 +161,7 @@ public class MerchantService : IMerchantService
 
 public class MerchantListRequest : PaginationFilter
 {
-    public string? MerchantAdminId { get; set; }
+    public Guid MerchantAdminId { get; set; }
     public string? SearchTerm { get; set; }
 }
 

@@ -2,144 +2,134 @@
 @using MiniPos.Frontend.Models
 @using MiniPos.Frontend.Services
 
-<PageTitle>Users - MiniPOS</PageTitle>
-
-@if (!string.IsNullOrEmpty(_alertMessage))
-{
-    <div class="fixed top-6 left-1/2 -translate-x-1/2 z-[100] animate-slide-down">
-        <div class="px-6 py-4 rounded-2xl shadow-2xl backdrop-blur-md flex items-center gap-4 border
-            @(_alertType == "success" ? "bg-success border-success/30 text-white" : "bg-destructive border-destructive/30 text-white")">
-            <i data-lucide="@(_alertType == "success" ? "check-circle-2" : "alert-circle")"
-               class="w-6 h-6 shrink-0"></i>
-            <span class="font-bold tracking-wide">@_alertMessage</span>
-            <button @onclick='() => _alertMessage = ""' class="ml-4 hover:opacity-70 transition-opacity">
-                <i data-lucide="x" class="w-4 h-4"></i>
-            </button>
-        </div>
-    </div>
-}
-
-<div class="animate-slide-down">
-    <!-- Header -->
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-12 gap-4">
-        <div>
-            <h1 class="text-3xl font-bold tracking-tight text-foreground">Staff Directory</h1>
-            <p class="text-muted-foreground mt-1 text-sm">Manage employee access, roles, and review terminal
-                activity.</p>
-        </div>
-        <div class="flex items-center gap-3">
-            <div class="hidden sm:flex relative mr-2">
-                <i data-lucide="search"
-                   class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"></i>
-                <input type="text" placeholder="Search staff..."
-                       class="pl-9 pr-4 py-2 bg-white/60 backdrop-blur-sm border border-border/60 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 w-48 transition-all hover:bg-white"/>
+<div class="h-[calc(100vh-80px)] flex flex-col animate-slide-down pb-2">
+    <!-- Ultra-Clean Container -->
+    <div class="flex-1 min-h-0 flex flex-col bg-white/40 backdrop-blur-xl border border-white/60 rounded-[2rem] shadow-2xl shadow-primary/5 overflow-hidden">
+        
+        <!-- Minimal Top Strip -->
+        <div class="px-6 py-4 border-b border-border/10 flex items-center justify-between gap-4 shrink-0 bg-white/10">
+            <div class="flex items-center gap-2 flex-1 max-w-xl">
+                <div class="relative flex-1 group">
+                    <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-primary"></i>
+                    <input type="text" placeholder="Search staff..." 
+                           @bind="_searchTerm" @bind:event="oninput" @onkeyup="HandleSearchKeyUp"
+                           class="pl-9 pr-4 py-2 bg-white/60 border border-border/10 rounded-xl text-xs focus:ring-2 focus:ring-primary/20 w-full transition-all hover:bg-white"/>
+                </div>
+                <button class="p-2 bg-white/60 rounded-xl border border-border/10 hover:border-primary/20 hover:text-primary transition-all shadow-sm" title="Filters">
+                    <i data-lucide="filter" class="w-4 h-4"></i>
+                </button>
+                <button class="bg-primary hover:bg-primary-focus text-white px-4 py-2 rounded-xl font-bold text-xs shadow-lg shadow-primary/20 flex items-center gap-1.5 transition-all active:scale-95" @onclick="GoToAddStaff">
+                    <i data-lucide="plus" class="w-4 h-4"></i>
+                    <span>Add Staff</span>
+                </button>
             </div>
-            <button class="btn btn-outline bg-white hover:bg-muted shadow-sm rounded-lg p-2">
-                <i data-lucide="filter" class="w-4 h-4"></i>
-            </button>
-            <button class="btn btn-primary rounded-lg shadow-primary" @onclick="GoToAddStaff">
-                <i data-lucide="user-plus" class="w-4 h-4 mr-2"></i>
-                Add Staff
-            </button>
+            
+            <div class="hidden sm:block">
+                @if (_pagedUsers != null)
+                {
+                    <p class="text-[9px] text-muted-foreground font-bold uppercase tracking-widest opacity-60">
+                        @_pagedUsers.TotalCount Members Total
+                    </p>
+                }
+            </div>
         </div>
-    </div>
 
-    @if (_pagedUsers == null)
-    {
-        <div class="flex items-center justify-center p-12">
-            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        </div>
-    }
-    else
-    {
-        <!-- Stunning User Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            @foreach (var user in _pagedUsers.Data)
-            {
-                var ui = _userUIs.GetValueOrDefault(
-                    user.Id,
-                    new UserUI
+        @if (_pagedUsers == null)
+        {
+            <div class="flex-1 flex items-center justify-center bg-white/5">
+                <div class="w-10 h-10 rounded-full border-2 border-primary/20 border-t-primary animate-spin"></div>
+            </div>
+        }
+        else
+        {
+            <!-- Full Height Table -->
+            <div class="flex-1 overflow-auto custom-scrollbar">
+                <table class="w-full text-left border-collapse table-fixed lg:table-auto">
+                    <thead class="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-border/10">
+                        <tr>
+                            <th class="pl-6 py-3 text-[9px] font-bold uppercase tracking-widest text-muted-foreground w-[40%]">Member</th>
+                            <th class="px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Role</th>
+                            <th class="px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-muted-foreground hidden md:table-cell">Assignment</th>
+                            <th class="pr-6 py-3 text-[9px] font-bold uppercase tracking-widest text-muted-foreground text-right w-24">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-border/5">
+                    @foreach (var user in _pagedUsers.Data)
                     {
-                        BadgeClass = "bg-muted text-muted-foreground",
-                        Icon = "user",
-                        AvatarGradient = "from-slate-400 to-slate-500",
-                        IsActive = false,
-                        BranchName = "Unassigned"
-                        // LeftStatLabel = "Total Sales", 
-                        // LeftStatValue = "-", 
-                        // LeftStatClass = "text-muted-foreground", 
-                        // RightStatLabel = "Shift Today", 
-                        // RightStatValue = "-"
-                    });
-                var nameParts = user.UserName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-                var initials = nameParts.Length > 1
-                    ? $"{nameParts[0][0]}{nameParts[nameParts.Length - 1][0]}".ToUpper()
-                    : user.UserName.Substring(0, Math.Min(2, user.UserName.Length)).ToUpper();
-                <div
-                    class="group relative bg-white/60 backdrop-blur-md border border-border/40 hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5 rounded-2xl p-5 transition-all duration-300 cursor-pointer flex flex-col items-center text-center shadow-sm"
-                    @onclick="() => GoToUserDetail(user.Id)">
+                        var ui = _userUIs.GetValueOrDefault(user.Id, new UserUI { BadgeClass = "bg-muted text-muted-foreground", AvatarGradient = "from-slate-400 to-slate-500", IsActive = false, BranchName = "Unassigned" });
+                        var nameParts = user.UserName?.Split(' ', StringSplitOptions.RemoveEmptyEntries) ?? Array.Empty<string>();
+                        var initials = nameParts.Length > 1 ? $"{nameParts[0][0]}{nameParts[nameParts.Length - 1][0]}".ToUpper() : (user.UserName?.Length > 0 ? user.UserName.Substring(0, Math.Min(2, user.UserName.Length)).ToUpper() : "??");
 
-                    <!-- Top Action/Badge -->
-                    <div class="absolute top-4 right-4 flex items-center">
-                        <span
-                            class="badge @ui.BadgeClass text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full shadow-sm">
-                            @user.Role
-                        </span>
-                    </div>
+                        <tr class="group hover:bg-white/40 transition-all cursor-pointer" @onclick="() => GoToUserDetail(user.Id)">
+                            <td class="pl-6 py-3.5">
+                                <div class="flex items-center gap-3">
+                                    <div class="relative shrink-0">
+                                        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr @ui.AvatarGradient shadow-sm flex items-center justify-center text-white text-xs font-black border border-white">
+                                            @initials
+                                        </div>
+                                        <div class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 @(ui.IsActive ? "bg-emerald-500" : "bg-neutral-300") border-2 border-white rounded-full"></div>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <h4 class="font-bold text-xs text-foreground group-hover:text-primary transition-colors truncate">@user.UserName</h4>
+                                        <p class="text-[9px] text-muted-foreground font-medium truncate">@user.Email</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-4 py-3.5">
+                                <span class="text-[9px] uppercase font-bold tracking-widest px-2 py-0.5 rounded-lg border border-border/10 @ui.BadgeClass shadow-sm inline-block">
+                                    @user.Role
+                                </span>
+                            </td>
+                            <td class="px-4 py-3.5 hidden md:table-cell">
+                                <div class="flex items-center gap-2 text-[10px] font-semibold text-foreground/70">
+                                    <i data-lucide="store" class="w-3 h-3 text-primary/60"></i>
+                                    <span class="truncate">@ui.BranchName</span>
+                                </div>
+                            </td>
+                            <td class="pr-6 py-3.5 text-right">
+                                <div class="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <button class="p-1.5 hover:bg-primary/10 hover:text-primary text-muted-foreground rounded-lg transition-all" @onclick:stopPropagation="true">
+                                        <i data-lucide="edit-2" class="w-3.5 h-3.5"></i>
+                                    </button>
+                                    <button class="p-1.5 hover:bg-destructive/10 hover:text-destructive text-muted-foreground rounded-lg transition-all" @onclick:stopPropagation="true">
+                                        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
 
-                    <button
-                        class="absolute top-4 left-4 text-muted-foreground/60 hover:text-foreground transition-colors p-1 hover:bg-muted/30 rounded-full"
-                        @onclick:stopPropagation="true">
-                        <i data-lucide="more-horizontal" class="w-4 h-4"></i>
+            <!-- Minimal Pagination Bar -->
+            <div class="px-6 py-3 border-t border-border/10 bg-white/20 backdrop-blur-md flex justify-center items-center shrink-0">
+                <div class="flex items-center gap-1">
+                    <button class="w-8 h-8 flex items-center justify-center rounded-lg bg-white/60 border border-border/10 text-muted-foreground hover:bg-primary hover:text-white transition-all disabled:opacity-30 shadow-sm"
+                            disabled="@(!_pagedUsers.HasPreviousPage)"
+                            @onclick="() => ChangePage(_pagedUsers.PageNumber - 1)">
+                        <i data-lucide="chevron-left" class="w-4 h-4"></i>
                     </button>
 
-                    <!-- Avatar Profile -->
-                    <div class="relative mt-2">
-                        <div
-                            class="w-16 h-16 rounded-full bg-gradient-to-tr @ui.AvatarGradient shadow-sm flex items-center justify-center text-white text-xl font-semibold font-outfit border-2 border-white">
-                            @initials
-                        </div>
-                        <div
-                            class="absolute bottom-0 right-0 w-3 h-3 @(ui.IsActive ? "bg-emerald-500" : "bg-neutral-300") border-2 border-white rounded-full"
-                            title="@(ui.IsActive ? "Online" : "Offline")"></div>
-                    </div>
-
-                    <!-- User Info -->
-                    <div class="mt-3.5">
-                        <h3 class="font-bold text-base text-foreground group-hover:text-primary transition-colors">@user.UserName</h3>
-                        <p class="text-[11px] text-muted-foreground font-medium mt-0.5 tracking-wide">@user.Email</p>
-                    </div>
-
-                    <!-- Assignments -->
-                    <div class="mt-4 pt-3 border-t border-border/40 w-full flex flex-col items-center gap-1">
-                        <div class="flex items-center gap-1.5 text-xs font-semibold text-foreground/80">
-                            <i data-lucide="store" class="w-3.5 h-3.5 text-primary/80"></i>
-                            <span>@ui.BranchName</span>
-                        </div>
-                        @if (!string.IsNullOrEmpty(ui.MerchantName))
-                        {
-                            <div class="flex items-center gap-1 text-[10px] text-muted-foreground font-medium">
-                                <i data-lucide="building-2" class="w-3 h-3 text-muted-foreground/60"></i>
-                                <span>@ui.MerchantName</span>
-                            </div>
-                        }
-                    </div>
-
-                    @if (ui.BranchName == "Unassigned")
+                    @for (int i = 1; i <= Math.Max(1, _pagedUsers.TotalPages); i++)
                     {
-                        <div class="mt-3 w-full">
-                            <button
-                                class="text-xs font-bold text-primary hover:underline flex items-center justify-center gap-1 mx-auto"
-                                @onclick:stopPropagation="true">
-                                <i data-lucide="shield-plus" class="w-3.5 h-3.5"></i> Assign
-                            </button>
-                        </div>
+                        var pageIndex = i;
+                        <button class="w-8 h-8 flex items-center justify-center rounded-lg font-bold text-[10px] transition-all
+                                       @(pageIndex == _pagedUsers.PageNumber ? "bg-primary text-white shadow-lg shadow-primary/20 scale-105" : "bg-white/40 border border-border/10 text-muted-foreground hover:border-primary/40 hover:text-primary")"
+                                @onclick="() => ChangePage(pageIndex)">
+                            @pageIndex
+                        </button>
                     }
 
+                    <button class="w-8 h-8 flex items-center justify-center rounded-lg bg-white/60 border border-border/10 text-muted-foreground hover:bg-primary hover:text-white transition-all disabled:opacity-30 shadow-sm"
+                            disabled="@(!_pagedUsers.HasNextPage)"
+                            @onclick="() => ChangePage(_pagedUsers.PageNumber + 1)">
+                        <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                    </button>
                 </div>
-            }
-        </div>
-    }
+            </div>
+        }
+    </div>
 </div>
 
 @code {
@@ -151,103 +141,76 @@
     public class UserUI
     {
         public string BadgeClass { get; set; } = "";
-        public string Icon { get; set; } = "";
         public string AvatarGradient { get; set; } = "";
         public bool IsActive { get; set; }
         public string BranchName { get; set; } = "";
-
-        public string MerchantName { get; set; } = "";
-        // public string LeftStatLabel { get; set; } = "";
-        // public string LeftStatValue { get; set; } = "";
-        // public string LeftStatClass { get; set; } = "";
-        // public string RightStatLabel { get; set; } = "";
-        // public string RightStatValue { get; set; } = "";
     }
 
     private PagedResult<User>? _pagedUsers;
     private readonly Dictionary<Guid, UserUI> _userUIs = new();
-
-    // Alert state
-    private string _alertMessage = "";
-    private string _alertType = "success";
+    private string _searchTerm = "";
+    private int _currentPage = 1;
 
     protected override async Task OnInitializedAsync()
     {
+        await LoadUsers();
+    }
+
+    private async Task LoadUsers()
+    {
         try
         {
-            _pagedUsers = await Http.GetFromJsonAsync<PagedResult<User>>("/api/users?IncludeCashierRole=true");
-
-            if (_pagedUsers != null)
+            var url = $"/api/users?includeCashiers=true&pageNumber={_currentPage}&pageSize=15&searchTerm={Uri.EscapeDataString(_searchTerm)}";
+            _pagedUsers = await Http.GetFromJsonAsync<PagedResult<User>>(url);
+            
+            _userUIs.Clear();
+            if (_pagedUsers?.Data != null)
             {
                 foreach (var user in _pagedUsers.Data)
                 {
-                    _userUIs[user.Id] = user.Role switch
+                    _userUIs[user.Id] = new UserUI
                     {
-                        "Admin" => new UserUI
+                        BadgeClass = user.Role switch
                         {
-                            BadgeClass = "badge-primary", Icon = "shield-check",
-                            AvatarGradient = "from-primary to-purple-500", IsActive = true,
-                            BranchName = user.Branch?.Name ?? "Unassigned",
-                            MerchantName = user.Merchant?.Name ?? ""
+                            "Admin" => "bg-indigo-50 text-indigo-600 border-indigo-100",
+                            "Manager" => "bg-rose-50 text-rose-600 border-rose-100",
+                            "Cashier" => "bg-blue-50 text-blue-600 border-blue-100",
+                            _ => "bg-slate-50 text-slate-600 border-slate-100"
                         },
-                        "Cashier" => new UserUI
+                        AvatarGradient = user.Role switch
                         {
-                            BadgeClass = "badge-success", Icon = "calculator",
-                            AvatarGradient = "from-success to-emerald-400", IsActive = true,
-                            BranchName = user.Branch?.Name ?? "Unassigned",
-                            MerchantName = user.Merchant?.Name ?? ""
+                            "Admin" => "from-indigo-400 to-indigo-600",
+                            "Manager" => "from-rose-400 to-rose-600",
+                            "Cashier" => "from-blue-400 to-blue-600",
+                            _ => "from-slate-400 to-slate-600"
                         },
-                        "Merchant" or "Manager" => new UserUI
-                        {
-                            BadgeClass = "badge-warning", Icon = "briefcase",
-                            AvatarGradient = "from-warning to-yellow-400", IsActive = false,
-                            BranchName = user.Branch?.Name ?? "Unassigned",
-                            MerchantName = user.Merchant?.Name ?? ""
-                        },
-                        _ => new UserUI
-                        {
-                            BadgeClass = "bg-muted text-muted-foreground", Icon = "user",
-                            AvatarGradient = "from-muted-foreground to-muted", IsActive = false,
-                            BranchName = "Unassigned",
-                            MerchantName = user.Merchant?.Name ?? ""
-                        }
+                        IsActive = true,
+                        BranchName = user.Role == "Admin" ? "Global" : "Terminal Alpha"
                     };
                 }
             }
+            StateHasChanged();
+            await JSRuntime.InvokeVoidAsync("initIcons");
         }
         catch (Exception ex)
         {
-            await ShowAlert($"Failed to load staff directory: {ex.Message}", "error");
+            Console.WriteLine($"Error: {ex.Message}");
         }
     }
 
-    private async Task ShowAlert(string message, string type = "success")
+    private async Task HandleSearchKeyUp(KeyboardEventArgs e)
     {
-        _alertMessage = message;
-        _alertType = type;
-        StateHasChanged();
-        await JSRuntime.InvokeVoidAsync("initIcons");
-        await Task.Delay(5000);
-        _alertMessage = "";
-        StateHasChanged();
+        _currentPage = 1;
+        await LoadUsers();
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    private async Task ChangePage(int page)
     {
-        if (firstRender)
-        {
-            await JSRuntime.InvokeVoidAsync("initIcons");
-        }
+        if (page < 1 || (_pagedUsers != null && page > _pagedUsers.TotalPages)) return;
+        _currentPage = page;
+        await LoadUsers();
     }
 
-    private void GoToAddStaff()
-    {
-        Navigation.NavigateTo("/users/add");
-    }
-
-    private void GoToUserDetail(Guid userId)
-    {
-        Navigation.NavigateTo($"/users/{userId}");
-    }
-
+    private void GoToUserDetail(Guid userId) => Navigation.NavigateTo($"/users/{userId}");
+    private void GoToAddStaff() => Navigation.NavigateTo("/users/add");
 }

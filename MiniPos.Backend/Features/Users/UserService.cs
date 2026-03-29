@@ -8,7 +8,7 @@ namespace MiniPos.Backend.Features.Users;
 public enum UserRole
 {
     Admin,
-    MerchantAdmin,
+    Merchant,
     Cashier
 }
 
@@ -42,13 +42,28 @@ public class UserService : IUserService
             {
                 var query = _db.Users
                     .Where(u => u.Role == nameof(UserRole.Cashier))
+                    .Where(cashier =>
+                        cashier.MerchantId == _db.Users
+                            .Where(admin => admin.Id == request.ProcessedBy && admin.Role == nameof(UserRole.Merchant))
+                            .Select(admin => admin.MerchantId)
+                            .FirstOrDefault()
+                    )
                     .AsNoTracking()
                     .AsQueryable();
+
+                if (!string.IsNullOrWhiteSpace(request.SearchTerm))
+                {
+                    var searchTerm = request.SearchTerm.Trim().ToLower();
+                    query = query.Where(u => (u.Username != null && u.Username.ToLower().Contains(searchTerm)) || 
+                                             (u.Email != null && u.Email.ToLower().Contains(searchTerm)));
+                }
+
+                var totalCount = await query.CountAsync();
                 var skip = (request.PageNumber - 1) * request.PageSize;
                 var take = request.PageSize;
-                var totalCount = await query.CountAsync();
 
                 var users = await query
+                    .OrderByDescending(u => u.CreatedAt)
                     .Skip(skip)
                     .Take(take)
                     .Select(u => new UserListResponse
@@ -96,7 +111,7 @@ public class UserService : IUserService
         {
             return request.Role switch
             {
-                nameof(UserRole.MerchantAdmin) => await GetMerchantById(request.UserId),
+                nameof(UserRole.Merchant) => await GetMerchantById(request.UserId),
                 nameof(UserRole.Cashier) => await GetCashierById(request.UserId),
                 _ => Result<UserGetByIdResponse>.Failure(new BadRequestError(errCode, "Invalid user role specified"))
             };
@@ -118,7 +133,7 @@ public class UserService : IUserService
 
             return request.Role switch
             {
-                nameof(UserRole.MerchantAdmin) => await CreateMerchant(request),
+                nameof(UserRole.Merchant) => await CreateMerchant(request),
                 nameof(UserRole.Cashier) => await CreateCashier(request),
                 _ => Result<UserCreateResponse>.Failure(new BadRequestError(errCode, "Invalid user role specified"))
             };
@@ -245,7 +260,7 @@ public class UserService : IUserService
         var merchantAdmin = new User
         {
             Email = request.Email,
-            Role = nameof(UserRole.MerchantAdmin),
+            Role = nameof(UserRole.Merchant),
             Username = request.UserName,
             MerchantId = merchant.Id
         };
@@ -299,7 +314,7 @@ public class UserService : IUserService
                 Role = u.Role,
                 UserName = u.Username
             })
-            .FirstOrDefaultAsync(u => u.Id == id && u.Role == nameof(UserRole.MerchantAdmin));
+            .FirstOrDefaultAsync(u => u.Id == id && u.Role == nameof(UserRole.Merchant));
         if (merchantAdmin is null)
             return Result<UserGetByIdResponse>.Failure(new NotFoundError("User.GetMerchantById",
                 "Merchant admin does not exist"));
@@ -380,7 +395,7 @@ public class UserListResponse
 public class UserGetByIdRequest
 {
     public Guid UserId { get; set; }
-    public Guid ProcessedBy { get; set; }
+    public Guid ProcessedById { get; set; }
     public string? Role { get; set; }
 }
 

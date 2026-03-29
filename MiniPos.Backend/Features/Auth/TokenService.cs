@@ -18,7 +18,7 @@ public class TokenService
         _db = db;
     }
 
-    public async Task<TokenResponse> IssueTokenAsync(string username, IEnumerable<Claim>? extraClaims = null)
+    public async Task<TokenResponse> IssueTokenAsync(Guid userId, string username, IEnumerable<Claim>? extraClaims = null)
     {
         var accessMinutes = int.Parse(_configuration["Jwt:AccessTokenMinutes"]!);
         var refreshDays = int.Parse(_configuration["Jwt:RefreshTokenDays"]!);
@@ -26,7 +26,7 @@ public class TokenService
         var accessExpires = now.AddMinutes(accessMinutes);
         var refreshExpires = now.AddDays(refreshDays);
 
-        var accessToken = CreateAccessToken(username, accessExpires, extraClaims);
+        var accessToken = CreateAccessToken(userId, username, accessExpires, extraClaims);
         var refreshToken = GenerateSecureToken();
         var refreshHash = HashToken(refreshToken);
 
@@ -58,7 +58,7 @@ public class TokenService
     //     return await IssueTokenAsync(username, extraClaims);
     // }
     //
-    private string CreateAccessToken(string username, DateTimeOffset expiresAtUtc, IEnumerable<Claim>? extraClaims)
+    private string CreateAccessToken(Guid userId, string username, DateTimeOffset expiresAtUtc, IEnumerable<Claim>? extraClaims)
     {
         var issuer = _configuration["Jwt:Issuer"]!;
         var audience = _configuration["Jwt:Audience"]!;
@@ -68,8 +68,8 @@ public class TokenService
 
         var claims = new List<Claim>
         {
-            new(JwtRegisteredClaimNames.Sub, username),
-            new(ClaimTypes.Name, username),
+            new(JwtRegisteredClaimNames.Sub, userId.ToString()),
+            new(ClaimTypes.Name, userId.ToString()),
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
 

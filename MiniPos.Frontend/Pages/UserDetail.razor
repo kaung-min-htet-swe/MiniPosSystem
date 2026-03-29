@@ -522,7 +522,7 @@
     {
         try
         {
-            var response = await Http.GetAsync($"/api/users/{UserId}?role=Cashier");
+            var response = await Http.GetAsync($"/api/users/{UserId}");
             if (!response.IsSuccessStatusCode)
             {
                 await ShowAlert("Failed to load user details.", "error");

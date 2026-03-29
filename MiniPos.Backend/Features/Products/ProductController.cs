@@ -1,8 +1,10 @@
 using Mapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MiniPos.Backend.Features.Products;
 
+[Authorize]
 [ApiController]
 [Route("api/products")]
 public class ProductController : ControllerBase

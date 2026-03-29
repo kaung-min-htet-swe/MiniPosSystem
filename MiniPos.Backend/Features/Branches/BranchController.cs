@@ -1,8 +1,10 @@
 using Mapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MiniPos.Backend.Features.Branches;
 
+[Authorize]
 [ApiController]
 [Route("api/branches")]
 public class BranchController : ControllerBase
