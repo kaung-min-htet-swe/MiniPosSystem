@@ -4,31 +4,68 @@
 
 <PageTitle>Categories - MiniPOS</PageTitle>
 
-@if (!string.IsNullOrEmpty(_alertMessage))
-{
-    <div class="fixed top-6 left-1/2 -translate-x-1/2 z-[100] animate-slide-down">
-        <div class="px-6 py-4 rounded-2xl shadow-2xl backdrop-blur-md flex items-center gap-4 border
-            @(_alertType == "success" ? "bg-success border-success/30 text-white" : "bg-destructive border-destructive/30 text-white")">
-            <i data-lucide="@(_alertType == "success" ? "check-circle-2" : "alert-circle")" class="w-6 h-6 shrink-0"></i>
-            <span class="font-bold tracking-wide">@_alertMessage</span>
-            <button @onclick='() => _alertMessage = ""' class="ml-4 hover:opacity-70 transition-opacity">
-                <i data-lucide="x" class="w-4 h-4 text-white/80"></i>
+<div class="animate-slide-down">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-6 pb-4 border-b border-border/30">
+        <div class="space-y-1">
+            <h1 class="text-4xl font-black tracking-tight text-foreground font-outfit">Categories</h1>
+            <p class="text-muted-foreground font-medium text-sm flex items-center gap-2">
+                <span class="w-1.5 h-1.5 rounded-full bg-primary/40"></span>
+                Organize your menu and product catalog effectively
+            </p>
+        </div>
+        <div class="flex items-center gap-4 w-full sm:w-auto">
+            <!-- View Mode Toggle -->
+            <div class="flex bg-muted/20 p-1 rounded-2xl border border-border/40 mr-2 shadow-sm">
+                <button
+                    class="p-2 rounded-xl transition-all @(_viewMode == "grid" ? "bg-white shadow-sm text-primary" : "text-muted-foreground hover:text-foreground")"
+                    @onclick='() => _viewMode = "grid"'>
+                    <i data-lucide="layout-grid" class="w-4 h-4"></i>
+                </button>
+                <button
+                    class="p-2 rounded-xl transition-all @(_viewMode == "list" ? "bg-white shadow-sm text-primary" : "text-muted-foreground hover:text-foreground")"
+                    @onclick='() => _viewMode = "list"'>
+                    <i data-lucide="list" class="w-4 h-4"></i>
+                </button>
+            </div>
+
+            <div class="relative flex-1 sm:w-64 group">
+                <i data-lucide="search"
+                   class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors"></i>
+                <input type="text" @bind="_searchTerm" @bind:event="oninput"
+                       placeholder="Search categories..."
+                       class="w-full pl-10 pr-4 py-2.5 bg-white border border-border/60 rounded-2xl text-sm focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary/40 focus:bg-white transition-all shadow-sm"/>
+            </div>
+
+            <button
+                class="btn btn-primary rounded-2xl px-6 py-3 shadow-lg shadow-primary/20 flex items-center gap-2 font-bold text-sm hover:scale-105 active:scale-95 transition-all"
+                @onclick="GoToAddCategory">
+                <i data-lucide="folder-plus" class="w-4 h-4"></i>
+                <span>Add Category</span>
             </button>
         </div>
     </div>
-}
 
-<div class="animate-slide-down">
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-12 gap-4">
-        <div>
-            <h1 class="text-3xl font-bold tracking-tight text-foreground">Categories</h1>
-            <p class="text-muted-foreground mt-1 text-sm">Organize your menu and product catalog effectively.</p>
+    <!-- Floating Alert Box -->
+    @if (!string.IsNullOrEmpty(_alertMessage))
+    {
+        <div class="fixed top-6 left-1/2 -translate-x-1/2 z-[100] animate-slide-down">
+            <div class="flex items-center gap-3 px-6 py-4 rounded-2xl shadow-2xl border backdrop-blur-md
+                @(_alertType == "success" ? "bg-emerald-50/90 border-emerald-200 text-emerald-800" : "bg-rose-50/90 border-rose-200 text-rose-800")">
+                <div class="shrink-0 w-10 h-10 rounded-full flex items-center justify-center
+                    @(_alertType == "success" ? "bg-emerald-100" : "bg-rose-100")">
+                    <i data-lucide="@(_alertType == "success" ? "check-circle" : "alert-circle")" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <p class="text-xs font-black uppercase tracking-widest opacity-60">@(_alertType == "success" ? "Success" : "Error")</p>
+                    <p class="text-sm font-bold">@_alertMessage</p>
+                </div>
+                <button @onclick='() => _alertMessage = ""' class="ml-4 hover:opacity-70 transition-opacity">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
         </div>
-        <button class="btn btn-primary rounded-lg shadow-primary" @onclick="GoToAddCategory">
-            <i data-lucide="folder-plus" class="w-4 h-4 mr-2"></i>
-            Create Category
-        </button>
-    </div>
+    }
 
     @if (_pagedCategories == null)
     {
@@ -38,30 +75,120 @@
     }
     else
     {
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            @foreach (var category in _pagedCategories.Data)
-            {
-                var style = GetCategoryStyle(category.Name);
-                var colorClass = style.Color == "primary" ? "primary" : style.Color;
-                var textColor = style.Color == "primary" ? "text-primary" : $"text-{colorClass}-600";
-                var borderColorHover = style.Color == "primary" ? "hover:border-primary/30" : $"hover:border-{colorClass}-500/30";
-                var bgGlow = style.Color == "primary" ? "bg-primary/20" : $"bg-{colorClass}-500/20";
-                var bgGlowHover = style.Color == "primary" ? "group-hover:bg-primary/40" : $"group-hover:bg-{colorClass}-500/40";
-                var bgIcon = style.Color == "primary" ? "bg-primary/10" : $"bg-{colorClass}-500/10";
-                <div class="pos-card overflow-hidden group hover:shadow-lg transition-all border-border @borderColorHover flex flex-col h-48 cursor-pointer pl-8" @onclick="() => GoToCategoryDetail(category.Id)">
-                    <div class="absolute -left-6 top-1/2 -translate-y-1/2 w-4 h-32 @bgGlow rounded-full blur-xl @bgGlowHover transition-colors"></div>
-                    <div class="w-12 h-12 rounded-full @bgIcon @textColor flex items-center justify-center mb-4 mt-2">
-                        <i data-lucide="@style.Icon" class="w-6 h-6"></i>
+        var filteredCategories = _pagedCategories.Data
+            .Where(c => string.IsNullOrEmpty(_searchTerm) || 
+                        c.Name.Contains(_searchTerm, StringComparison.OrdinalIgnoreCase) || 
+                        (c.Description != null && c.Description.Contains(_searchTerm, StringComparison.OrdinalIgnoreCase)))
+            .ToList();
+
+        @if (_viewMode == "grid")
+        {
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                @foreach (var category in filteredCategories)
+                {
+                    var ui = GetCategoryUI(category);
+                    <div class="pos-card p-0.5 overflow-hidden group hover:-translate-y-1.5 transition-all duration-500 border-border/40 hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/10 cursor-pointer relative rounded-2xl"
+                         @onclick="() => GoToCategoryDetail(category.Id)">
+                        
+                        <!-- Premium Mesh Background Pattern -->
+                        <div class="absolute inset-0 z-0 opacity-[0.03] grayscale group-hover:grayscale-0 group-hover:opacity-[0.08] transition-all duration-1000 pointer-events-none @ui.BgGlow"
+                             style="background-image: radial-gradient(currentColor 0.5px, transparent 0.5px); background-size: 10px 10px;"></div>
+
+                        <!-- Visual Header -->
+                        <div class="h-24 w-full bg-gradient-to-br @ui.Gradient relative overflow-hidden flex items-center justify-center border rounded-lg">
+                            <div class="absolute inset-0 bg-white/10 backdrop-blur-[2px]"></div>
+
+                            <!-- Layered Mesh Orbs -->
+                            <div class="absolute -top-10 -right-10 w-28 h-28 @ui.BgGlow rounded-full blur-3xl opacity-60 animate-pulse-subtle"></div>
+                            <div class="absolute -bottom-10 -left-10 bg-white/20 rounded-full blur-3xl w-24 h-24 opacity-40"></div>
+
+                            <!-- Icon Container -->
+                            <div class="w-11 h-11 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center text-foreground/80 group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 z-10 shadow-[inset_0_0_12px_rgba(255,255,255,0.5)] border border-white/40">
+                                <i data-lucide="@ui.Icon" class="w-5.5 h-5.5 @ui.TextColor drop-shadow-sm"></i>
+                            </div>
+
+                            <!-- Merchant Badge -->
+                            <div class="absolute top-3 left-3">
+                                <span class="bg-white/90 backdrop-blur-sm text-[9px] font-black uppercase tracking-widest shadow-sm rounded-full px-2 py-0.5 border border-border/20 @ui.TextColor">
+                                    @category.MerchantName
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Content Segment -->
+                        <div class="p-3 relative z-10">
+                            <h3 class="font-bold text-[16px] tracking-tight text-foreground line-clamp-1 leading-snug group-hover:text-primary transition-colors font-outfit">@category.Name</h3>
+                            <p class="text-[11px] text-muted-foreground line-clamp-2 mt-1 min-h-[32px]">@category.Description</p>
+
+                            <!-- Footer -->
+                            <div class="flex justify-between items-center pt-3 mt-3 border-t border-border/40">
+                                <div class="flex items-center gap-1.5">
+                                    <div class="w-1.5 h-1.5 rounded-full @ui.BgGlow opacity-60 shadow-[0_0_8px_rgba(var(--primary),0.5)]"></div>
+                                    <span class="text-[10px] font-black text-muted-foreground uppercase tracking-widest leading-none">Catalog Category</span>
+                                </div>
+                                <div class="text-right flex items-center gap-1">
+                                    <span class="text-[14px] font-black font-outfit @ui.TextColor">@category.ProductCount</span>
+                                    <span class="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Items</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Hover Indicator -->
+                        <div class="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-primary/40 to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
                     </div>
-                    <h3 class="font-bold text-xl text-foreground mb-1">@category.Name</h3>
-                    <p class="text-muted-foreground text-[10px] font-bold uppercase tracking-wider mb-2">@category.MerchantName</p>
-                    <p class="text-xs text-muted-foreground line-clamp-2 pr-6 mb-auto">@category.Description</p>
-                    <div class="mt-4 pt-3 border-t border-border/50 text-xs font-bold uppercase tracking-widest @textColor flex items-center">
-                        @category.ProductCount Items <i data-lucide="arrow-right" class="w-3 h-3 ml-2 group-hover:translate-x-1 transition-transform"></i>
-                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <!-- Concise List View -->
+            <div class="pos-card p-0 bg-white/60 shadow-xl border-border/40 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead class="bg-muted/30 border-b border-border/30">
+                        <tr>
+                            <th class="pl-6 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground w-12"></th>
+                            <th class="px-4 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Category Detail</th>
+                            <th class="px-4 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Merchant</th>
+                            <th class="px-4 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground text-right">Items</th>
+                            <th class="pr-6 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground text-right">Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody class="divide-y divide-border/20">
+                        @foreach (var category in filteredCategories)
+                        {
+                            var ui = GetCategoryUI(category);
+                            <tr class="group hover:bg-primary/[0.03] backdrop-blur-sm transition-all duration-300 cursor-pointer border-l-2 border-transparent hover:border-primary hover:translate-x-1"
+                                @onclick="() => GoToCategoryDetail(category.Id)">
+                                <td class="pl-6 py-2.5">
+                                    <div class="w-9 h-9 rounded-xl @ui.BgIcon backdrop-blur-md flex items-center justify-center border border-border/60 group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 shadow-sm shadow-primary/5">
+                                        <i data-lucide="@ui.Icon" class="w-4.5 h-4.5 @ui.TextColor"></i>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-2.5">
+                                    <div class="font-bold text-[14px] text-foreground font-outfit group-hover:text-primary transition-colors">@category.Name</div>
+                                    <div class="text-[10px] font-medium text-muted-foreground line-clamp-1">@category.Description</div>
+                                </td>
+                                <td class="px-4 py-2.5">
+                                    <span class="badge @ui.BgIcon @ui.TextColor text-[9px] font-black uppercase tracking-widest border-transparent py-1 px-2.5 rounded-lg shadow-sm shadow-black/5">
+                                        @category.MerchantName
+                                    </span>
+                                </td>
+                                <td class="px-4 py-2.5 text-right">
+                                    <div class="text-base font-black font-outfit @ui.TextColor">@category.ProductCount</div>
+                                </td>
+                                <td class="pr-6 py-2.5 text-right">
+                                    <button class="w-8 h-8 rounded-xl hover:bg-primary/10 text-muted-foreground hover:text-primary flex items-center justify-center transition-all ml-auto hover:rotate-90">
+                                        <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
                 </div>
-            }
-        </div>
+            </div>
+        }
     }
 </div>
 
@@ -70,7 +197,19 @@
     [Inject] private HttpClient Http { get; set; } = default!;
     [Inject] private NavigationManager Navigation { get; set; } = default!;
 
+    public class CategoryUI
+    {
+        public string Icon { get; set; } = "";
+        public string Color { get; set; } = "";
+        public string Gradient { get; set; } = "";
+        public string BgGlow { get; set; } = "";
+        public string BgIcon { get; set; } = "";
+        public string TextColor { get; set; } = "";
+    }
+
     private PagedResult<CategoryListResponseDto>? _pagedCategories;
+    private string _searchTerm = "";
+    private string _viewMode = "grid";
     private string userId = "3798433e-f36b-1410-8548-003fb1df8966";
     
     // Alert state
@@ -81,7 +220,7 @@
     {
         try
         {
-            var response = await Http.GetAsync($"api/categories?merchantId={userId}&page=1&pageSize=12");
+            var response = await Http.GetAsync($"api/categories?merchantId={userId}&page=1&pageSize=50");
             if (!response.IsSuccessStatusCode)
             {
                 await ShowAlert("Failed to load categories.", "error");
@@ -96,8 +235,9 @@
         }
     }
 
-    private (string Icon, string Color) GetCategoryStyle(string name)
+    private CategoryUI GetCategoryUI(CategoryListResponseDto category)
     {
+        var name = category.Name;
         var lowerName = name.ToLower();
         
         // Keyword matching for Icons
@@ -144,7 +284,20 @@
             color = colors[Math.Abs(name.GetHashCode() + 3) % colors.Length];
         }
 
-        return (icon, color);
+        string bgGlow = color == "primary" ? "bg-primary/20" : $"bg-{color}-500/20";
+        string bgIcon = color == "primary" ? "bg-primary/10" : $"bg-{color}-500/10";
+        string textColor = color == "primary" ? "text-primary" : $"text-{color}-600";
+        string gradient = color == "primary" ? "from-primary/20 to-primary/5" : $"from-{color}-500/20 to-{color}-500/5";
+
+        return new CategoryUI
+        {
+            Icon = icon,
+            Color = color,
+            Gradient = gradient,
+            BgGlow = bgGlow,
+            BgIcon = bgIcon,
+            TextColor = textColor
+        };
     }
 
     private void GoToCategoryDetail(Guid id)
@@ -163,7 +316,6 @@
         _alertType = type;
         StateHasChanged();
         await JSRuntime.InvokeVoidAsync("initIcons");
-        await Task.Delay(5000);
         _alertMessage = "";
         StateHasChanged();
     }
@@ -176,3 +328,4 @@
         }
     }
 }
+
