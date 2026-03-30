@@ -84,10 +84,13 @@ public class BranchInventoryService : IBranchInventoryService
                     {
                         Id = inventory.Id,
                         ProductId = inventory.ProductId, // <-- Added
+                        BranchId = inventory.BranchId,
+                        BranchName = inventory.Branch.Name,
                         StockQuantity = inventory.StockQuantity,
                         Name = inventory.Product.Name,
                         Price = inventory.Product.Price,
-                        Sku = inventory.Product.Sku
+                        Sku = inventory.Product.Sku,
+                        CategoryName = inventory.Product.Category.Name
                     })
                     .ToListAsync();
 
@@ -216,6 +219,8 @@ public class BranchInventoryGetByIdResponse
 {
     public Guid Id { get; set; }
     public Guid ProductId { get; set; }
+    public Guid BranchId { get; set; }
+    public string BranchName { get; set; } = null!;
     public string Name { get; set; } = null!;
     public string Sku { get; set; } = null!;
     public decimal Price { get; set; }
