@@ -42,20 +42,38 @@
         
         window.initIcons = () => {
             if (window.lucide) {
-                // Modified to prevent Blazor "removeChild" error by not replacing the tag itself
                 document.querySelectorAll('[data-lucide]').forEach(el => {
                     const iconName = el.getAttribute('data-lucide');
                     if (iconName && !el.getAttribute('data-lucide-initialized')) {
-                        // CamelCase the icon name for the lucide.icons dictionary
-                        const camelCaseName = iconName.replace(/-./g, x => x[1].toUpperCase());
-                        const iconData = lucide.icons[camelCaseName];
+                        // Create a temporary element to let lucide generate the SVG
+                        const tempDiv = document.createElement('div');
+                        const tempIcon = document.createElement('i');
+                        tempIcon.setAttribute('data-lucide', iconName);
+                        // Deliberately NOT copying el.className to tempIcon here.
+                        // Copying layout/positional classes (like absolute, top-1/2, w-4, h-4) 
+                        // causes the SVG to be displaced inside the original wrapper.
+                        tempDiv.appendChild(tempIcon);
                         
-                        if (iconData) {
-                            // Create SVG element
-                            const svg = lucide.createIcons.createSVG(iconData);
-                            // Clear and append instead of replacing the entire element
-                            el.innerHTML = ''; 
-                            el.appendChild(svg);
+                        // Generate the SVG safely
+                        lucide.createIcons({ root: tempDiv });
+                        const svgElement = tempDiv.querySelector('svg');
+                        
+                        if (svgElement) {
+                            // Clear existing content and append the generated SVG
+                            el.innerHTML = '';
+                            
+                            // Adjust the SVG to perfectly fill the wrapper <i>
+                            svgElement.style.width = '100%';
+                            svgElement.style.height = '100%';
+                            svgElement.style.pointerEvents = 'none';
+                            
+                            // Let the outer <i> handle layout (flex, absolute, width, height)
+                            // Remove nested display modifications that break CSS utility classes.
+                            el.style.display = '';
+                            el.style.alignItems = '';
+                            el.style.justifyContent = '';
+                            
+                            el.appendChild(svgElement);
                             el.setAttribute('data-lucide-initialized', 'true');
                         }
                     }
