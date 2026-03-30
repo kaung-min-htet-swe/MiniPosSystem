@@ -88,7 +88,7 @@
     {
         try
         {
-            var response = await Http.GetAsync($"api/branches?IncludeMerchant=true&MerchantId={_merchantId}&page=1&pageSize=10");
+            var response = await Http.GetAsync($"api/branches");
             if (!response.IsSuccessStatusCode)
             {
                 await ShowAlert("Failed to load branches.", "error");

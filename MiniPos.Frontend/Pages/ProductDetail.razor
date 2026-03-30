@@ -236,7 +236,7 @@
                     _editSku = _product.Sku;
                     _editPrice = _product.Price;
 
-                    await LoadCategoryData(_product.CategoryId);
+                    await LoadCategoryData(_product.Category.Id);
                     _ui = GetProductUI(_product);
                 }
             }

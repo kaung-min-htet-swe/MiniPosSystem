@@ -44,18 +44,18 @@ public class MerchantService : IMerchantService
                 .AsNoTracking()
                 .Skip(skip)
                 .Take(take)
-                .Where(m => m.Users.Any(mu => 
-                    mu.Id == merchantAdminId && 
-                    mu.Role == "Merchant"))
+                .Where(m => 
+                    m.Users.Any(mu => mu.Id == merchantAdminId && mu.Role == "Merchant"))
+                .Select(m => new MerchantListResponse
+                {
+                    Id = m.Id,
+                    Name = m.Name,
+                    ContactEmail = m.ContactEmail,
+                    BranchCount = m.Branches.Count,
+                })
                 .ToListAsync();
             
-            var dto = merchants.Select(m => new MerchantListResponse {
-                Id = m.Id,
-                Name = m.Name,
-                ContactEmail = m.ContactEmail,
-            }).ToList();
-
-            var result = new PagedResult<MerchantListResponse>(dto, totalCount, request.PageNumber, request.PageSize);
+            var result = new PagedResult<MerchantListResponse>(merchants, totalCount, request.PageNumber, request.PageSize);
             return Result<PagedResult<MerchantListResponse>>.Success(result);
         }
         catch (Exception e)
@@ -168,8 +168,9 @@ public class MerchantListRequest : PaginationFilter
 public class MerchantListResponse
 {
     public Guid Id { get; set; }
-    public string Name { get; set; } = string.Empty;
+    public string? Name { get; set; }
     public string? ContactEmail { get; set; }
+    public int BranchCount { get; set; }
 }
 
 public class MerchantGetByIdResponse

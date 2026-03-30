@@ -27,17 +27,12 @@ public class BranchInventoryService : IBranchInventoryService
 {
     try
     {
-        var isMerchantExists = await _db.Merchants.AnyAsync(merchant => merchant.Id == request.MerchantId);
-        if (!isMerchantExists)
-            return Result<PagedResult<BranchInventoryListResponse>>.Failure(new NotFoundError("Product.GetList",
-                "Merchant does not exist"));
-
         var isBranchExists = await _db.Branches.AnyAsync(branch => branch.Id == request.BranchId);
         if (!isBranchExists)
             return Result<PagedResult<BranchInventoryListResponse>>.Failure(new NotFoundError("Product.GetList",
                 "Branch does not exist"));
 
-            var query = _db.BranchInventories
+        var query = _db.BranchInventories
                 .Where(inventory => inventory.BranchId == request.BranchId)
                 .AsNoTracking()
                 .AsQueryable();
@@ -52,7 +47,6 @@ public class BranchInventoryService : IBranchInventoryService
                 .Skip(skip)
                 .Take(take)
                 .OrderByDescending(product => product.CreatedAt)
-                .Include(inventory => inventory.Product)
                 .Select(inventory => new BranchInventoryListResponse
                 {
                     Id = inventory.Id,
@@ -223,7 +217,7 @@ public class BranchInventoryService : IBranchInventoryService
 
 public class BranchInventoryListRequest : PaginationFilter
 {
-    public Guid MerchantId { get; set; }
+    public Guid ProcessedById { get; set; }
     public Guid BranchId { get; set; }
     public Guid? CategoryId { get; set; }
 }

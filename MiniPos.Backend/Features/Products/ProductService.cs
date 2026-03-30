@@ -1,6 +1,7 @@
 using Common;
 using Database.EfAppDbContextModels;
 using Microsoft.EntityFrameworkCore;
+using MiniPos.Backend.Features.Users;
 
 namespace MiniPos.Backend.Features.Products;
 
@@ -26,10 +27,10 @@ public class ProductService : IProductService
     {
         try
         {
-            var query = _db.Products.AsNoTracking().AsQueryable();
-
-            if (request.MerchantId.HasValue)
-                query = query.Where(x => x.MerchantId == request.MerchantId.Value);
+            var query = _db.Products
+                .Where(x => x.MerchantId == request.MerchantId)
+                .AsNoTracking()
+                .AsQueryable();
 
             if (request.CategoryId.HasValue)
                 query = query.Where(x => x.CategoryId == request.CategoryId.Value);
@@ -48,13 +49,19 @@ public class ProductService : IProductService
                 .Select(p => new ProductListResponse
                 {
                     Id = p.Id,
-                    MerchantId = p.MerchantId,
-                    CategoryId = p.CategoryId,
                     Name = p.Name,
                     Sku = p.Sku,
                     Price = p.Price,
-                    CreatedAt = p.CreatedAt,
-                    UpdatedAt = p.UpdatedAt
+                    Merchant = new MerchantDto
+                    {
+                        Id = p.MerchantId,
+                        Name = p.Merchant.Name,
+                    },
+                    Category = new CategoryDto
+                    {
+                        Id = p.CategoryId,
+                        Name = p.Category.Name,
+                    }
                 })
                 .ToListAsync();
 
@@ -77,13 +84,9 @@ public class ProductService : IProductService
                 .Select(p => new ProductGetByIdResponse
                 {
                     Id = p.Id,
-                    MerchantId = p.MerchantId,
-                    CategoryId = p.CategoryId,
                     Name = p.Name,
                     Sku = p.Sku,
-                    Price = p.Price,
-                    CreatedAt = p.CreatedAt,
-                    UpdatedAt = p.UpdatedAt
+                    Price = p.Price
                 })
                 .FirstOrDefaultAsync();
 
@@ -205,25 +208,43 @@ public class ProductService : IProductService
 
 public class ProductListRequest : PaginationFilter
 {
-    public Guid? MerchantId { get; set; }
+    public Guid MerchantId { get; set; }
     public Guid? CategoryId { get; set; }
     public string? SearchTerm { get; set; }
+    public Guid ProcessedById { get; set; }
+}
+
+public class MerchantDto
+{
+    public Guid Id { get; set; }
+    public string? Name { get; set; }
+}
+
+public class CategoryDto
+{
+    public Guid Id { get; set; }
+    public string? Name { get; set; }
 }
 
 public class ProductListResponse
 {
     public Guid Id { get; set; }
-    public Guid MerchantId { get; set; }
-    public Guid CategoryId { get; set; }
-    public string Name { get; set; } = null!;
-    public string Sku { get; set; } = null!;
+    public string? Name { get; set; }
+    public string? Sku { get; set; }
     public decimal Price { get; set; }
-    public DateTime CreatedAt { get; set; }
-    public DateTime? UpdatedAt { get; set; }
+    public MerchantDto? Merchant { get; set; }
+    public CategoryDto? Category { get; set; }
 }
 
-public class ProductGetByIdResponse : ProductListResponse
+public class ProductGetByIdResponse
 {
+    public Guid Id { get; set; }
+    public Guid MerchantId { get; set; }
+    public Guid CategoryId { get; set; }
+    public string? Name { get; set; }
+    public string? Sku { get; set; }
+    public decimal Price { get; set; }
+    public MerchantDto? Merchant { get; set; }
 }
 
 public class ProductCreateRequest

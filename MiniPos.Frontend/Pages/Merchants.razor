@@ -47,7 +47,7 @@
                 var idOrEmail = merchant.ContactEmail != null ? merchant.ContactEmail : $"ID: {merchant.Id.ToString().Substring(0,8).ToUpper()}";
                 var initials = GetInitials(merchant.Name);
 
-                <div class="pos-card relative overflow-hidden group hover:border-@colorClass/30 transition-all p-0 flex flex-col @opacityClass cursor-pointer" @onclick="() => GoToMerchantDetail(merchant.Id)">
+                <div class="pos-card relative overflow-hidden group hover:border-@colorClass/30 transition-all p-0 flex flex-col @opacityClass cursor-pointer">
                     @if (merchant.IsActive)
                     {
                         <div class="absolute -right-12 -top-12 w-32 h-32 @glowClass rounded-full blur-2xl transition-colors"></div>
@@ -76,7 +76,7 @@
                         </div>
 
                         <div class="mt-4 flex items-center gap-2 text-xs text-muted-foreground">
-                            <i data-lucide="map-pin" class="w-3.5 h-3.5"></i> @merchant.Branches.Count Branches
+                            <i data-lucide="map-pin" class="w-3.5 h-3.5"></i> @merchant.BranchCount Branches
                         </div>
                     </div>
                 </div>
@@ -94,7 +94,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var pagedResult = await Http.GetFromJsonAsync<PagedResult<Merchant>>("sample-data/merchants.json");
+        var pagedResult = await Http.GetFromJsonAsync<PagedResult<Merchant>>("api/merchants");
         _merchants = pagedResult?.Data;
     }
 
@@ -104,11 +104,6 @@
         if (parts.Length == 0) return "M";
         if (parts.Length == 1) return parts[0][0].ToString().ToUpper();
         return $"{parts[0][0]}{parts[parts.Length - 1][0]}".ToUpper();
-    }
-
-    private void GoToMerchantDetail(Guid id)
-    {
-        Navigation.NavigateTo($"/merchants/{id}");
     }
 
     private void GoToAddMerchant()

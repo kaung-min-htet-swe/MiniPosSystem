@@ -1,6 +1,7 @@
 using Mapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using MiniPos.Backend.Extensions;
 
 namespace MiniPos.Backend.Features.Products;
 
@@ -19,6 +20,7 @@ public class ProductController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetList([FromQuery] ProductListRequest filter)
     {
+        filter.ProcessedById = User.GetUserId();
         var result = await _productService.GetList(filter);
         if (!result.IsSuccess)
         {
