@@ -53,33 +53,40 @@
     }
     else if (!_selectedBranchId.HasValue)
     {
-        <!-- Branch Selection View -->
-        <div class="flex-1 flex flex-col items-center justify-center max-w-5xl mx-auto w-full animate-fade-in">
-            <div class="text-center mb-12">
-                <i data-lucide="store" class="w-16 h-16 text-primary mx-auto mb-6 opacity-80"></i>
-                <h2 class="text-3xl font-black tracking-tight text-foreground mb-3">Select Active Branch</h2>
-                <p class="text-muted-foreground font-medium">Choose a branch to start managing its catalog and processing sales.</p>
+        <!-- Sleek Branch Selection View -->
+        <div class="flex-1 flex flex-col items-center justify-center max-w-4xl mx-auto w-full animate-fade-in p-6">
+            <div class="text-center mb-10 w-full max-w-md mx-auto">
+                <div class="w-16 h-16 bg-white border border-border/40 shadow-xl shadow-primary/5 rounded-2xl flex items-center justify-center mx-auto mb-6 transform -rotate-3 hover:rotate-0 transition-transform duration-500 group">
+                    <i data-lucide="store" class="w-7 h-7 text-primary group-hover:scale-110 transition-transform duration-500"></i>
+                </div>
+                <h2 class="text-3xl font-black tracking-tight text-foreground font-outfit mb-2">POS Terminals</h2>
+                <p class="text-muted-foreground text-sm font-medium">Select your active branch routing terminal to initialize the sales register.</p>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full px-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
                 @if (_branches != null)
                 {
                     @foreach (var branch in _branches)
                     {
-                        <div class="group relative overflow-hidden transition-all duration-300 cursor-pointer rounded-[2.5rem] border border-white/60 bg-white/40 backdrop-blur-xl p-8 hover:-translate-y-2 hover:shadow-2xl hover:shadow-primary/20 hover:border-primary/40 flex flex-col" @onclick="() => SelectBranch(branch)">
-                            <div class="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity">
-                                <i data-lucide="store" class="w-16 h-16 text-primary"></i>
-                            </div>
+                        var isHighlighted = _branches.IndexOf(branch) == 0;
+                        var glowClass = isHighlighted ? "shadow-primary/20 border-primary/30" : "shadow-sm border-white/60";
+                        var badgeRender = isHighlighted ? "<span class='absolute top-3 right-3 flex h-2 w-2'><span class='animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75'></span><span class='relative inline-flex rounded-full h-2 w-2 bg-emerald-500'></span></span>" : "";
+
+                        <div class="group relative overflow-hidden transition-all duration-300 cursor-pointer rounded-2xl border @glowClass bg-white/60 backdrop-blur-xl p-5 hover:-translate-y-1 hover:shadow-xl hover:shadow-primary/10 hover:border-primary/50 flex items-center gap-4" @onclick="() => SelectBranch(branch)">
+                            @((MarkupString)badgeRender)
+                            <div class="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                             
-                            <div class="mb-6 w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all duration-500">
-                                <i data-lucide="map-pin" class="w-6 h-6"></i>
+                            <div class="shrink-0 w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all duration-500 shadow-inner">
+                                <i data-lucide="map-pin" class="w-5 h-5"></i>
                             </div>
 
-                            <h3 class="text-2xl font-black text-foreground mb-2 group-hover:text-primary transition-colors">@branch.Name</h3>
-                            <p class="text-sm text-muted-foreground font-medium mb-8 flex-1">@(branch.Address ?? "No address registered.")</p>
+                            <div class="flex-1 min-w-0">
+                                <h3 class="text-[15px] font-bold text-foreground truncate group-hover:text-primary transition-colors font-outfit">@branch.Name</h3>
+                                <p class="text-[11px] text-muted-foreground font-medium truncate mt-0.5">@(branch.Address ?? "No address registered")</p>
+                            </div>
                             
-                            <div class="flex items-center text-primary font-black text-xs uppercase tracking-widest gap-2 group-hover:translate-x-2 transition-transform">
-                                Enter POS <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                            <div class="shrink-0 w-8 h-8 rounded-full bg-white border border-border/40 flex items-center justify-center text-muted-foreground group-hover:bg-primary group-hover:text-white group-hover:border-primary transition-all shadow-sm group-hover:shadow-primary/30">
+                                <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-0.5 transition-transform"></i>
                             </div>
                         </div>
                     }
