@@ -34,9 +34,9 @@
             <!-- Search Catalog -->
             @if (_selectedBranchId.HasValue)
             {
-                <div class="relative bg-white/40 backdrop-blur-xl border border-white/60 shadow-lg rounded-full pr-2 pl-4 py-2 flex items-center w-72 animate-fade-in">
-                    <i data-lucide="search" class="w-4 h-4 text-muted-foreground mr-2"></i>
-                    <input type="text" placeholder="Search catalog..." class="bg-transparent border-none focus:outline-none focus:ring-0 text-sm w-full placeholder:text-muted-foreground/70 text-foreground font-semibold" 
+                <div class="relative flex items-center w-72 animate-fade-in group">
+                    <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors"></i>
+                    <input type="text" placeholder="Search catalog..." class="w-full pl-10 pr-4 py-2.5 bg-white border border-border/60 rounded-2xl text-sm focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary/40 focus:bg-white transition-all shadow-sm"
                            @bind="_searchQuery" @bind:event="oninput" @onkeyup="HandleSearch" />
                 </div>
             }

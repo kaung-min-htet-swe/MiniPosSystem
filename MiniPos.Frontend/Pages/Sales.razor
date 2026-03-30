@@ -13,12 +13,12 @@
         <div class="flex-1 flex items-center gap-2 bg-white/40 backdrop-blur-md border border-white/60 rounded-2xl p-1.5 shadow-sm hover:shadow-md transition-all group/op-bar">
             
             <!-- Search Command -->
-            <div class="relative flex-1 group/search">
+            <div class="relative flex-1 sm:w-64 group/search">
                 <i data-lucide="search"
-                   class="w-3.5 h-3.5 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/60 group-hover/search:text-primary transition-colors"></i>
+                   class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within/search:text-primary transition-colors"></i>
                 <input type="text" @bind="_productSearch" @bind:event="oninput" @onkeyup="HandleKeyUp" 
                        placeholder="Search products, SKUs or references..."
-                       class="w-full pl-10 pr-10 py-2 bg-white/50 border border-transparent rounded-xl text-[11px] font-bold focus:bg-white focus:border-primary/20 transition-all placeholder:text-muted-foreground/30 placeholder:font-medium" />
+                       class="w-full pl-10 pr-10 py-2.5 bg-white border border-border/60 rounded-2xl text-sm focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary/40 focus:bg-white transition-all shadow-sm" />
                 @if (!string.IsNullOrEmpty(_productSearch))
                 {
                     <button class="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center rounded-lg hover:bg-red-50 text-muted-foreground/40 hover:text-red-500 transition-all active:scale-95" 
