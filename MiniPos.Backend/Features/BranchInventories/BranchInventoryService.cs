@@ -38,7 +38,7 @@ public class BranchInventoryService : IBranchInventoryService
                 .AsQueryable();
 
             if (request.CategoryId.HasValue)
-                query = query.Where(inventory => inventory.Product.Id == request.CategoryId);
+                query = query.Where(inventory => inventory.Product.CategoryId == request.CategoryId);
 
             var totalCount = await query.CountAsync();
             var skip = (request.PageNumber - 1) * request.PageSize;
@@ -109,48 +109,24 @@ public class BranchInventoryService : IBranchInventoryService
         {
             var merchantExists = await _db.Merchants.AnyAsync(m => m.Id == request.MerchantId);
             if (!merchantExists)
-                return Result.Failure(new NotFoundError(errCode, "Merchant does not exist"));
-
-            var categoryExists =
-                await _db.Categories.AnyAsync(c => c.Id == request.CategoryId && c.MerchantId == request.MerchantId);
-            if (!categoryExists)
-                return Result.Failure(new NotFoundError(errCode, "Category does not exist for this merchant"));
+                return Result.Failure(new BadRequestError(errCode, "Merchant does not exist"));
 
             var productExist =
-                await _db.Products.AnyAsync(p => p.Sku == request.Sku && p.MerchantId == request.MerchantId);
-            if (productExist)
-                return Result.Failure(new ConflictError(errCode,
-                    "Product with the same SKU already exists for this merchant"));
+                await _db.Products.AnyAsync(p => p.Id == request.ProductId && p.MerchantId == request.MerchantId);
+            if (!productExist)
+                return Result.Failure(new BadRequestError(errCode, "Product does not exist for this merchant"));
 
-            var branch = await _db.Branches
-                .AsNoTracking()
-                .FirstOrDefaultAsync(b => b.Id == request.BranchId && b.MerchantId == request.MerchantId);
-            if (branch == null)
-                return Result.Failure(new NotFoundError(errCode, "Branch does not exist for this merchant"));
+            var branchExist = await _db.Branches
+                .AnyAsync(b => b.Id == request.BranchId && b.MerchantId == request.MerchantId);
+            if (!branchExist)
+                return Result.Failure(new BadRequestError(errCode, "Branch does not exist for this merchant"));
 
-            var product = new Product
-            {
-                MerchantId = request.MerchantId,
-                CategoryId = request.CategoryId,
-                Name = request.Name,
-                Sku = request.Sku,
-                Price = request.Price,
-                CreatedAt = DateTime.UtcNow
-            };
-
-            await _db.Products.AddAsync(product);
-            await _db.SaveChangesAsync();
-            
-            Console.WriteLine($"Created product with ID: {product.Id} for branch: {branch.Name}");
-            
             var branchInventory = new BranchInventory
             {
                 BranchId = request.BranchId,
-                ProductId = product.Id,
+                ProductId = request.ProductId,
                 StockQuantity = request.StockQuantity
             };
-
-            Console.WriteLine($"Created product with ID: {branchInventory.Id} for branch: {branchInventory.StockQuantity}");
             
             await _db.BranchInventories.AddAsync(branchInventory);
             await _db.SaveChangesAsync();
@@ -251,10 +227,7 @@ public class BranchInventoryCreateRequest
 {
     public Guid MerchantId { get; set; }
     public Guid BranchId { get; set; }
-    public Guid CategoryId { get; set; }
-    public string Name { get; set; }
-    public string Sku { get; set; }
-    public decimal Price { get; set; }
+    public Guid ProductId { get; set; }
     public int StockQuantity { get; set; }
 }
 

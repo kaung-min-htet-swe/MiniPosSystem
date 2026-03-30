@@ -25,12 +25,10 @@ public class CategoryDto
 public class ProductCreateRequestDto
 {
     public Guid MerchantId { get; set; }
-    public Guid BranchId { get; set; }
     public Guid CategoryId { get; set; }
     public string? Name { get; set; }
     public string? Sku { get; set; }
     public decimal Price { get; set; }
-    public int StockQuantity { get; set; }
 }
 
 public class ProductUpdateRequestDto
