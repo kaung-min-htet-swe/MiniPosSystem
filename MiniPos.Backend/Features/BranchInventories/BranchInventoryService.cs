@@ -122,8 +122,8 @@ public class BranchInventoryService : IBranchInventoryService
                 return Result.Failure(new ConflictError(errCode,
                     "Product with the same SKU already exists for this merchant"));
 
-            var branch = await _db
-                .Branches
+            var branch = await _db.Branches
+                .AsNoTracking()
                 .FirstOrDefaultAsync(b => b.Id == request.BranchId && b.MerchantId == request.MerchantId);
             if (branch == null)
                 return Result.Failure(new NotFoundError(errCode, "Branch does not exist for this merchant"));
@@ -139,10 +139,10 @@ public class BranchInventoryService : IBranchInventoryService
             };
 
             await _db.Products.AddAsync(product);
-            var result = await _db.SaveChangesAsync();
-            if (result == 0)
-                return Result.Failure(new InternalError(errCode, "Failed to create product"));
-
+            await _db.SaveChangesAsync();
+            
+            Console.WriteLine($"Created product with ID: {product.Id} for branch: {branch.Name}");
+            
             var branchInventory = new BranchInventory
             {
                 BranchId = request.BranchId,
@@ -150,14 +150,15 @@ public class BranchInventoryService : IBranchInventoryService
                 StockQuantity = request.StockQuantity
             };
 
+            Console.WriteLine($"Created product with ID: {branchInventory.Id} for branch: {branchInventory.StockQuantity}");
+            
             await _db.BranchInventories.AddAsync(branchInventory);
-            result = await _db.SaveChangesAsync();
-            return result > 0
-                ? Result.Success()
-                : Result.Failure(new InternalError("BranchInventory.Create", "Failed to create branch inventory"));
+            await _db.SaveChangesAsync();
+            return Result.Success();
         }
         catch (Exception e)
         {
+            Console.WriteLine($"{errCode} ${e.Message}");
             return Result.Failure(new InternalError(errCode, e.Message));
         }
     }

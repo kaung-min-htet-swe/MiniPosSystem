@@ -12,9 +12,6 @@
             Back to Products
         </button>
         <div class="flex items-center gap-2">
-            <button class="btn btn-outline border-border btn-sm rounded-lg flex items-center gap-1.5 hover:bg-muted/10 mr-1" @onclick="() => { _editStock = _ui.StockQuantity; _showStockModal = true; }">
-                <i data-lucide="plus" class="w-3.5 h-3.5"></i> Update Stock
-            </button>
             <button class="btn btn-primary btn-sm rounded-lg flex items-center gap-1.5" @onclick="() => _showEditModal = true">
                 <i data-lucide="pencil" class="w-3.5 h-3.5"></i> Edit Product
             </button>
@@ -136,33 +133,7 @@
                 </div>
             </div>
         }
-
-        <!-- Update Stock Modal -->
-        @if (_showStockModal)
-        {
-            <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
-                <div class="bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-border/40 w-full max-w-md p-6 animate-scale-up space-y-5">
-                    <div class="flex items-center gap-2 text-primary">
-                        <i data-lucide="plus" class="w-5 h-5"></i>
-                        <h3 class="text-lg font-bold">Update Stock</h3>
-                    </div>
-                    <div class="space-y-4">
-                        <div class="space-y-1">
-                            <label class="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Adjust Quantity Units</label>
-                            <input type="number" @bind="_editStock" class="w-full px-4 py-2.5 bg-white border border-border/60 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary/40 focus:outline-none font-medium" />
-                        </div>
-                    </div>
-                    <div class="flex justify-end gap-3 pt-2">
-                        <button class="btn btn-ghost rounded-xl px-4 text-sm" @onclick='() => _showStockModal = false' disabled="@_isSubmitting">Cancel</button>
-                        <button class="btn btn-primary rounded-xl px-5 text-sm shadow-primary disabled:opacity-50 flex items-center gap-2" @onclick="HandleUpdateStock" disabled="@_isSubmitting">
-                            @if (_isSubmitting) { <div class="animate-spin rounded-full h-3.5 w-3.5 border-2 border-white/20 border-t-white"></div> }
-                            <span>Update</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        }
-
+        
         <!-- Delete Modal -->
         @if (_showDeleteModal)
         {
@@ -200,7 +171,6 @@
     // Modals controls
     private bool _showEditModal = false;
     private bool _showDeleteModal = false;
-    private bool _showStockModal = false;
 
     private string _editName = "";
     private string _editSku = "";
@@ -341,14 +311,6 @@
             _isSubmitting = false;
             StateHasChanged();
         }
-    }
-
-    private async Task HandleUpdateStock()
-    {
-        // Note: ProductService doesn't handle stock directly.
-        // This would normally go to an InventoryService.
-        await ShowAlert("Stock update is managed via Branch Inventory. Please use the Inventory module for real updates.", "warning");
-        _showStockModal = false;
     }
 
     private async Task HandleDeleteProduct()

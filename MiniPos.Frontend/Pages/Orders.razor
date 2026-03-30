@@ -257,18 +257,41 @@
 
                         <!-- Premium Action Buttons -->
                         <div class="flex gap-4">
-                            <button class="bg-gradient-to-r from-primary to-purple-600 hover:from-primary hover:to-primary text-white font-black py-4 px-6 rounded-2xl shadow-xl shadow-primary/30 hover:shadow-2xl hover:shadow-primary/40 transition-all hover:-translate-y-1 active:scale-[0.98] flex items-center justify-center gap-3 w-full disabled:opacity-40 disabled:grayscale disabled:hover:translate-y-0 disabled:hover:shadow-none" 
+                            <button class="relative group overflow-hidden bg-slate-900 text-white font-black py-5 px-6 rounded-[2rem] transition-all duration-500 hover:shadow-[0_20px_50px_rgba(79,70,229,0.3)] active:scale-[0.98] w-full disabled:opacity-40 disabled:grayscale disabled:hover:shadow-none"
                                     disabled="@(!_cart.Any() || _isProcessing)" @onclick="Checkout">
-                                @if (_isProcessing)
-                                {
-                                    <div class="animate-spin rounded-full h-6 w-6 border-4 border-t-white border-white/20"></div>
-                                    <span class="text-lg">Processing...</span>
-                                }
-                                else
-                                {
-                                    <i data-lucide="credit-card" class="w-6 h-6"></i>
-                                    <span class="text-lg">Charge Customer</span>
-                                }
+                                
+                                <!-- Animated background gradient -->
+                                <div class="absolute inset-0 bg-gradient-to-r from-primary via-purple-600 to-primary bg-[length:200%_100%] animate-pulse opacity-100 group-hover:opacity-90 transition-opacity"></div>
+                                
+                                <!-- Glass sheen effect -->
+                                <div class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-1000 bg-gradient-to-tr from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-all ease-in-out"></div>
+                                
+                                <div class="relative flex items-center justify-between gap-4">
+                                    @if (_isProcessing)
+                                    {
+                                        <div class="flex items-center gap-3 mx-auto">
+                                            <div class="animate-spin rounded-full h-6 w-6 border-4 border-t-white border-white/20"></div>
+                                            <span class="text-xl tracking-tight">Processing Payment...</span>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
+                                                <i data-lucide="credit-card" class="w-6 h-6 text-white"></i>
+                                            </div>
+                                            <div class="flex flex-col items-start leading-none text-left">
+                                                <span class="text-[10px] font-bold text-white/70 uppercase tracking-widest mb-1">Confirm Sale</span>
+                                                <span class="text-xl tracking-tight">Charge Customer</span>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="flex items-center gap-2 bg-black/20 backdrop-blur-md py-2 px-4 rounded-2xl border border-white/10 group-hover:bg-black/30 transition-all">
+                                            <span class="text-lg font-black font-outfit">$@grandTotal.ToString("F2")</span>
+                                            <i data-lucide="chevron-right" class="w-4 h-4 text-white/50 group-hover:translate-x-1 transition-transform"></i>
+                                        </div>
+                                    }
+                                </div>
                             </button>
                         </div>
                     </div>

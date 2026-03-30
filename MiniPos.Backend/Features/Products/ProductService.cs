@@ -86,7 +86,8 @@ public class ProductService : IProductService
                     Id = p.Id,
                     Name = p.Name,
                     Sku = p.Sku,
-                    Price = p.Price
+                    Price = p.Price,
+                    CreatedAt = p.CreatedAt,
                 })
                 .FirstOrDefaultAsync();
 
@@ -244,6 +245,7 @@ public class ProductGetByIdResponse
     public string? Name { get; set; }
     public string? Sku { get; set; }
     public decimal Price { get; set; }
+    public DateTime? CreatedAt { get; set; }
     public MerchantDto? Merchant { get; set; }
 }
 

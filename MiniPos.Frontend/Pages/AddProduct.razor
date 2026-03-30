@@ -32,7 +32,8 @@
                         @(_alertType == "success" ? "bg-emerald-50/90 border-emerald-200 text-emerald-800" : "bg-rose-50/90 border-rose-200 text-rose-800")">
                         <div class="shrink-0 w-10 h-10 rounded-full flex items-center justify-center
                             @(_alertType == "success" ? "bg-emerald-100" : "bg-rose-100")">
-                            <i data-lucide="@(_alertType == "success" ? "check-circle" : "alert-circle")" class="w-6 h-6"></i>
+                            <i data-lucide="@(_alertType == "success" ? "check-circle" : "alert-circle")"
+                               class="w-6 h-6"></i>
                         </div>
                         <div>
                             <p class="text-xs font-black uppercase tracking-widest opacity-60">@(_alertType == "success" ? "Success" : "Error")</p>
@@ -191,7 +192,6 @@
     private List<MerchantDto>? _merchants;
     private List<CategoryListResponseDto> _filteredCategories = new();
     private List<BranchListResponseDto> _filteredBranches = new();
-    private string _merchantAdminId = "3E98433E-F36B-1410-8548-003FB1DF8966";
 
     private bool _isSubmitting = false;
     private bool _hasSubmittedAttempt = false;
@@ -227,7 +227,7 @@
     {
         try
         {
-            var response = await Http.GetAsync($"api/merchants?merchantAdminId={_merchantAdminId}");
+            var response = await Http.GetAsync($"api/merchants");
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadFromJsonAsync<PagedResult<MerchantDto>>();
@@ -244,7 +244,7 @@
     {
         var val = e.Value?.ToString() ?? "";
         _productRequest.MerchantId = val;
-        _productRequest.CategoryId = ""; 
+        _productRequest.CategoryId = "";
         _productRequest.BranchId = "";
         _filteredCategories.Clear();
         _filteredBranches.Clear();
@@ -268,7 +268,7 @@
 
     private async Task LoadBranches(Guid merchantId)
     {
-        var response = await Http.GetAsync($"api/branches?MerchantId={merchantId}");
+        var response = await Http.GetAsync($"api/branches?merchantId={merchantId}");
         if (response.IsSuccessStatusCode)
         {
             var result = await response.Content.ReadFromJsonAsync<PagedResult<BranchListResponseDto>>();
@@ -296,14 +296,24 @@
                 CategoryId = Guid.Parse(_productRequest.CategoryId),
                 Name = _productRequest.Name,
                 Sku = _productRequest.Sku,
-                Price = _productRequest.Price
+                Price = _productRequest.Price,
+                StockQuantity = _productRequest.StockQuantity,
+                BranchId = Guid.Parse(_productRequest.BranchId),
             };
 
-            var response = await Http.PostAsJsonAsync("api/products", request);
+            HttpResponseMessage response = new();
+            if (_productRequest.StockQuantity > 0 && string.IsNullOrEmpty(_productRequest.BranchId))
+            {
+                response = await Http.PostAsJsonAsync("api/inventories", request);
+            }
+            else
+            {
+                response = await Http.PostAsJsonAsync("api/products", request);
+            }
+
             if (response.IsSuccessStatusCode)
             {
                 await ShowAlert("Product created successfully!");
-                await Task.Delay(1500);
                 Navigation.NavigateTo("/products");
             }
             else
