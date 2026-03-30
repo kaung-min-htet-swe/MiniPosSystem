@@ -38,7 +38,7 @@ public class AuthenticationService : IAuthenticationService
 
     public async Task<Result<SignupResponse>> Signup(SignupRequest request)
     {
-        var user = await _userService.Create(new UserCreateRequest
+        var result = await _userService.Create(new UserCreateRequest
         {
             UserName = request.UserName,
             Email = request.Email,
@@ -51,16 +51,17 @@ public class AuthenticationService : IAuthenticationService
             BranchId = request.BranchId
         });
 
-        if (!user.IsSuccess) return Result<SignupResponse>.Failure(user.Error!);
+        if (result is { IsSuccess: false, Data: not null }) return Result<SignupResponse>.Failure(result.Error!);
 
-        var token = await _tokenService.IssueTokenAsync(user.Data!.Id, request.UserName!);
-        var result = new SignupResponse
+        var user = result.Data;
+        var token = await _tokenService.IssueTokenAsync(user.Id, user.UserName, user.Role);
+        var response = new SignupResponse
         {
-            Id = user.Data!.Id,
+            Id = user.Id,
             Token = token
         };
 
-        return Result<SignupResponse>.Success(result);
+        return Result<SignupResponse>.Success(response);
     }
 
     public async Task<Result<SigninResponse>> Signin(SigninRequest request)
@@ -75,7 +76,7 @@ public class AuthenticationService : IAuthenticationService
             if (result == PasswordVerificationResult.Failed)
                 return Result<SigninResponse>.Failure(new UnAuthorized(errCode, "Invalid credentials"));
 
-            var token = await _tokenService.IssueTokenAsync(user.Id, user.Username!);
+            var token = await _tokenService.IssueTokenAsync(user.Id, user.Username, user.Role);
             return Result<SigninResponse>.Success(new SigninResponse
             {
                 Id = user.Id,

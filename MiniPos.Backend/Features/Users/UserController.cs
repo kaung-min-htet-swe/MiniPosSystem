@@ -44,7 +44,6 @@ public class UserController : ControllerBase
         {
             UserId = userId,
             ProcessedById = processedById,
-            Role = nameof(UserRole.Cashier)
         };
         var result = await _userService.GetById(request);
         if (result.IsSuccess)

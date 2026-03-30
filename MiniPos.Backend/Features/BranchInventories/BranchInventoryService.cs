@@ -24,15 +24,15 @@ public class BranchInventoryService : IBranchInventoryService
 
     public async Task<Result<PagedResult<BranchInventoryListResponse>>> GetList(
         BranchInventoryListRequest request)
-{
-    try
     {
-        var isBranchExists = await _db.Branches.AnyAsync(branch => branch.Id == request.BranchId);
-        if (!isBranchExists)
-            return Result<PagedResult<BranchInventoryListResponse>>.Failure(new NotFoundError("Product.GetList",
-                "Branch does not exist"));
+        try
+        {
+            var isBranchExists = await _db.Branches.AnyAsync(branch => branch.Id == request.BranchId);
+            if (!isBranchExists)
+                return Result<PagedResult<BranchInventoryListResponse>>.Failure(new NotFoundError("Product.GetList",
+                    "Branch does not exist"));
 
-        var query = _db.BranchInventories
+            var query = _db.BranchInventories
                 .Where(inventory => inventory.BranchId == request.BranchId)
                 .AsNoTracking()
                 .AsQueryable();
@@ -50,13 +50,14 @@ public class BranchInventoryService : IBranchInventoryService
                 .Select(inventory => new BranchInventoryListResponse
                 {
                     Id = inventory.Id,
+                    ProductId = inventory.ProductId,
                     Name = inventory.Product.Name,
                     Sku = inventory.Product.Sku,
                     Price = inventory.Product.Price,
                     StockQuantity = inventory.StockQuantity
                 })
                 .ToListAsync();
-
+            
             var result =
                 new PagedResult<BranchInventoryListResponse>(items, totalCount, request.PageNumber,
                     request.PageSize);
@@ -82,6 +83,7 @@ public class BranchInventoryService : IBranchInventoryService
                     .Select(inventory => new BranchInventoryGetByIdResponse
                     {
                         Id = inventory.Id,
+                        ProductId = inventory.ProductId, // <-- Added
                         StockQuantity = inventory.StockQuantity,
                         Name = inventory.Product.Name,
                         Price = inventory.Product.Price,
@@ -225,6 +227,7 @@ public class BranchInventoryListRequest : PaginationFilter
 public class BranchInventoryListResponse
 {
     public Guid Id { get; set; }
+    public Guid ProductId { get; set; }
     public string Name { get; set; }
     public string Sku { get; set; }
     public decimal Price { get; set; }
@@ -235,6 +238,7 @@ public class BranchInventoryListResponse
 public class BranchInventoryGetByIdResponse
 {
     public Guid Id { get; set; }
+    public Guid ProductId { get; set; }
     public string Name { get; set; } = null!;
     public string Sku { get; set; } = null!;
     public decimal Price { get; set; }

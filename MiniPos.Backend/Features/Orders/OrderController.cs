@@ -1,6 +1,7 @@
 using Mapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using MiniPos.Backend.Extensions;
 
 namespace MiniPos.Backend.Features.Orders;
 
@@ -41,6 +42,7 @@ public class OrderController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> CreateOrder([FromBody] OrderCreateRequest request)
     {
+        request.ProcessedById = User.GetUserId();
         var result = await _orderService.Create(request);
         if (result.IsSuccess)
             return Created();

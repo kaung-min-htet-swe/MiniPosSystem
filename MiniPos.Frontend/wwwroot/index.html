@@ -42,7 +42,24 @@
         
         window.initIcons = () => {
             if (window.lucide) {
-                lucide.createIcons();
+                // Modified to prevent Blazor "removeChild" error by not replacing the tag itself
+                document.querySelectorAll('[data-lucide]').forEach(el => {
+                    const iconName = el.getAttribute('data-lucide');
+                    if (iconName && !el.getAttribute('data-lucide-initialized')) {
+                        // CamelCase the icon name for the lucide.icons dictionary
+                        const camelCaseName = iconName.replace(/-./g, x => x[1].toUpperCase());
+                        const iconData = lucide.icons[camelCaseName];
+                        
+                        if (iconData) {
+                            // Create SVG element
+                            const svg = lucide.createIcons.createSVG(iconData);
+                            // Clear and append instead of replacing the entire element
+                            el.innerHTML = ''; 
+                            el.appendChild(svg);
+                            el.setAttribute('data-lucide-initialized', 'true');
+                        }
+                    }
+                });
             }
         };
     </script>

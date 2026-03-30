@@ -109,12 +109,38 @@ public class UserService : IUserService
         const string errCode = "User.GetById";
         try
         {
-            return request.Role switch
-            {
-                nameof(UserRole.Merchant) => await GetMerchantById(request.UserId),
-                nameof(UserRole.Cashier) => await GetCashierById(request.UserId),
-                _ => Result<UserGetByIdResponse>.Failure(new BadRequestError(errCode, "Invalid user role specified"))
-            };
+            var user = await _db.Users
+                .AsNoTracking()
+                .Select(u => new UserGetByIdResponse
+                {
+                    Id = u.Id,
+                    UserName = u.Username,
+                    Email = u.Email,
+                    Role = u.Role,
+                    JoinedDate = u.CreatedAt,
+                    Merchant = u.Merchant != null
+                        ? new MerchantDto
+                        {
+                            Id = u.Merchant.Id,
+                            Name = u.Merchant.Name
+                        }
+                        : null,
+                    Branch = u.Branch != null
+                        ? new BranchDto
+                        {
+                            Id = u.Branch.Id,
+                            Name = u.Branch.Name
+                        }
+                        : null,
+                    TotalSales = u.Orders
+                        .Sum(o => (decimal?)o.TotalAmount)
+                        .ToString()
+                })
+                .FirstOrDefaultAsync(u => u.Id == request.UserId);
+            
+            if (user == null) return Result<UserGetByIdResponse>.Failure(new NotFoundError(errCode, "User does not exist"));
+            
+            return Result<UserGetByIdResponse>.Success(user);
         }
         catch (Exception e)
         {
@@ -396,7 +422,6 @@ public class UserGetByIdRequest
 {
     public Guid UserId { get; set; }
     public Guid ProcessedById { get; set; }
-    public string? Role { get; set; }
 }
 
 public class UserGetByIdResponse
@@ -427,6 +452,9 @@ public class UserCreateRequest
 public class UserCreateResponse
 {
     public Guid Id { get; set; }
+    public string? UserName { get; set; }
+    public string? Email { get; set; }
+    public string? Role { get; set; }
 }
 
 public class UserUpdateRequest
