@@ -587,7 +587,7 @@
     
     private async Task Checkout()
     {
-        if (!_cart.Any() || !_selectedBranchId.HasValue || _currentUser == null) return;
+        if (!_cart.Any() || !_selectedBranchId.HasValue || !_selectedMerchantId.HasValue || _currentUser == null) return;
 
         _isProcessing = true;
         StateHasChanged();
@@ -597,6 +597,7 @@
             var request = new
             {
                 BranchId = _selectedBranchId.Value,
+                MerchantId = _selectedMerchantId.Value,
                 OrderedItems = _cart.Select(i => new {
                     ProductId = i.ProductId,
                     Quantity = i.Quantity

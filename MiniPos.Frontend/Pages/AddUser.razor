@@ -161,17 +161,17 @@
                         Cancel
                     </button>
                     <button
-                        class="flex-1 sm:flex-none bg-primary text-white rounded-xl px-10 py-2.5 shadow-lg shadow-primary/10 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-xs font-bold transition-all hover:-translate-y-0.5"
+                        class="btn btn-primary px-8 h-10 shadow-xl shadow-primary/30 flex items-center gap-3 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                         @onclick="HandleSubmit" disabled="@(!IsFormValid() || _isSubmitting)">
                         @if (_isSubmitting)
                         {
-                            <div class="animate-spin rounded-full h-3 w-3 border-2 border-white/30 border-t-white"></div>
-                            <span>Creating Account...</span>
+                            <div class="animate-spin rounded-full h-4 w-4 border-4 border-t-white border-white/20"></div>
+                            <span class="font-black uppercase tracking-tight text-xs">Creating...</span>
                         }
                         else
                         {
-                            <i data-lucide="user-plus" class="w-3.5 h-3.5"></i>
-                            <span>Create Staff Account</span>
+                            <i data-lucide="user-plus" class="w-4 h-4 font-black"></i>
+                            <span class="font-black uppercase tracking-tight text-xs">Create Staff Account</span>
                         }
                     </button>
                 </div>

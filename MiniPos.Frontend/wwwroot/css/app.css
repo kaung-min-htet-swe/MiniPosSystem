@@ -819,7 +819,7 @@ a {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border-radius: var(--radius-sm);
+    border-radius: 1.25rem; /* More modern, consistent rounding */
     font-size: 0.875rem;
     font-weight: 500;
     transition: all 0.2s ease;
@@ -833,17 +833,31 @@ a {
 .btn-primary {
     background: linear-gradient(135deg, hsl(var(--primary)), hsl(280 84% 54%));
     color: white;
-    box-shadow: var(--shadow-primary);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    box-shadow: 0 10px 15px -3px hsla(var(--primary), 0.25), 0 4px 6px -4px hsla(var(--primary), 0.1);
+    border: 1px solid hsla(var(--primary), 0.2);
+    position: relative;
+    overflow: hidden;
 }
 
 .btn-primary:hover {
-    opacity: 0.9;
-    transform: translateY(-1px);
-    box-shadow: 0 6px 20px 0 hsl(var(--primary) / 0.4);
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 20px 25px -5px hsla(var(--primary), 0.3), 0 8px 10px -6px hsla(var(--primary), 0.2);
+    opacity: 1;
 }
 
 .btn-primary:active {
-    transform: translateY(0);
+    transform: translateY(0) scale(0.98);
+}
+
+.btn-primary::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom right, white, transparent);
+    opacity: 0.1;
+    pointer-events: none;
 }
 
 .btn-outline {
