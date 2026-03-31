@@ -26,11 +26,26 @@ public class OrderService : IOrderService
     {
         try
         {
+            if (request.MerchantId == Guid.Empty && request.MerchantAdminId != Guid.Empty)
+            {
+                var user = await _db.Users
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(u => u.Id == request.MerchantAdminId);
+                if (user != null && user.MerchantId.HasValue)
+                {
+                    request.MerchantId = user.MerchantId.Value;
+                }
+            }
+
             var query = _db.Orders
                 .AsNoTracking()
                 .AsQueryable();
 
-            if (request.BranchId.HasValue) query = query.Where(o => o.BranchId == request.BranchId.Value);
+            if (request.MerchantId != Guid.Empty)
+                query = query.Where(o => o.MerchantId == request.MerchantId);
+
+            if (request.BranchId.HasValue)
+                query = query.Where(o => o.BranchId == request.BranchId.Value);
 
             if (request.ProcessedById.HasValue)
                 query = query.Where(o => o.ProcessedById == request.ProcessedById.Value);
@@ -56,11 +71,13 @@ public class OrderService : IOrderService
                 .Select(order => new OrderListResponse
                 {
                     Id = order.Id,
-                    BranchId = order.BranchId,
-                    ProcessedById = order.ProcessedById,
                     OrderDate = order.OrderDate,
                     TotalAmount = order.TotalAmount,
-                    OrderItems = order.OrderItems.Select(oi => new OrderItemResponseDto
+                    ItemCount = order.OrderItems.Count,
+                    MerchantId = order.MerchantId,
+                    BranchId = order.BranchId,
+                    ProcessedById = order.ProcessedById,
+                    OrderItems = order.OrderItems.Select(oi => new OrderItemDto
                     {
                         Id = oi.Id,
                         ProductId = oi.ProductId,
@@ -87,6 +104,9 @@ public class OrderService : IOrderService
         try
         {
             var order = await _db.Orders
+                .AsNoTracking()
+                .Include(o => o.Branch)
+                .Include(o => o.ProcessedBy)
                 .Include(o => o.OrderItems)
                 .ThenInclude(oi => oi.Product)
                 .FirstOrDefaultAsync(o => o.Id == id);
@@ -97,11 +117,21 @@ public class OrderService : IOrderService
             var dto = new OrderGetByIdResponse
             {
                 Id = order.Id,
-                BranchId = order.BranchId,
-                ProcessedById = order.ProcessedById,
                 OrderDate = order.OrderDate,
                 TotalAmount = order.TotalAmount,
-                OrderItems = order.OrderItems.Select(oi => new OrderItemResponseDto
+                Branch = new BranchDto
+                {
+                    Id = order.BranchId,
+                    Name = order.Branch.Name
+                },
+                ProcessedBy = order.ProcessedBy != null
+                    ? new UserDto
+                    {
+                        Id = order.ProcessedBy.Id,
+                        Username = order.ProcessedBy.Username
+                    }
+                    : null,
+                OrderItems = order.OrderItems.Select(oi => new OrderItemDto
                 {
                     Id = oi.Id,
                     ProductId = oi.ProductId,
@@ -122,22 +152,15 @@ public class OrderService : IOrderService
 
     public async Task<Result> Create(OrderCreateRequest request)
     {
-        Console.WriteLine($"Creating order for BranchId: {request.BranchId}, ProcessedById: {request.ProcessedById}, Items: {request.OrderedItems[0].ProductId}");
         const string errCode = "Order.Create";
         try
         {
-            var user =
-                await _db.Users
-                    .AsNoTracking()
-                    .Include(u => u.Branch)
-                    .Select(u => new { u.Id, u.Role })
-                    .FirstOrDefaultAsync(u => u.Id == request.ProcessedById);
-            if (user == null)
-                return Result.Failure(new NotFoundError(errCode, "User does not exist or is not authorized"));
+            var userExist = await _db.Users.AnyAsync(u => u.Id == request.ProcessedById);
+            if (!userExist) return Result.Failure(new NotFoundError(errCode, "User does not exist"));
 
-            var branchExist = await _db.Branches.AnyAsync(b => b.Id == request.BranchId);
+            var branchExist = await _db.Branches.AnyAsync(b => b.Id == request.BranchId && b.MerchantId == request.MerchantId);
             if (!branchExist) return Result.Failure(new NotFoundError(errCode, "Branch does not exist"));
-            
+
             var productIds = request.OrderedItems.Select(item => item.ProductId).Distinct().ToList();
             var inventories = await _db.BranchInventories
                 .Include(bi => bi.Product)
@@ -155,7 +178,7 @@ public class OrderService : IOrderService
             {
                 var inventory = inventories.First(bi => bi.ProductId == orderedItem.ProductId);
                 var product = inventory.Product;
-                
+
                 if (inventory.StockQuantity < orderedItem.Quantity)
                     return Result.Failure(new ValidationError(errCode, $"Insufficient stock for: {product.Name}"));
 
@@ -175,6 +198,7 @@ public class OrderService : IOrderService
 
             var order = new Order
             {
+                MerchantId = request.MerchantId,
                 BranchId = request.BranchId,
                 ProcessedById = request.ProcessedById,
                 OrderDate = DateTime.UtcNow,
@@ -219,6 +243,8 @@ public class OrderService : IOrderService
 
 public class OrderListRequest : PaginationFilter
 {
+    public Guid MerchantId { get; set; }
+    public Guid MerchantAdminId { get; set; }
     public Guid? ProcessedById { get; set; }
     public Guid? BranchId { get; set; }
     public DateTime? StartDate { get; set; }
@@ -229,24 +255,40 @@ public class OrderListRequest : PaginationFilter
 public class OrderListResponse
 {
     public Guid Id { get; set; }
-    public Guid BranchId { get; set; }
-    public Guid? ProcessedById { get; set; }
     public DateTime OrderDate { get; set; }
     public decimal TotalAmount { get; set; }
-    public List<OrderItemResponseDto> OrderItems { get; set; } = new();
+    public int ItemCount { get; set; }
+    public Guid MerchantId { get; set; }
+    public Guid BranchId { get; set; }
+    public Guid? ProcessedById { get; set; }
+    public List<OrderItemDto> OrderItems { get; set; } = new();
+
+    public string? BranchName { get; set; }
+}
+
+public class BranchDto
+{
+    public Guid Id { get; set; }
+    public string? Name { get; set; }
+}
+
+public class UserDto
+{
+    public Guid Id { get; set; }
+    public string? Username { get; set; }
 }
 
 public class OrderGetByIdResponse
 {
     public Guid Id { get; set; }
-    public Guid BranchId { get; set; }
-    public Guid? ProcessedById { get; set; }
+    public BranchDto? Branch { get; set; }
+    public UserDto? ProcessedBy { get; set; }
     public DateTime OrderDate { get; set; }
     public decimal TotalAmount { get; set; }
-    public List<OrderItemResponseDto> OrderItems { get; set; } = new();
+    public List<OrderItemDto> OrderItems { get; set; } = new();
 }
 
-public class OrderItemResponseDto
+public class OrderItemDto
 {
     public Guid Id { get; set; }
     public Guid ProductId { get; set; }
@@ -258,12 +300,13 @@ public class OrderItemResponseDto
 
 public class OrderCreateRequest
 {
+    public Guid MerchantId { get; set; }
     public Guid BranchId { get; set; }
     public Guid ProcessedById { get; set; }
-    public List<OrderedItemDto> OrderedItems { get; set; } = new();
+    public List<OrderedItemRequest> OrderedItems { get; set; } = new();
 }
 
-public class OrderedItemDto
+public class OrderedItemRequest
 {
     public Guid ProductId { get; set; }
     public int Quantity { get; set; }

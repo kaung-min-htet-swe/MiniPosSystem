@@ -20,8 +20,7 @@ public class MerchantController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetList([FromQuery] MerchantListRequest filter)
     {
-        var userId = User.GetUserId();
-        filter.MerchantAdminId = userId;
+        filter.MerchantAdminId = User.GetUserId();
         var result = await _merchantService.GetList(filter);
         if (!result.IsSuccess)
         {

@@ -22,6 +22,7 @@ public class OrderListRequestDto : PaginationFilter
     public Guid? ProcessedById { get; set; }
     public DateTime? StartDate { get; set; }
     public DateTime? EndDate { get; set; }
+    public Guid? MerchantId { get; set; }
     public string? SearchTerm { get; set; }
 }
 
@@ -32,6 +33,7 @@ public class OrderListResponseDto
     public Guid? ProcessedById { get; set; }
     public DateTime OrderDate { get; set; }
     public decimal TotalAmount { get; set; }
+    public Guid MerchantId { get; set; }
     public List<OrderItemListDto> OrderItems { get; set; } = new();
 }
 

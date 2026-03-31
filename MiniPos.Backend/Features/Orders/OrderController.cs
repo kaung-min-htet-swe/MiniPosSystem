@@ -20,6 +20,7 @@ public class OrderController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetList([FromQuery] OrderListRequest filter)
     {
+        filter.MerchantAdminId = User.GetUserId();
         var result = await _orderService.GetList(filter);
         if (result.IsSuccess)
             return Ok(result.Data);

@@ -39,8 +39,6 @@ public class DashboardService : IDashboardService
                 .Select(o => new OrderListResponse
                 {
                     Id = o.Id,
-                    BranchId = o.BranchId,
-                    ProcessedById = o.ProcessedById,
                     OrderDate = o.OrderDate,
                     TotalAmount = o.TotalAmount
                 })
