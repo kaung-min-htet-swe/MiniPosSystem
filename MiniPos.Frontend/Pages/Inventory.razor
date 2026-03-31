@@ -38,6 +38,22 @@
             </div>
 
             <div class="flex items-center gap-3">
+                <!-- Merchant Selector -->
+                <div class="relative group">
+                    <i data-lucide="store"
+                       class="w-3.5 h-3.5 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors pointer-events-none"></i>
+                    <select @bind="_selectedMerchantId" @bind:after="LoadData"
+                            class="bg-white border border-border/60 rounded-2xl text-xs font-bold py-2.5 pl-10 pr-10 focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary/40 focus:bg-white transition-all shadow-sm cursor-pointer appearance-none">
+                        <option value="">All Merchants</option>
+                        @foreach (var mer in _merchants)
+                        {
+                            <option value="@mer.Id">@mer.Name</option>
+                        }
+                    </select>
+                    <i data-lucide="chevron-down"
+                       class="w-3.5 h-3.5 absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground transition-transform group-focus-within:rotate-180 pointer-events-none"></i>
+                </div>
+
                 <!-- Branch Selector -->
                 <div class="relative group">
                     <i data-lucide="store"
@@ -265,29 +281,63 @@
     private List<BranchInventoryListResponseDto>? _inventories;
     private List<Category> _categories = new();
     private List<BranchListResponseDto> _branches = new();
+    private List<Merchant> _merchants = new();
     
     private string _searchTerm = "";
     private string _viewMode = "grid";
     private Guid? _selectedCategoryId;
     private Guid? _selectedBranchId;
+    private Guid? _selectedMerchantId;
     
     // Default Merchant ID (for filtering branches/categories if needed)
     private string _defaultMerchantId = "3798433e-f36b-1410-8548-003fb1df8966";
 
     protected override async Task OnInitializedAsync()
     {
+        await LoadMerchants();
+        await LoadData();
+    }
+
+    private async Task LoadMerchants()
+    {
+        try
+        {
+            var response = await Http.GetAsync("api/merchants?pageSize=100");
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<PagedResult<Merchant>>();
+                if (result != null)
+                {
+                    _merchants = result.Data;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading merchants: {ex.Message}");
+        }
+    }
+
+    private async Task LoadData()
+    {
+        _branches.Clear();
+        _categories.Clear();
+        _selectedBranchId = null;
+        _inventories = null;
+        StateHasChanged();
+
         await LoadBranches();
         await LoadCategories();
         
-        // If we have branches, select the first one by default if not already set
-        if (_branches.Any() && _selectedBranchId == null)
+        if (_branches.Any())
         {
             _selectedBranchId = _branches.First().Id;
-        }
-        
-        if (_selectedBranchId != null)
-        {
             await LoadInventory();
+        }
+        else
+        {
+            _inventories = new List<BranchInventoryListResponseDto>();
+            StateHasChanged();
         }
     }
 
@@ -295,7 +345,10 @@
     {
         try
         {
-            var response = await Http.GetAsync("api/branches");
+            var url = "api/branches?pageSize=100";
+            if (_selectedMerchantId.HasValue) url += $"&merchantId={_selectedMerchantId.Value}";
+            
+            var response = await Http.GetAsync(url);
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadFromJsonAsync<PagedResult<BranchListResponseDto>>();
@@ -315,7 +368,10 @@
     {
         try
         {
-            var response = await Http.GetAsync("api/categories");
+            var url = "api/categories?pageSize=100";
+            if (_selectedMerchantId.HasValue) url += $"&merchantId={_selectedMerchantId.Value}";
+            
+            var response = await Http.GetAsync(url);
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadFromJsonAsync<PagedResult<Category>>();

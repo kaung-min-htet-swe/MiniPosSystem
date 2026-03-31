@@ -17,9 +17,9 @@ public class DashboardController : ControllerBase
     }
 
     [HttpGet()]
-    public async Task<IActionResult> GetStats()
+    public async Task<IActionResult> GetStats([FromQuery] Guid? merchantId)
     {
-        var result = await _dashboardService.GetStats();
+        var result = await _dashboardService.GetStats(merchantId);
         if (result.IsSuccess)
             return Ok(result.Data);
 

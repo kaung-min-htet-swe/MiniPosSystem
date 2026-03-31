@@ -31,6 +31,22 @@
         </div>
         
         <div class="flex items-center gap-3">
+            <!-- Merchant Selector -->
+            <div class="relative group animate-fade-in">
+                <i data-lucide="store"
+                   class="w-3.5 h-3.5 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors pointer-events-none"></i>
+                <select @bind="_selectedMerchantId" @bind:after="LoadData"
+                        class="bg-white border border-border/60 rounded-2xl text-xs font-bold py-2.5 pl-10 pr-10 focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary/40 focus:bg-white transition-all shadow-sm cursor-pointer appearance-none">
+                    <option value="">All Merchants</option>
+                    @foreach (var mer in _merchants)
+                    {
+                        <option value="@mer.Id">@mer.Name</option>
+                    }
+                </select>
+                <i data-lucide="chevron-down"
+                   class="w-3.5 h-3.5 absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground transition-transform group-focus-within:rotate-180 pointer-events-none"></i>
+            </div>
+
             <!-- Search Catalog -->
             @if (_selectedBranchId.HasValue)
             {
@@ -359,15 +375,17 @@
     
     private Dictionary<Guid, ProductUI> _productUIs = new();
     private List<OrderItem> _cart = new();
+    private List<Merchant> _merchants = new();
+    private Guid? _selectedMerchantId;
 
     private User? _currentUser;
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadInitialData();
+        await LoadData();
     }
 
-    private async Task LoadInitialData()
+    private async Task LoadData()
     {
         _isLoading = true;
         StateHasChanged();
@@ -381,13 +399,30 @@
                 _currentUser = userResult;
             }
 
+            // Fetch Merchants
+            var merchantResult = await Http.GetFromJsonAsync<PagedResult<Merchant>>("api/merchants?pageSize=100");
+            _merchants = merchantResult?.Data ?? new();
+
             // Fetch Branches
-            var branchResult = await Http.GetFromJsonAsync<PagedResult<BranchListResponseDto>>("api/branches?pageSize=100");
+            var branchUrl = "api/branches?pageSize=100";
+            if (_selectedMerchantId.HasValue) branchUrl += $"&merchantId={_selectedMerchantId.Value}";
+            var branchResult = await Http.GetFromJsonAsync<PagedResult<BranchListResponseDto>>(branchUrl);
             _branches = branchResult?.Data;
             
             // Fetch Categories
-            var categoryResult = await Http.GetFromJsonAsync<PagedResult<Category>>("api/categories?pageSize=100");
+            var categoryUrl = "api/categories?pageSize=100";
+            if (_selectedMerchantId.HasValue) categoryUrl += $"&merchantId={_selectedMerchantId.Value}";
+            var categoryResult = await Http.GetFromJsonAsync<PagedResult<Category>>(categoryUrl);
             _categories = categoryResult?.Data;
+
+            // If selected merchant changed and current branch is not in the new merchant's branches, clear it
+            if (_selectedBranchId.HasValue && _branches != null && !_branches.Any(b => b.Id == _selectedBranchId.Value))
+            {
+                _selectedBranchId = null;
+                _selectedBranchName = null;
+                _branchInventories = null;
+                _cart.Clear();
+            }
         }
         catch (Exception ex)
         {

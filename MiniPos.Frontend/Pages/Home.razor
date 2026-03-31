@@ -16,6 +16,21 @@
             </p>
         </div>
         <div class="flex items-center gap-3">
+            <div class="relative group">
+                <i data-lucide="store"
+                   class="w-3.5 h-3.5 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors pointer-events-none"></i>
+                <select @bind="_selectedMerchantId" @bind:after="LoadData"
+                        class="bg-white border border-border/60 rounded-2xl text-xs font-bold py-2.5 pl-10 pr-10 focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary/40 transition-all shadow-sm cursor-pointer appearance-none">
+                    <option value="">All Merchants</option>
+                    @foreach (var mer in _merchants)
+                    {
+                        <option value="@mer.Id">@mer.Name</option>
+                    }
+                </select>
+                <i data-lucide="chevron-down"
+                   class="w-3.5 h-3.5 absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground transition-transform group-focus-within:rotate-180 pointer-events-none"></i>
+            </div>
+
             <div class="bg-white/60 backdrop-blur-md border border-border/60 rounded-xl px-4 py-2 flex items-center gap-3 shadow-sm group cursor-pointer hover:bg-white transition-all">
                 <i data-lucide="calendar" class="w-4 h-4 text-primary"></i>
                 <span class="text-xs font-bold text-foreground">Last 7 Days</span>
@@ -278,6 +293,8 @@
     [Inject] private CookieService Cookies { get; set; } = default!;
 
     private DashboardResponseDto? _stats;
+    private List<Merchant> _merchants = new();
+    private Guid? _selectedMerchantId;
 
     protected override async Task OnInitializedAsync()
     {
@@ -288,9 +305,44 @@
             return;
         }
 
+        await LoadMerchants();
+        await LoadData();
+    }
+
+    private async Task LoadMerchants()
+    {
+        try
+        {
+            var response = await Http.GetAsync("api/merchants?pageSize=100");
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<PagedResult<Merchant>>();
+                if (result != null)
+                {
+                    _merchants = result.Data;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading merchants: {ex.Message}");
+        }
+    }
+
+    private async Task LoadData()
+    {
         try 
         {
-            var request = new HttpRequestMessage(HttpMethod.Get, "api/dashboard");
+            _stats = null;
+            StateHasChanged();
+
+            var url = "api/dashboard";
+            if (_selectedMerchantId.HasValue)
+            {
+                url += $"?merchantId={_selectedMerchantId.Value}";
+            }
+
+            var request = new HttpRequestMessage(HttpMethod.Get, url);
             request.SetBrowserRequestCredentials(Microsoft.AspNetCore.Components.WebAssembly.Http.BrowserRequestCredentials.Include);
             
             var response = await Http.SendAsync(request);
@@ -306,6 +358,11 @@
         catch (Exception ex)
         {
             Console.WriteLine($"Error fetching dashboard stats: {ex.Message}");
+        }
+        finally
+        {
+            StateHasChanged();
+            await JSRuntime.InvokeVoidAsync("initIcons");
         }
     }
 

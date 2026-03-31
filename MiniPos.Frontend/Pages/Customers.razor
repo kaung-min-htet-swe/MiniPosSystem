@@ -11,12 +11,29 @@
             <p class="text-muted-foreground mt-1 text-sm">View profiles, track loyalty, and manage contact info.</p>
         </div>
         <div class="flex items-center gap-3">
-            <div class="hidden sm:flex relative mr-2 group">
+            <!-- Merchant Selector -->
+            <div class="relative group">
+                <i data-lucide="store"
+                   class="w-3.5 h-3.5 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors pointer-events-none"></i>
+                <select @bind="_selectedMerchantId" @bind:after="LoadData"
+                        class="bg-white border border-border/60 rounded-2xl text-xs font-bold py-2.5 pl-10 pr-10 focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary/40 focus:bg-white transition-all shadow-sm cursor-pointer appearance-none">
+                    <option value="">All Merchants</option>
+                    @foreach (var mer in _merchants)
+                    {
+                        <option value="@mer.Id">@mer.Name</option>
+                    }
+                </select>
+                <i data-lucide="chevron-down"
+                   class="w-3.5 h-3.5 absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground transition-transform group-focus-within:rotate-180 pointer-events-none"></i>
+            </div>
+
+            <div class="hidden sm:flex relative group">
                 <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors"></i>
                 <input type="text" placeholder="Search by name, email, phone..." class="w-64 pl-10 pr-4 py-2.5 bg-white border border-border/60 rounded-2xl text-sm focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary/40 focus:bg-white transition-all shadow-sm" />
             </div>
-            <button class="btn btn-primary rounded-lg shadow-primary">
-                <i data-lucide="user-plus" class="w-4 h-4 mr-2"></i> New Customer
+            <button class="btn btn-primary rounded-[1.2rem] px-5 py-2.5 shadow-lg shadow-primary/20 flex items-center gap-2 font-bold text-sm hover:scale-105 active:scale-95 transition-all">
+                <i data-lucide="user-plus" class="w-4 h-4"></i>
+                <span>New Customer</span>
             </button>
         </div>
     </div>
@@ -92,20 +109,68 @@
     [Inject] private HttpClient Http { get; set; } = default!;
 
     private List<Customer>? _customers;
+    private List<Merchant> _merchants = new();
+    private Guid? _selectedMerchantId;
     private Dictionary<Guid, string> _customerCities = new();
 
     protected override async Task OnInitializedAsync()
     {
-        _customers = await Http.GetFromJsonAsync<List<Customer>>("sample-data/customers.json");
+        await LoadMerchants();
+        await LoadData();
+    }
 
-        if (_customers != null)
+    private async Task LoadMerchants()
+    {
+        try
         {
-            // Map the parsed id to cities for backwards compatibility with the UI dictionary
-            var mariahId = _customers.FirstOrDefault(c => c.Name == "Mariah Kelly")?.Id ?? Guid.Empty;
-            if (mariahId != Guid.Empty) _customerCities[mariahId] = "San Francisco";
+            var response = await Http.GetAsync("api/merchants?pageSize=100");
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<PagedResult<Merchant>>();
+                if (result != null)
+                {
+                    _merchants = result.Data;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading merchants: {ex.Message}");
+        }
+    }
 
-            var davidId = _customers.FirstOrDefault(c => c.Name == "David Tennant")?.Id ?? Guid.Empty;
-            if (davidId != Guid.Empty) _customerCities[davidId] = "Chicago";
+    private async Task LoadData()
+    {
+        _customers = null;
+        StateHasChanged();
+
+        try
+        {
+            // In a real app, this would be an API call with merchantId
+            // var url = $"api/customers?pageSize=100";
+            // if (_selectedMerchantId.HasValue) url += $"&merchantId={_selectedMerchantId.Value}";
+            // _customers = await Http.GetFromJsonAsync<List<Customer>>(url);
+
+            _customers = await Http.GetFromJsonAsync<List<Customer>>("sample-data/customers.json");
+
+            if (_customers != null)
+            {
+                // Map the parsed id to cities for backwards compatibility with the UI dictionary
+                var mariahId = _customers.FirstOrDefault(c => c.Name == "Mariah Kelly")?.Id ?? Guid.Empty;
+                if (mariahId != Guid.Empty) _customerCities[mariahId] = "San Francisco";
+
+                var davidId = _customers.FirstOrDefault(c => c.Name == "David Tennant")?.Id ?? Guid.Empty;
+                if (davidId != Guid.Empty) _customerCities[davidId] = "Chicago";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading customers: {ex.Message}");
+        }
+        finally
+        {
+            StateHasChanged();
+            await JSRuntime.InvokeVoidAsync("initIcons");
         }
     }
 

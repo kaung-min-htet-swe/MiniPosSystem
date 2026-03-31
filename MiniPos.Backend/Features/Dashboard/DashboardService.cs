@@ -7,7 +7,7 @@ namespace MiniPos.Backend.Features.Dashboard;
 
 public interface IDashboardService
 {
-    Task<Result<DashboardResponse>> GetStats();
+    Task<Result<DashboardResponse>> GetStats(Guid? merchantId = null);
 }
 
 public class DashboardService : IDashboardService
@@ -19,16 +19,33 @@ public class DashboardService : IDashboardService
         _db = db;
     }
 
-    public async Task<Result<DashboardResponse>> GetStats()
+    public async Task<Result<DashboardResponse>> GetStats(Guid? merchantId = null)
     {
         try
         {
             var today = DateTime.UtcNow.Date;
             var sevenDaysAgo = today.AddDays(-7);
 
-            var orders = await _db.Orders.AsNoTracking().ToListAsync();
-            var merchantsCount = await _db.Merchants.CountAsync(m => m.DeletedAt == null);
-            var branchesCount = await _db.Branches.CountAsync(b => b.DeletedAt == null);
+            var ordersQuery = _db.Orders.AsNoTracking();
+            if (merchantId.HasValue)
+            {
+                ordersQuery = ordersQuery.Where(o => o.MerchantId == merchantId.Value);
+            }
+            var orders = await ordersQuery.ToListAsync();
+
+            var merchantsCountQuery = _db.Merchants.Where(m => m.DeletedAt == null);
+            if (merchantId.HasValue)
+            {
+                merchantsCountQuery = merchantsCountQuery.Where(m => m.Id == merchantId.Value);
+            }
+            var merchantsCount = await merchantsCountQuery.CountAsync();
+
+            var branchesCountQuery = _db.Branches.Where(b => b.DeletedAt == null);
+            if (merchantId.HasValue)
+            {
+                branchesCountQuery = branchesCountQuery.Where(b => b.MerchantId == merchantId.Value);
+            }
+            var branchesCount = await branchesCountQuery.CountAsync();
 
             var revenue = orders.Sum(o => o.TotalAmount);
             var transactions = orders.Count;

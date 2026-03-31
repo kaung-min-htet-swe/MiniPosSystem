@@ -41,7 +41,7 @@
                 <div class="relative group">
                     <i data-lucide="filter"
                        class="w-3.5 h-3.5 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors pointer-events-none"></i>
-                    <select @bind="_selectedCategoryId" @bind:after="LoadProducts"
+                    <select @bind="_selectedCategoryId" @bind:after="LoadData"
                             class="bg-white border border-border/60 rounded-2xl text-xs font-bold py-2.5 pl-10 pr-10 focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary/40 transition-all shadow-sm cursor-pointer appearance-none">
                         <option value="">All Categories</option>
                         @foreach (var cat in _categories)
@@ -56,7 +56,7 @@
                 <div class="relative group">
                     <i data-lucide="store"
                        class="w-3.5 h-3.5 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors pointer-events-none"></i>
-                    <select @bind="_selectedMerchantId" @bind:after="LoadProducts"
+                    <select @bind="_selectedMerchantId" @bind:after="LoadData"
                             class="bg-white border border-border/60 rounded-2xl text-xs font-bold py-2.5 pl-10 pr-10 focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary/40 transition-all shadow-sm cursor-pointer appearance-none">
                         <option value="">All Merchants</option>
                         @foreach (var mer in _merchants)
@@ -320,9 +320,9 @@
     {
         try
         {
-            // await LoadProducts();
             await LoadCategories();
             await LoadMerchants();
+            await LoadData();
         }
         catch (Exception ex)
         {
@@ -330,7 +330,7 @@
         }
     }
 
-    private async Task LoadProducts()
+    private async Task LoadData()
     {
         var url = $"api/products?searchTerm={_searchTerm}";
         if (_selectedCategoryId.HasValue)
@@ -382,7 +382,7 @@
     {
         if (e.Key == "Enter")
         {
-            await LoadProducts();
+            await LoadData();
         }
     }
 

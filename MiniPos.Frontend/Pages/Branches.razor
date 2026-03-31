@@ -6,12 +6,31 @@
 
 <div class="animate-slide-down">
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-12 gap-4">
-        <div>
-            <h1 class="text-3xl font-bold tracking-tight text-foreground">Store Branches</h1>
-            <p class="text-muted-foreground mt-1 text-sm">Manage physical locations, addresses, and connect registers.</p>
+        <div class="flex items-center gap-4 flex-1">
+            <div>
+                <h1 class="text-3xl font-bold tracking-tight text-foreground">Store Branches</h1>
+                <p class="text-muted-foreground mt-1 text-sm">Manage physical locations, addresses, and connect registers.</p>
+            </div>
+
+            <!-- Merchant Selector -->
+            <div class="relative group">
+                <i data-lucide="store"
+                   class="w-3.5 h-3.5 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors pointer-events-none"></i>
+                <select @bind="_selectedMerchantId" @bind:after="LoadData"
+                        class="bg-white border border-border/60 rounded-2xl text-xs font-bold py-2.5 pl-10 pr-10 focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary/40 focus:bg-white transition-all shadow-sm cursor-pointer appearance-none">
+                    <option value="">All Merchants</option>
+                    @foreach (var mer in _merchants)
+                    {
+                        <option value="@mer.Id">@mer.Name</option>
+                    }
+                </select>
+                <i data-lucide="chevron-down"
+                   class="w-3.5 h-3.5 absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground transition-transform group-focus-within:rotate-180 pointer-events-none"></i>
+            </div>
         </div>
-        <button class="btn btn-primary rounded-lg shadow-primary" @onclick="GoToAddBranch">
-            <i data-lucide="map-pin" class="w-4 h-4 mr-2"></i> Add Branch
+        <button class="btn btn-primary rounded-[1.2rem] px-5 py-3 shadow-lg shadow-primary/20 flex items-center gap-2 font-bold text-sm hover:scale-105 active:scale-95 transition-all" @onclick="GoToAddBranch">
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            <span>Add Branch</span>
         </button>
     </div>
     
@@ -78,7 +97,8 @@
     [Inject] private NavigationManager Navigation { get; set; } = default!;
 
     private PagedResult<BranchListResponseDto>? _pagedBranches;
-    private string _merchantId = "3798433e-f36b-1410-8548-003fb1df8966";
+    private List<Merchant> _merchants = new();
+    private Guid? _selectedMerchantId;
     
     // Alert state
     private string _alertMessage = "";
@@ -86,12 +106,45 @@
 
     protected override async Task OnInitializedAsync()
     {
+        await LoadMerchants();
+        await LoadData();
+    }
+
+    private async Task LoadMerchants()
+    {
         try
         {
-            var response = await Http.GetAsync($"api/branches");
+            var response = await Http.GetAsync("api/merchants?pageSize=100");
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<PagedResult<Merchant>>();
+                if (result != null)
+                {
+                    _merchants = result.Data;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading merchants: {ex.Message}");
+        }
+    }
+
+    private async Task LoadData()
+    {
+        _pagedBranches = null;
+        StateHasChanged();
+
+        try
+        {
+            var url = "api/branches?page=1&pageSize=50";
+            if (_selectedMerchantId.HasValue) url += $"&merchantId={_selectedMerchantId.Value}";
+
+            var response = await Http.GetAsync(url);
             if (!response.IsSuccessStatusCode)
             {
                 await ShowAlert("Failed to load branches.", "error");
+                _pagedBranches = new PagedResult<BranchListResponseDto> { Data = new List<BranchListResponseDto>() };
                 return;
             }
 
@@ -100,6 +153,12 @@
         catch (Exception ex)
         {
             await ShowAlert($"Error loading branches: {ex.Message}", "error");
+            _pagedBranches = new PagedResult<BranchListResponseDto> { Data = new List<BranchListResponseDto>() };
+        }
+        finally
+        {
+            StateHasChanged();
+            await JSRuntime.InvokeVoidAsync("initIcons");
         }
     }
 

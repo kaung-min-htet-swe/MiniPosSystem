@@ -24,7 +24,7 @@ public class ProfileService : IProfileService
         {
             var profile = await _db.Users
                 .AsNoTracking()
-                .Where(u => u.Id == userId && u.DeletedAt == null)
+                .Where(u => u.Id == userId)
                 .Select(u => new ProfileResponseDto
                 {
                     Id = u.Id,
