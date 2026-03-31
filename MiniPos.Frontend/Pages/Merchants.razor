@@ -1,87 +1,92 @@
 @page "/merchants"
 @using MiniPos.Frontend.Models
-@using System.Net.Http.Json
+@using MiniPos.Frontend.Services
 
-<PageTitle>Merchants - MiniPOS</PageTitle>
+<PageTitle>Merchant Partners - MiniPOS</PageTitle>
 
-<div class="animate-slide-down">
-    <!-- Header -->
-    <div class="mt-8 mb-6 flex justify-between items-end">
-        <div>
-            <h2 class="text-2xl font-bold tracking-tight">Active Merchants</h2>
-            <p class="text-sm text-muted-foreground mt-1">Manage and monitor all point-of-sale operators.</p>
-        </div>
+<PageHeader Title="Merchant Partners" 
+            Subtitle="Onboard and manage merchant business accounts"
+            SearchPlaceholder="Search merchants..."
+            @bind-SearchTerm="_searchTerm"
+            ShowViewToggle="false"
+            OnSearch="LoadData">
+    <Actions>
+        <button class="bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-2xl font-bold text-sm shadow-lg shadow-primary/20 flex items-center gap-2 transition-all active:scale-95" @onclick="GoToAddMerchant">
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            <span>Add Merchant</span>
+        </button>
+    </Actions>
+</PageHeader>
 
-        <div class="flex items-center gap-3">
-            <div class="relative max-w-sm group">
-                <i data-lucide="search" class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors"></i>
-                <input type="text" placeholder="Search merchants..." class="w-full sm:w-64 pl-10 pr-4 py-2.5 bg-white border border-border/60 rounded-2xl text-sm focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary/40 focus:bg-white transition-all shadow-sm" />
-            </div>
-            <button class="btn btn-outline border-border h-9">
-                <i data-lucide="filter" class="w-4 h-4 mr-2"></i> Filter
-            </button>
-            <button class="btn btn-primary rounded-lg shadow-primary" @onclick="GoToAddMerchant">
-                <i data-lucide="plus" class="w-4 h-4 mr-2"></i>
-                Add Merchant
-            </button>
-        </div>
-    </div>
-
-    @if (_merchants == null)
+<div class="bg-white/40 backdrop-blur-xl border border-white/60 rounded-[2rem] shadow-2xl shadow-primary/5 overflow-hidden flex flex-col min-h-0">
+    @if (_isLoading && (_pagedMerchants == null || !_pagedMerchants.Data.Any()))
     {
-        <div class="flex items-center justify-center p-12">
-            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <div class="flex-1 flex flex-col items-center justify-center p-24">
+            <div class="animate-spin rounded-full h-12 w-12 border-4 border-t-primary border-primary/20"></div>
+            <p class="mt-6 text-sm font-bold text-muted-foreground tracking-widest uppercase">Fetching partners...</p>
+        </div>
+    }
+    else if (_pagedMerchants == null || !_pagedMerchants.Data.Any())
+    {
+        <div class="flex-1 flex flex-col items-center justify-center p-24 text-center">
+            <div class="w-20 h-20 bg-muted/20 rounded-3xl flex items-center justify-center mb-6">
+                <i data-lucide="building-2" class="w-10 h-10 text-muted-foreground/30"></i>
+            </div>
+            <h3 class="text-xl font-black text-foreground">No merchants enrolled</h3>
+            <p class="text-muted-foreground max-w-xs mx-auto mt-2">Enlist your first merchant partner to get started.</p>
         </div>
     }
     else
     {
-        <!-- Overview Statistics -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            @foreach (var merchant in _merchants)
-            {
-                var colorClass = merchant.IsActive ? "primary" : "border";
-                var textGlowOrMuted = merchant.IsActive ? "text-primary" : "text-muted-foreground";
-                var bgGradient = merchant.IsActive ? "from-primary/20 to-primary/5" : "bg-muted";
-                var glowClass = merchant.IsActive ? "bg-primary/10 group-hover:bg-primary/20" : "";
-                var opacityClass = merchant.IsActive ? "" : "bg-muted/30 opacity-80 backdrop-blur-none grayscale";
-                var idOrEmail = merchant.ContactEmail != null ? merchant.ContactEmail : $"ID: {merchant.Id.ToString().Substring(0,8).ToUpper()}";
-                var initials = GetInitials(merchant.Name);
+        <div class="p-8 stylish-scrollbar overflow-y-auto">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                @foreach (var merchant in _pagedMerchants.Data)
+                {
+                    <div class="group relative bg-white/60 hover:bg-white border border-border/40 hover:border-primary/40 hover:shadow-2xl hover:shadow-primary/5 rounded-[2.5rem] p-8 transition-all duration-500 cursor-pointer"
+                         @onclick='() => Navigation.NavigateTo($"/merchants/edit/{merchant.Id}")'>
+                        
+                        <div class="flex items-start justify-between mb-8">
+                            <div class="w-16 h-16 rounded-3xl bg-indigo-50 flex items-center justify-center text-indigo-600 group-hover:scale-110 group-hover:rotate-6 transition-transform duration-500 border border-indigo-100 shadow-sm">
+                                <i data-lucide="briefcase" class="w-8 h-8"></i>
+                            </div>
+                            <div class="flex flex-col items-end gap-2">
+                                <span class="px-3 py-1 bg-emerald-50 text-emerald-600 text-[10px] font-black uppercase tracking-widest rounded-full border border-emerald-100 shadow-sm">Verified</span>
+                                <span class="text-[9px] font-black text-muted-foreground/40 uppercase tracking-widest leading-none">Partner ID: @merchant.Id.ToString().Substring(0, 8)</span>
+                            </div>
+                        </div>
 
-                <div class="pos-card relative overflow-hidden group hover:border-@colorClass/30 transition-all p-0 flex flex-col @opacityClass cursor-pointer">
-                    @if (merchant.IsActive)
-                    {
-                        <div class="absolute -right-12 -top-12 w-32 h-32 @glowClass rounded-full blur-2xl transition-colors"></div>
-                    }
-                    
-                    <div class="p-6 pb-4">
-                        <div class="flex justify-between items-start mb-4">
-                            <div class="flex items-center gap-3">
-                                <div class="w-12 h-12 rounded-xl bg-gradient-to-br @bgGradient @textGlowOrMuted border @(!merchant.IsActive ? "border-border" : "border-transparent") flex items-center justify-center font-bold font-outfit text-lg shadow-sm">
-                                    @initials
-                                </div>
-                                <div>
-                                    <div class="flex items-center gap-2">
-                                        <h3 class="font-bold text-lg text-foreground -mb-1">@merchant.Name</h3>
-                                        @if (!merchant.IsActive)
-                                        {
-                                            <span class="badge bg-muted-foreground text-white text-[9px] px-1.5 py-0">Inactive</span>
-                                        }
-                                    </div>
-                                    <span class="text-xs text-muted-foreground">@idOrEmail</span>
+                        <div class="space-y-2">
+                            <h3 class="text-2xl font-black text-foreground group-hover:text-primary transition-colors font-outfit">@merchant.Name</h3>
+                            <p class="text-sm text-muted-foreground font-medium flex items-center gap-2">
+                                <i data-lucide="mail" class="w-4 h-4 opacity-40"></i>
+                                info@@(merchant.Name.Replace(" ", "").ToLower()).com
+                            </p>
+                        </div>
+
+                        <div class="mt-8 pt-8 border-t border-border/10 flex items-center justify-between">
+                            <div class="flex flex-col">
+                                <span class="text-[9px] font-black text-muted-foreground uppercase tracking-widest leading-none mb-1">Status</span>
+                                <div class="flex items-center gap-1.5">
+                                    <div class="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+                                    <span class="text-xs font-bold text-foreground/80">Active Ecosystem</span>
                                 </div>
                             </div>
-                            <button class="btn btn-ghost p-1 text-muted-foreground hover:text-foreground">
-                                <i data-lucide="more-vertical" class="w-4 h-4"></i>
+                            <button class="w-10 h-10 rounded-2xl bg-slate-50 flex items-center justify-center text-muted-foreground group-hover:bg-primary group-hover:text-white transition-all shadow-sm">
+                                <i data-lucide="chevron-right" class="w-5 h-5"></i>
                             </button>
                         </div>
 
-                        <div class="mt-4 flex items-center gap-2 text-xs text-muted-foreground">
-                            <i data-lucide="map-pin" class="w-3.5 h-3.5"></i> @merchant.BranchCount Branches
-                        </div>
+                        <div class="absolute inset-0 border-2 border-primary/40 rounded-[2.5rem] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none scale-[1.02]"></div>
                     </div>
-                </div>
-            }
+                }
+            </div>
         </div>
+
+        <Pagination CurrentPage="_currentPage" 
+                    TotalPages="@(_pagedMerchants?.TotalPages ?? 1)" 
+                    TotalCount="@(_pagedMerchants?.TotalCount ?? 0)"
+                    PageSize="10"
+                    PageChanged="HandlePageChanged" />
     }
 </div>
 
@@ -90,26 +95,46 @@
     [Inject] private HttpClient Http { get; set; } = default!;
     [Inject] private NavigationManager Navigation { get; set; } = default!;
 
-    private List<Merchant>? _merchants;
+    private PagedResult<Merchant>? _pagedMerchants;
+    private string _searchTerm = "";
+    private int _currentPage = 1;
+    private bool _isLoading = true;
 
     protected override async Task OnInitializedAsync()
     {
-        var pagedResult = await Http.GetFromJsonAsync<PagedResult<Merchant>>("api/merchants");
-        _merchants = pagedResult?.Data;
+        await LoadData();
     }
 
-    private string GetInitials(string name)
+    private async Task LoadData()
     {
-        var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-        if (parts.Length == 0) return "M";
-        if (parts.Length == 1) return parts[0][0].ToString().ToUpper();
-        return $"{parts[0][0]}{parts[parts.Length - 1][0]}".ToUpper();
+        _isLoading = true;
+        StateHasChanged();
+        try
+        {
+            var url = $"api/merchants?page={_currentPage}&pageSize=10";
+            if (!string.IsNullOrEmpty(_searchTerm)) url += $"&searchTerm={Uri.EscapeDataString(_searchTerm)}";
+
+            _pagedMerchants = await Http.GetFromJsonAsync<PagedResult<Merchant>>(url);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading merchants: {ex.Message}");
+        }
+        finally
+        {
+            _isLoading = false;
+            StateHasChanged();
+            await JSRuntime.InvokeVoidAsync("initIcons");
+        }
     }
 
-    private void GoToAddMerchant()
+    private async Task HandlePageChanged(int page)
     {
-        Navigation.NavigateTo("/merchants/add");
+        _currentPage = page;
+        await LoadData();
     }
+
+    private void GoToAddMerchant() => Navigation.NavigateTo("/merchants/add");
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {

@@ -26,8 +26,10 @@ public class BranchService : IBranchService
     {
         try
         {
-            var query = _db.Branches.AsNoTracking().AsQueryable();
-            if (request.MerchantId.HasValue) query = query.Where(b => b.MerchantId == request.MerchantId.Value);
+            var query = _db.Branches
+                .Where(b => b.MerchantId ==request.MerchantId)
+                .AsNoTracking()
+                .AsQueryable();
             
             var skip = (request.PageNumber - 1) * request.PageSize;
             var take = request.PageSize;
@@ -219,7 +221,7 @@ public class BranchService : IBranchService
 
 public class BranchListRequest : PaginationFilter
 {
-    public Guid? MerchantId { get; set; }
+    public Guid MerchantId { get; set; }
     public bool IncludeMerchant { get; set; } = false;
 }
 
@@ -233,9 +235,9 @@ public class MerchantDto
 public class BranchListResponse
 {
     public Guid Id { get; set; }
-    public string Name { get; set; } = null!;
+    public string? Name { get; set; }
     public string? Address { get; set; }
-    public MerchantDto Merchant { get; set; } = null!;
+    public MerchantDto? Merchant { get; set; }
 }
 
 public class BranchGetByIdResponse

@@ -1,93 +1,113 @@
 @page "/branches"
 @using MiniPos.Frontend.Models
-@using System.Net.Http.Json
 
-<PageTitle>Branches - MiniPOS</PageTitle>
+<PageTitle>Store Branches - MiniPOS</PageTitle>
 
-<div class="animate-slide-down">
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-12 gap-4">
-        <div class="flex items-center gap-4 flex-1">
-            <div>
-                <h1 class="text-3xl font-bold tracking-tight text-foreground">Store Branches</h1>
-                <p class="text-muted-foreground mt-1 text-sm">Manage physical locations, addresses, and connect registers.</p>
-            </div>
-
-            <!-- Merchant Selector -->
-            <div class="relative group">
-                <i data-lucide="store"
-                   class="w-3.5 h-3.5 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors pointer-events-none"></i>
-                <select @bind="_selectedMerchantId" @bind:after="LoadData"
-                        class="bg-white border border-border/60 rounded-2xl text-xs font-bold py-2.5 pl-10 pr-10 focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary/40 focus:bg-white transition-all shadow-sm cursor-pointer appearance-none">
-                    <option value="">All Merchants</option>
-                    @foreach (var mer in _merchants)
-                    {
-                        <option value="@mer.Id">@mer.Name</option>
-                    }
-                </select>
-                <i data-lucide="chevron-down"
-                   class="w-3.5 h-3.5 absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground transition-transform group-focus-within:rotate-180 pointer-events-none"></i>
-            </div>
+<PageHeader Title="Store Branches"
+            Subtitle="Manage physical locations and service points"
+            SearchPlaceholder="Search branches..."
+            @bind-SearchTerm="_searchTerm"
+            ShowViewToggle="false"
+            OnSearch="LoadBranches">
+    <Filters>
+        <div class="relative group">
+            <i data-lucide="store"
+               class="w-3.5 h-3.5 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors pointer-events-none"></i>
+            <select @bind="_selectedMerchantId" @bind:after="LoadBranches"
+                    class="bg-white border border-border/60 rounded-2xl text-xs font-bold py-2.5 pl-10 pr-10 focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary/40 focus:bg-white transition-all shadow-sm cursor-pointer appearance-none">
+                <option value="">All Merchants</option>
+                @foreach (var mer in _merchants)
+                {
+                    <option value="@mer.Id">@mer.Name</option>
+                }
+            </select>
+            <i data-lucide="chevron-down"
+               class="w-3.5 h-3.5 absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground transition-transform group-focus-within:rotate-180 pointer-events-none"></i>
         </div>
-        <button class="btn btn-primary rounded-[1.2rem] px-5 py-3 shadow-lg shadow-primary/20 flex items-center gap-2 font-bold text-sm hover:scale-105 active:scale-95 transition-all" @onclick="GoToAddBranch">
+    </Filters>
+    <Actions>
+        <button
+            class="bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-2xl font-bold text-sm shadow-lg shadow-primary/20 flex items-center gap-2 transition-all active:scale-95"
+            @onclick="GoToAddBranch">
             <i data-lucide="plus" class="w-4 h-4"></i>
             <span>Add Branch</span>
         </button>
-    </div>
-    
-    <!-- Floating Alert Box -->
-    @if (!string.IsNullOrEmpty(_alertMessage))
+    </Actions>
+</PageHeader>
+
+<div
+    class="bg-white/40 backdrop-blur-xl border border-white/60 rounded-[2rem] shadow-2xl shadow-primary/5 overflow-hidden flex flex-col min-h-0">
+    @if (_selectedMerchantId == null || _pagedBranches == null || !_pagedBranches.Data.Any())
     {
-        <div class="fixed top-6 left-1/2 -translate-x-1/2 z-[100] animate-slide-down">
-            <div class="flex items-center gap-3 px-6 py-4 rounded-2xl shadow-2xl border backdrop-blur-md
-                @(_alertType == "success" ? "bg-emerald-50/90 border-emerald-200 text-emerald-800" : "bg-rose-50/90 border-rose-200 text-rose-800")">
-                <div class="shrink-0 w-10 h-10 rounded-full flex items-center justify-center
-                    @(_alertType == "success" ? "bg-emerald-100" : "bg-rose-100")">
-                    <i data-lucide="@(_alertType == "success" ? "check-circle" : "alert-circle")" class="w-6 h-6"></i>
-                </div>
-                <div>
-                    <p class="text-xs font-black uppercase tracking-widest opacity-60">@(_alertType == "success" ? "Success" : "Error")</p>
-                    <p class="text-sm font-bold">@_alertMessage</p>
-                </div>
+        <div class="flex-1 flex flex-col items-center justify-center p-24 text-center">
+            <div class="w-20 h-20 bg-muted/20 rounded-3xl flex items-center justify-center mb-6">
+                <i data-lucide="map-pin-off" class="w-10 h-10 text-muted-foreground/30"></i>
             </div>
+            <h3 class="text-xl font-black text-foreground">No branches found</h3>
+            <p class="text-muted-foreground max-w-xs mx-auto mt-2">Try adjusting your search or merchant filters.</p>
         </div>
     }
-
-    <!-- Striking Branch Cards Grid -->
-    @if (_pagedBranches == null)
+    else if (_isLoading)
     {
-        <div class="flex items-center justify-center h-48">
-            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <div class="flex-1 flex flex-col items-center justify-center p-24">
+            <div class="animate-spin rounded-full h-12 w-12 border-4 border-t-primary border-primary/20"></div>
+            <p class="mt-6 text-sm font-bold text-muted-foreground tracking-widest uppercase">Locating branches...</p>
         </div>
     }
     else
     {
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            @foreach (var branch in _pagedBranches.Data)
-            {
-                <div class="pos-card relative overflow-hidden group hover:-translate-y-1 transition-transform border border-border hover:border-primary/30 min-h-[220px] cursor-pointer" @onclick="() => GoToBranchDetail(branch.Id)">
-                    <div class="absolute inset-0 z-0 opacity-10 grayscale group-hover:grayscale-0 group-hover:opacity-30 transition-all duration-700 pointer-events-none" style="background-image: radial-gradient(hsl(var(--primary)) 1px, transparent 1px); background-size: 20px 20px;"></div>
-                    <div class="relative z-10 flex flex-col h-full">
-                        <div class="flex justify-between items-start mb-4">
-                            <div class="w-12 h-12 rounded-full bg-white shadow-md border border-border flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
-                                <i data-lucide="store" class="w-6 h-6"></i>
+        <div class="p-8 stylish-scrollbar overflow-y-auto">
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                @foreach (var branch in _pagedBranches.Data)
+                {
+                    <div
+                        class="group relative bg-white/60 hover:bg-white border border-border/40 hover:border-primary/40 hover:shadow-2xl hover:shadow-primary/5 rounded-3xl p-6 transition-all duration-500 cursor-pointer"
+                        @onclick='() => Navigation.NavigateTo($"/branches/edit/{branch.Id}")'>
+
+                        <div class="flex items-start justify-between mb-6">
+                            <div
+                                class="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500 border border-primary/5">
+                                <i data-lucide="store" class="w-7 h-7"></i>
                             </div>
-                            <span class="flex items-center gap-1.5 badge badge-success text-[10px] px-2 shadow-sm">
-                                <span class="w-1.5 h-1.5 rounded-full bg-success animate-pulse"></span> Active
+                            <span
+                                class="px-3 py-1 bg-emerald-50 text-emerald-600 text-[10px] font-black uppercase tracking-widest rounded-full border border-emerald-100 flex items-center gap-1.5 shadow-sm">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                Active
                             </span>
                         </div>
-                        <h3 class="font-bold text-xl text-foreground mb-1">@branch.Name</h3>
-                        <p class="text-muted-foreground text-[10px] font-bold uppercase tracking-wider mb-2">@branch.Merchant?.Name</p>
-                        <p class="text-sm text-muted-foreground flex items-center gap-1 mb-auto">
-                            <i data-lucide="map-pin" class="w-3.5 h-3.5"></i> @(branch.Address ?? "Address not provided")
-                        </p>
-                        <div class="mt-6 pt-4 border-t border-border/50 flex justify-between items-center">
-                            <div class="text-[10px] font-bold uppercase tracking-widest text-primary">View Details</div>
-                            <i data-lucide="arrow-right" class="w-4 h-4 text-primary group-hover:translate-x-1 transition-transform"></i>
+
+                        <div class="space-y-1">
+                            <h3 class="text-xl font-black text-foreground group-hover:text-primary transition-colors font-outfit">@branch.Name</h3>
+                            <p class="text-sm text-muted-foreground font-medium flex items-center gap-2">
+                                <i data-lucide="map-pin" class="w-3.5 h-3.5"></i>
+                                @branch.Address
+                            </p>
+                        </div>
+
+                        <div class="mt-8 pt-6 border-t border-border/10 flex items-center justify-between">
+                            <div class="flex -space-x-2">
+                                <div
+                                    class="w-8 h-8 rounded-full bg-slate-100 border-2 border-white flex items-center justify-center text-[10px] font-black text-slate-500">
+                                    M
+                                </div>
+                                <div
+                                    class="w-8 h-8 rounded-full bg-slate-50 border-2 border-white flex items-center justify-center text-[10px] font-black text-slate-400">
+                                    +3
+                                </div>
+                            </div>
+                            <span
+                                class="text-[10px] font-black text-muted-foreground uppercase tracking-widest bg-muted/30 px-2 py-0.5 rounded-lg">Merchant: @branch.Merchant!.Name</span>
                         </div>
                     </div>
-                </div>
-            }
+                }
+            </div>
         </div>
+
+        <Pagination CurrentPage="_currentPage"
+                    TotalPages="@(_pagedBranches?.TotalPages ?? 1)"
+                    TotalCount="@(_pagedBranches?.TotalCount ?? 0)"
+                    PageSize="10"
+                    PageChanged="HandlePageChanged"/>
     }
 </div>
 
@@ -99,30 +119,21 @@
     private PagedResult<BranchListResponseDto>? _pagedBranches;
     private List<Merchant> _merchants = new();
     private Guid? _selectedMerchantId;
-    
-    // Alert state
-    private string _alertMessage = "";
-    private string _alertType = "success";
+    private string _searchTerm = "";
+    private int _currentPage = 1;
+    private bool _isLoading = true;
 
     protected override async Task OnInitializedAsync()
     {
         await LoadMerchants();
-        await LoadData();
     }
 
     private async Task LoadMerchants()
     {
         try
         {
-            var response = await Http.GetAsync("api/merchants?pageSize=100");
-            if (response.IsSuccessStatusCode)
-            {
-                var result = await response.Content.ReadFromJsonAsync<PagedResult<Merchant>>();
-                if (result != null)
-                {
-                    _merchants = result.Data;
-                }
-            }
+            var result = await Http.GetFromJsonAsync<PagedResult<Merchant>>("api/merchants?pageSize=100");
+            _merchants = result?.Data ?? new();
         }
         catch (Exception ex)
         {
@@ -130,47 +141,37 @@
         }
     }
 
-    private async Task LoadData()
+    private async Task LoadBranches()
     {
-        _pagedBranches = null;
+        _isLoading = true;
         StateHasChanged();
-
         try
         {
-            var url = "api/branches?page=1&pageSize=50";
+            var url = $"api/branches?page={_currentPage}&pageSize=10";
+            if (!string.IsNullOrEmpty(_searchTerm)) url += $"&searchTerm={Uri.EscapeDataString(_searchTerm)}";
             if (_selectedMerchantId.HasValue) url += $"&merchantId={_selectedMerchantId.Value}";
 
-            var response = await Http.GetAsync(url);
-            if (!response.IsSuccessStatusCode)
-            {
-                await ShowAlert("Failed to load branches.", "error");
-                _pagedBranches = new PagedResult<BranchListResponseDto> { Data = new List<BranchListResponseDto>() };
-                return;
-            }
-
-            _pagedBranches = await response.Content.ReadFromJsonAsync<PagedResult<BranchListResponseDto>>();
+            _pagedBranches = await Http.GetFromJsonAsync<PagedResult<BranchListResponseDto>>(url);
         }
         catch (Exception ex)
         {
-            await ShowAlert($"Error loading branches: {ex.Message}", "error");
-            _pagedBranches = new PagedResult<BranchListResponseDto> { Data = new List<BranchListResponseDto>() };
+            Console.WriteLine($"Error loading branches: {ex.Message}");
         }
         finally
         {
+            _isLoading = false;
             StateHasChanged();
             await JSRuntime.InvokeVoidAsync("initIcons");
         }
     }
 
-    private async Task ShowAlert(string message, string type = "success")
+    private async Task HandlePageChanged(int page)
     {
-        _alertMessage = message;
-        _alertType = type;
-        StateHasChanged();
-        await JSRuntime.InvokeVoidAsync("initIcons");
-        _alertMessage = "";
-        StateHasChanged();
+        _currentPage = page;
+        await LoadBranches();
     }
+
+    private void GoToAddBranch() => Navigation.NavigateTo("/branches/add");
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -179,12 +180,5 @@
             await JSRuntime.InvokeVoidAsync("initIcons");
         }
     }
-    private void GoToBranchDetail(Guid branchId)
-    {
-        Navigation.NavigateTo($"/branches/{branchId}");
-    }
-    private void GoToAddBranch()
-    {
-        Navigation.NavigateTo("/branches/add");
-    }
+
 }

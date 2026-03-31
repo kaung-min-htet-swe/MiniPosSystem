@@ -13,7 +13,7 @@ public class DashboardResponseDto
 public class DailySaleDto
 {
     public DateTime Date { get; set; }
-    public decimal TotalAmount { get; set; }
+    public int TotalAmount { get; set; }
 }
 
 public class OrderListRequestDto : PaginationFilter

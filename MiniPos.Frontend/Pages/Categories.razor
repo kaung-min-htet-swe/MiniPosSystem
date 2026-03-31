@@ -4,63 +4,37 @@
 
 <PageTitle>Categories - MiniPOS</PageTitle>
 
-<div class="animate-slide-down">
-    <!-- Header -->
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-6 pb-4 border-b border-border/30">
-        <div class="space-y-1">
-            <h1 class="text-4xl font-black tracking-tight text-foreground font-outfit">Categories</h1>
-            <p class="text-muted-foreground font-medium text-sm flex items-center gap-2">
-                <span class="w-1.5 h-1.5 rounded-full bg-primary/40"></span>
-                Organize your menu and product catalog effectively
-            </p>
+<PageHeader Title="Categories" 
+            Subtitle="Organize your menu and product catalog effectively"
+            SearchPlaceholder="Search categories..."
+            @bind-SearchTerm="_searchTerm"
+            @bind-ViewMode="_viewMode"
+            OnSearch="LoadData">
+    <Filters>
+        <div class="relative group">
+            <i data-lucide="store"
+               class="w-3.5 h-3.5 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors pointer-events-none"></i>
+            <select @bind="_selectedMerchantId" @bind:after="LoadData"
+                    class="bg-white border border-border/60 rounded-2xl text-xs font-bold py-2.5 pl-10 pr-10 focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary/40 focus:bg-white transition-all shadow-sm cursor-pointer appearance-none">
+                <option value="">All Merchants</option>
+                @foreach (var mer in _merchants)
+                {
+                    <option value="@mer.Id">@mer.Name</option>
+                }
+            </select>
+            <i data-lucide="chevron-down"
+               class="w-3.5 h-3.5 absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground transition-transform group-focus-within:rotate-180 pointer-events-none"></i>
         </div>
-        <div class="flex items-center gap-4 w-full sm:w-auto">
-            <!-- Merchant Selector -->
-            <div class="relative group">
-                <i data-lucide="store"
-                   class="w-3.5 h-3.5 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors pointer-events-none"></i>
-                <select @bind="_selectedMerchantId" @bind:after="LoadData"
-                        class="bg-white border border-border/60 rounded-2xl text-xs font-bold py-2.5 pl-10 pr-10 focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary/40 focus:bg-white transition-all shadow-sm cursor-pointer appearance-none">
-                    <option value="">All Merchants</option>
-                    @foreach (var mer in _merchants)
-                    {
-                        <option value="@mer.Id">@mer.Name</option>
-                    }
-                </select>
-                <i data-lucide="chevron-down"
-                   class="w-3.5 h-3.5 absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground transition-transform group-focus-within:rotate-180 pointer-events-none"></i>
-            </div>
-
-            <!-- View Mode Toggle -->
-            <div class="flex bg-muted/20 p-1 rounded-2xl border border-border/40 mr-2 shadow-sm">
-                <button
-                    class="p-2 rounded-xl transition-all @(_viewMode == "grid" ? "bg-white shadow-sm text-primary" : "text-muted-foreground hover:text-foreground")"
-                    @onclick='() => _viewMode = "grid"'>
-                    <i data-lucide="layout-grid" class="w-4 h-4"></i>
-                </button>
-                <button
-                    class="p-2 rounded-xl transition-all @(_viewMode == "list" ? "bg-white shadow-sm text-primary" : "text-muted-foreground hover:text-foreground")"
-                    @onclick='() => _viewMode = "list"'>
-                    <i data-lucide="list" class="w-4 h-4"></i>
-                </button>
-            </div>
-
-            <div class="relative flex-1 sm:w-64 group">
-                <i data-lucide="search"
-                   class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors"></i>
-                <input type="text" @bind="_searchTerm" @bind:event="oninput"
-                       placeholder="Search categories..."
-                       class="w-full pl-10 pr-4 py-2.5 bg-white border border-border/60 rounded-2xl text-sm focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary/40 focus:bg-white transition-all shadow-sm"/>
-            </div>
-
-            <button
-                class="btn btn-primary rounded-2xl px-6 py-3 shadow-lg shadow-primary/20 flex items-center gap-2 font-bold text-sm hover:scale-105 active:scale-95 transition-all"
-                @onclick="GoToAddCategory">
-                <i data-lucide="folder-plus" class="w-4 h-4"></i>
-                <span>Add Category</span>
-            </button>
-        </div>
-    </div>
+    </Filters>
+    <Actions>
+        <button
+            class="btn btn-primary rounded-2xl px-6 py-3 shadow-lg shadow-primary/20 flex items-center gap-2 font-bold text-sm hover:scale-105 active:scale-95 transition-all"
+            @onclick="GoToAddCategory">
+            <i data-lucide="folder-plus" class="w-4 h-4"></i>
+            <span>Add Category</span>
+        </button>
+    </Actions>
+</PageHeader>
 
     <!-- Floating Alert Box -->
     @if (!string.IsNullOrEmpty(_alertMessage))
@@ -204,9 +178,13 @@
                     </table>
                 </div>
             </div>
+            <Pagination CurrentPage="_currentPage" 
+                        TotalPages="@(_pagedCategories?.TotalPages ?? 1)" 
+                        TotalCount="@(_pagedCategories?.TotalCount ?? 0)"
+                        PageSize="_pageSize"
+                        PageChanged="HandlePageChanged" />
         }
     }
-</div>
 
 @code {
     [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
@@ -228,6 +206,9 @@
     private string _viewMode = "grid";
     private List<Merchant> _merchants = new();
     private Guid? _selectedMerchantId;
+    
+    private int _currentPage = 1;
+    private int _pageSize = 12;
     
     // Alert state
     private string _alertMessage = "";
@@ -266,7 +247,8 @@
 
         try
         {
-            var url = "api/categories?page=1&pageSize=100";
+            var url = $"api/categories?page={_currentPage}&pageSize={_pageSize}";
+            if (!string.IsNullOrEmpty(_searchTerm)) url += $"&searchTerm={Uri.EscapeDataString(_searchTerm)}";
             if (_selectedMerchantId.HasValue) url += $"&merchantId={_selectedMerchantId.Value}";
 
             var response = await Http.GetAsync(url);
@@ -289,6 +271,12 @@
             StateHasChanged();
             await JSRuntime.InvokeVoidAsync("initIcons");
         }
+    }
+    
+    private async Task HandlePageChanged(int page)
+    {
+        _currentPage = page;
+        await LoadData();
     }
     
     private CategoryUI GetCategoryUI(CategoryListResponseDto category)

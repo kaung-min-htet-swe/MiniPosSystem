@@ -134,8 +134,7 @@
     {
         try
         {
-            var userId = "3E98433E-F36B-1410-8548-003FB1DF8966";
-            var response = await Http.GetAsync($"api/merchants?MerchantAdminId={userId}");
+            var response = await Http.GetAsync($"api/merchants");
             if (response.IsSuccessStatusCode)
             {
                 var merchantData = await response.Content.ReadFromJsonAsync<PagedResult<Merchant>>();
