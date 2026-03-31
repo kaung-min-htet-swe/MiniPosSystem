@@ -26,7 +26,9 @@ public class OrderService : IOrderService
     {
         try
         {
-            var query = _db.Orders.AsNoTracking().AsQueryable();
+            var query = _db.Orders
+                .AsNoTracking()
+                .AsQueryable();
 
             if (request.BranchId.HasValue) query = query.Where(o => o.BranchId == request.BranchId.Value);
 
@@ -217,8 +219,8 @@ public class OrderService : IOrderService
 
 public class OrderListRequest : PaginationFilter
 {
-    public Guid? BranchId { get; set; }
     public Guid? ProcessedById { get; set; }
+    public Guid? BranchId { get; set; }
     public DateTime? StartDate { get; set; }
     public DateTime? EndDate { get; set; }
     public string? SearchTerm { get; set; }

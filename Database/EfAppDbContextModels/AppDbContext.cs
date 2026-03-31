@@ -148,6 +148,10 @@ public partial class AppDbContext : DbContext
 
             entity.HasIndex(e => e.BranchId, "IX_Orders_BranchId").HasFilter("([DeletedAt] IS NULL)");
 
+            entity.HasIndex(e => e.MerchantId)
+                .HasDatabaseName("IX_Orders_MerchantId")
+                .HasFilter("[DeletedAt] IS NULL");
+            
             entity.HasIndex(e => new { e.BranchId, e.OrderDate }, "IX_Orders_Branch_Date")
                 .IsDescending(false, true)
                 .HasFilter("([DeletedAt] IS NULL)");
