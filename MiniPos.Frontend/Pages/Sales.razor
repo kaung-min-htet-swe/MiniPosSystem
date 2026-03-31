@@ -12,63 +12,63 @@
     <div
         class="flex lg:flex-row mb-2 shrink-0 items-stretch lg:items-center gap-2 relative z-20 transition-all duration-500">
         <!-- Search & Quick Filters Group -->
-        <div
-            class="flex-1 flex items-center gap-2 bg-white/40 backdrop-blur-md border border-white/60 rounded-2xl p-1.5 shadow-sm hover:shadow-md transition-all group/op-bar">
+    <div
+        class="flex-1 flex items-center gap-2 bg-white/40 backdrop-blur-md border border-white/60 rounded-2xl p-1.5 shadow-sm hover:shadow-md transition-all group/op-bar">
 
-            <!-- Search Command -->
-            <div class="relative flex-1 sm:w-64 group/search">
-                <i data-lucide="search"
-                   class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within/search:text-primary transition-colors"></i>
-                <input type="text" @bind="_productSearch" @bind:event="oninput" @onkeyup="HandleKeyUp"
-                       placeholder="Search products, SKUs or references..."
-                       class="w-full pl-10 pr-10 py-2.5 bg-white border border-border/60 rounded-2xl text-sm focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary/40 focus:bg-white transition-all shadow-sm"/>
-                @if (!string.IsNullOrEmpty(_productSearch))
-                {
-                    <button
-                        class="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center rounded-lg hover:bg-red-50 text-muted-foreground/40 hover:text-red-500 transition-all active:scale-95"
-                        @onclick='async () => { _productSearch = ""; await LoadOrders(true); }'>
-                        <i data-lucide="x" class="w-3 h-3"></i>
-                    </button>
-                }
-            </div>
-
-            <div class="w-px h-6 bg-border/40 mx-1"></div>
-
-            <!-- Quick Preset Chips -->
-            <div class="flex items-center gap-1.5 px-1">
-                <button
-                    class="px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all @(_activePreset == "today" ? "bg-primary text-white shadow-lg shadow-primary/20" : "text-muted-foreground/60 hover:bg-primary/5 hover:text-primary")"
-                    @onclick='async () => await SelectPreset("today")'>Today
-                </button>
-                <button
-                    class="px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all @(_activePreset == "7d" ? "bg-primary text-white shadow-lg shadow-primary/20" : "text-muted-foreground/60 hover:bg-primary/5 hover:text-primary")"
-                    @onclick='async () => await SelectPreset("7d")'>7D
-                </button>
-                <button
-                    class="px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all @(_activePreset == "30d" ? "bg-primary text-white shadow-lg shadow-primary/20" : "text-muted-foreground/60 hover:bg-primary/5 hover:text-primary")"
-                    @onclick='async () => await SelectPreset("30d")'>30D
-                </button>
-            </div>
-
-            <div class="w-px h-6 bg-border/40 mx-1"></div>
-
-            <!-- Merchant Filter (Admin Only) -->
-            @if (_merchants != null)
+        <!-- Search Command -->
+        <div class="relative flex-1 sm:w-64 group/search">
+            <i data-lucide="search"
+               class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within/search:text-primary transition-colors"></i>
+            <input type="text" @bind="_productSearch" @bind:event="oninput" @onkeyup="HandleKeyUp"
+                   placeholder="Search products, SKUs or references..."
+                   class="w-full pl-10 pr-10 py-2.5 bg-white border border-border/60 rounded-2xl text-sm focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary/40 focus:bg-white transition-all shadow-sm"/>
+            @if (!string.IsNullOrEmpty(_productSearch))
             {
-                <div class="flex items-center gap-2 px-2 bg-muted/10 rounded-xl py-0.5 border border-border/10">
-                    <div class="flex flex-col">
-                        <span class="text-[7px] font-bold text-muted-foreground/40 uppercase leading-none mb-0.5 ml-1">Merchant</span>
-                        <select @bind="_selectedMerchantId" @bind:after="() => LoadOrders(true)"
-                                class="bg-transparent border-none text-[10px] font-black focus:ring-0 p-0 w-32 cursor-pointer text-foreground/80 outline-none">
-                            <option value="">All Merchants</option>
-                            @foreach (var merchant in _merchants)
-                            {
-                                <option value="@merchant.Id">@merchant.Name</option>
-                            }
-                        </select>
-                    </div>
-                </div>
-                <div class="w-px h-6 bg-border/40 mx-1"></div>
+                <button
+                    class="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center rounded-lg hover:bg-red-50 text-muted-foreground/40 hover:text-red-500 transition-all active:scale-95"
+                    @onclick='async () => { _productSearch = ""; await LoadOrders(true); }'>
+                    <i data-lucide="x" class="w-3 h-3"></i>
+                </button>
+            }
+        </div>
+
+        <div class="w-px h-6 bg-border/40 mx-1"></div>
+
+        <!-- Quick Preset Chips -->
+        <div class="flex items-center gap-1.5 px-1">
+            <button
+                class="px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all @(_activePreset == "today" ? "bg-primary text-white shadow-lg shadow-primary/20" : "text-muted-foreground/60 hover:bg-primary/5 hover:text-primary")"
+                @onclick='async () => await SelectPreset("today")'>Today
+            </button>
+            <button
+                class="px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all @(_activePreset == "7d" ? "bg-primary text-white shadow-lg shadow-primary/20" : "text-muted-foreground/60 hover:bg-primary/5 hover:text-primary")"
+                @onclick='async () => await SelectPreset("7d")'>7D
+            </button>
+            <button
+                class="px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all @(_activePreset == "30d" ? "bg-primary text-white shadow-lg shadow-primary/20" : "text-muted-foreground/60 hover:bg-primary/5 hover:text-primary")"
+                @onclick='async () => await SelectPreset("30d")'>30D
+            </button>
+        </div>
+
+        <div class="w-px h-6 bg-border/40 mx-1"></div>
+
+        <!-- Merchant Filter (Admin Only) -->
+        @if (_merchants != null)
+        {
+        <div class="relative group">
+            <i data-lucide="store"
+               class="w-3.5 h-3.5 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors pointer-events-none"></i>
+            <select @bind="_selectedMerchantId" @bind:after="() => LoadOrders(true)"
+                    class="bg-white border border-border/60 rounded-2xl text-xs font-bold py-2.5 pl-10 pr-10 focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary/40 transition-all shadow-sm cursor-pointer appearance-none">
+                <option value="">All Merchants</option>
+                @foreach (var mer in _merchants)
+                {
+                    <option value="@mer.Id">@mer.Name</option>
+                }
+            </select>
+            <i data-lucide="chevron-down"
+               class="w-3.5 h-3.5 absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground transition-transform group-focus-within:rotate-180 pointer-events-none"></i>
+            <div class="w-px h-6 bg-border/40 mx-1"></div>
             }
 
             <!-- Custom Date Range -->
@@ -123,13 +123,11 @@
                 </span>
             </div>
         </div>
-    </div>
-
-    <!-- Paged Transaction Table Card -->
-    <div
-        class="flex-1 bg-white/60 backdrop-blur-md border border-border/40 rounded-[1.25rem] shadow-xl shadow-black/[0.02] overflow-hidden flex flex-col relative z-10">
-
-        @if (_selectedMerchantId == null)
+        </div >
+            <!--Paged Transaction Table Card-- >
+            <div
+        class ="flex-1 bg-white/60 backdrop-blur-md border border-border/40 rounded-[1.25rem] shadow-xl shadow-black/[0.02] overflow-hidden flex flex-col relative z-10" >
+            @if(_selectedMerchantId == null)
         {
             <div class="flex-1 flex flex-col items-center justify-center p-12">
                 <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -155,123 +153,102 @@
         }
         else
         {
-            <div class="overflow-x-auto overflow-y-auto flex-1 stylish-scrollbar">
-                <table class="w-full text-left border-collapse">
-                    <thead class="bg-muted/10 border-b border-border/30 sticky top-0 z-30 backdrop-blur-sm shadow-sm">
-                    <tr>
-                        <th class="pl-6 py-3 text-[9px] font-black uppercase tracking-[0.15em] text-muted-foreground whitespace-nowrap">
-                            Order Ref
-                        </th>
-                        <th class="px-4 py-3 text-[9px] font-black uppercase tracking-[0.15em] text-muted-foreground whitespace-nowrap">
-                            Time
-                        </th>
-                        <th class="px-4 py-3 text-[9px] font-black uppercase tracking-[0.15em] text-muted-foreground whitespace-nowrap">
-                            Status
-                        </th>
-                        <th class="px-4 py-3 text-[9px] font-black uppercase tracking-[0.15em] text-muted-foreground whitespace-nowrap">
-                            Items Sold
-                        </th>
-                        <th class="px-4 py-3 text-[9px] font-black uppercase tracking-[0.15em] text-muted-foreground whitespace-nowrap text-right">
-                            Revenue
-                        </th>
-                        <th class="pr-6 py-3 text-[9px] font-black uppercase tracking-[0.15em] text-muted-foreground whitespace-nowrap text-right">
-                            Actions
-                        </th>
-                    </tr>
-                    </thead>
-                    <tbody class="divide-y divide-border/20">
-                    @foreach (var order in _orders)
-                    {
-                        <tr class="group hover:bg-primary/[0.03] transition-all duration-200 cursor-default">
-                            <td class="pl-6 py-3">
-                                <div class="flex items-center gap-3">
-                                    <div
-                                        class="w-8 h-8 rounded-lg bg-primary/5 text-primary flex items-center justify-center border border-primary/10 group-hover:scale-105 transition-transform">
-                                        <i data-lucide="receipt-text" class="w-3.5 h-3.5"></i>
-                                    </div>
-                                    <div>
-                                        <div
-                                            class="font-bold text-[13px] text-foreground font-outfit leading-tight lowercase">
-                                            #@order.Id.ToString().Split('-').Last()</div>
-                                        <div
-                                            class="text-[8px] font-black text-muted-foreground/40 uppercase tracking-widest">
-                                            Global: @order.Id.ToString().Substring(0, 8)</div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="px-4 py-3">
-                                <div class="text-xs font-bold text-foreground">@order.OrderDate.ToString("MMM d")</div>
-                                <div
-                                    class="text-[9px] text-muted-foreground/60 font-black uppercase">@order.OrderDate.ToString("t")</div>
-                            </td>
-                            <td class="px-4 py-3">
+        <div class ="overflow-x-auto overflow-y-auto flex-1 stylish-scrollbar" >
+            <table class ="w-full text-left border-collapse" >
+            <thead class ="bg-muted/10 border-b border-border/30 sticky top-0 z-30 backdrop-blur-sm shadow-sm" >
+            <tr >
+            <th class ="pl-6 py-3 text-[9px] font-black uppercase tracking-[0.15em] text-muted-foreground whitespace-nowrap" >
+            Order Ref
+            </th >
+            <th class ="px-4 py-3 text-[9px] font-black uppercase tracking-[0.15em] text-muted-foreground whitespace-nowrap" >
+            Time
+            </th >
+            <th class ="px-4 py-3 text-[9px] font-black uppercase tracking-[0.15em] text-muted-foreground whitespace-nowrap" >
+            Status
+            </th >
+            <th class ="px-4 py-3 text-[9px] font-black uppercase tracking-[0.15em] text-muted-foreground whitespace-nowrap" >
+            Items Sold
+            </th >
+            <th class ="px-4 py-3 text-[9px] font-black uppercase tracking-[0.15em] text-muted-foreground whitespace-nowrap text-right" >
+            Revenue
+            </th >
+            <th class ="pr-6 py-3 text-[9px] font-black uppercase tracking-[0.15em] text-muted-foreground whitespace-nowrap text-right" >
+            Actions
+            </th >
+            </tr >
+            </thead >
+            <tbody class ="divide-y divide-border/20" >
+            @foreach(var order in _orders)
+        {
+            <tr class="group hover:bg-primary/[0.03] transition-all duration-200 cursor-default">
+                <td class="pl-6 py-3">
+                    <div class="flex items-center gap-3">
+                        <div
+                            class="w-8 h-8 rounded-lg bg-primary/5 text-primary flex items-center justify-center border border-primary/10 group-hover:scale-105 transition-transform">
+                            <i data-lucide="receipt-text" class="w-3.5 h-3.5"></i>
+                        </div>
+                        <div>
+                            <div
+                                class="font-bold text-[13px] text-foreground font-outfit leading-tight lowercase">
+                                #@order.Id.ToString().Split('-').Last()</div>
+                            <div
+                                class="text-[8px] font-black text-muted-foreground/40 uppercase tracking-widest">
+                                Global: @order.Id.ToString().Substring(0, 8)</div>
+                        </div>
+                    </div>
+                </td>
+                <td class="px-4 py-3">
+                    <div class="text-xs font-bold text-foreground">@order.OrderDate.ToString("MMM d")</div>
+                    <div
+                        class="text-[9px] text-muted-foreground/60 font-black uppercase">@order.OrderDate.ToString("t")</div>
+                </td>
+                <td class="px-4 py-3">
                                     <span
                                         class="inline-flex items-center gap-1.5 px-2 py-0.5 bg-emerald-50 text-emerald-600 border border-emerald-100 text-[8px] font-black uppercase tracking-widest rounded-md shadow-[0_0_8px_-4px_currentColor]">
                                         <span class="w-1 h-1 rounded-full bg-emerald-500 animate-pulse"></span>
                                         Paid
                                     </span>
-                            </td>
-                            <td class="px-4 py-3">
-                                <div class="flex items-center gap-2">
-                                    <div class="flex -space-x-2">
-                                        @foreach (var item in order.OrderItems.Take(3))
-                                        {
-                                            <div
-                                                class="w-6 h-6 rounded-full bg-white border border-border/30 flex items-center justify-center text-[8px] font-black text-muted-foreground shadow-sm"
-                                                title="@item.ProductName">
-                                                @(item.ProductName.Length > 0 ? item.ProductName[0] : "?")
-                                            </div>
-                                        }
-                                        @if (order.OrderItems.Count > 3)
-                                        {
-                                            <div
-                                                class="w-6 h-6 rounded-full bg-muted/30 border border-border/30 flex items-center justify-center text-[7px] font-black text-muted-foreground shadow-sm">
-                                                +@(order.OrderItems.Count - 3)
-                                            </div>
-                                        }
-                                    </div>
-                                    <span
-                                        class="text-[9px] font-black text-muted-foreground/60 uppercase">@order.OrderItems.Sum(i => i.Quantity) items</span>
+                </td>
+                <td class="px-4 py-3">
+                    <div class="flex items-center gap-2">
+                        <div class="flex -space-x-2">
+                            @foreach (var item in order.OrderItems.Take(3))
+                            {
+                                <div
+                                    class="w-6 h-6 rounded-full bg-white border border-border/30 flex items-center justify-center text-[8px] font-black text-muted-foreground shadow-sm"
+                                    title="@item.ProductName">
+                                    @(item.ProductName.Length > 0 ? item.ProductName[0] : "?")
                                 </div>
-                            </td>
-                            <td class="px-4 py-3 text-right">
-                                <div class="text-sm font-black font-outfit text-primary tracking-tight">
-                                    $@order.TotalAmount.ToString("N2")
+                            }
+                            @if (order.OrderItems.Count > 3)
+                            {
+                                <div
+                                    class="w-6 h-6 rounded-full bg-muted/30 border border-border/30 flex items-center justify-center text-[7px] font-black text-muted-foreground shadow-sm">
+                                    +@(order.OrderItems.Count - 3)
                                 </div>
-                            </td>
-                            <td class="pr-6 py-3 text-right">
-                                <button
-                                    class="w-7 h-7 rounded-lg hover:bg-primary/10 text-muted-foreground hover:text-primary flex items-center justify-center transition-all ml-auto hover:rotate-12">
-                                    <i data-lucide="printer" class="w-3.5 h-3.5"></i>
-                                </button>
-                            </td>
-                        </tr>
-                    }
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- Minimal Pagination Bar -->
-            <div
-                class="px-6 py-3 border-t border-border/10 bg-white/20 backdrop-blur-md flex justify-center items-center shrink-0">
-                <div class="flex items-center gap-1">
+                            }
+                        </div>
+                        <span
+                            class="text-[9px] font-black text-muted-foreground/60 uppercase">@order.OrderItems.Sum(i => i.Quantity) items</span>
+                    </div>
+                </td>
+                <td class="px-4 py-3 text-right">
+                    <div class="text-sm font-black font-outfit text-primary tracking-tight">
+                        $@order.TotalAmount.ToString("N2")
+                    </div>
+                </td>
+                <td class="pr-6 py-3 text-right">
                     <button
-                        class="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-border/10 text-muted-foreground hover:bg-primary hover:text-white transition-all disabled:opacity-30 shadow-sm active:scale-95"
-                        disabled="@(_currentPage <= 1)"
-                        @onclick="() => ChangePage(_currentPage - 1)">
-                        <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                        class="w-7 h-7 rounded-lg hover:bg-primary/10 text-muted-foreground hover:text-primary flex items-center justify-center transition-all ml-auto hover:rotate-12">
+                        <i data-lucide="printer" class="w-3.5 h-3.5"></i>
                     </button>
-
-                    @{
-                        var totalPages = (int)Math.Ceiling((double)_totalCount / _pageSize);
-                        for (int i = 1; i <= Math.Max(1, totalPages); i++)
-                        {
-                            var pageIndex = i;
-                            <button class="w-8 h-8 flex items-center justify-center rounded-lg font-bold text-[10px] transition-all active:scale-95
+                </td>
+            </tr>
+        <button class="w-8 h-8 flex items-center justify-center rounded-lg font-bold text-[10px] transition-all active:scale-95
                                            @(pageIndex == _currentPage ? "bg-primary text-white shadow-lg shadow-primary/20 scale-105" : "bg-white border border-border/10 text-muted-foreground hover:border-primary/40 hover:text-primary")"
-                                    @onclick="() => ChangePage(pageIndex)">
-                                @pageIndex
-                            </button>
+                @onclick="() => ChangePage(pageIndex)">
+            @pageIndex
+        </button>
                         }
                     }
 
