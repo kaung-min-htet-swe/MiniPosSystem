@@ -1,6 +1,7 @@
 using Mapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using MiniPos.Backend.Extensions;
 
 namespace MiniPos.Backend.Features.Dashboard;
 
@@ -16,10 +17,17 @@ public class DashboardController : ControllerBase
         _dashboardService = dashboardService;
     }
 
-    [HttpGet()]
-    public async Task<IActionResult> GetStats([FromQuery] Guid? merchantId)
+    [HttpGet]
+    public async Task<IActionResult> GetStats([FromQuery] Guid merchantId, int days)
     {
-        var result = await _dashboardService.GetStats(merchantId);
+        Console.WriteLine($"GetStats called with merchantId: {merchantId}, days: {days}");
+        var request = new DashboardRequest
+        {
+            StatsDurationInDay = days,
+            MerchantId = merchantId,
+            ProcessedById = User.GetUserId()
+        };
+        var result = await _dashboardService.GetStats(request);
         if (result.IsSuccess)
             return Ok(result.Data);
 

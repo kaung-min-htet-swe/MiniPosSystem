@@ -2,12 +2,13 @@ using Common;
 using Database.EfAppDbContextModels;
 using Microsoft.EntityFrameworkCore;
 using MiniPos.Backend.Features.Orders;
+using MiniPos.Backend.Features.Users;
 
 namespace MiniPos.Backend.Features.Dashboard;
 
 public interface IDashboardService
 {
-    Task<Result<DashboardResponse>> GetStats(Guid? merchantId = null);
+    Task<Result<DashboardResponse>> GetStats(DashboardRequest request);
 }
 
 public class DashboardService : IDashboardService
@@ -19,60 +20,56 @@ public class DashboardService : IDashboardService
         _db = db;
     }
 
-    public async Task<Result<DashboardResponse>> GetStats(Guid? merchantId = null)
+    public async Task<Result<DashboardResponse>> GetStats(DashboardRequest request)
     {
+        const string errCode = "Dashboard.GetStats";
         try
         {
+            var isMerchantOwner = await _db.Merchants
+                .AnyAsync(m => m.Users
+                    .Any(u => u.Id == request.ProcessedById && u.Role == nameof(UserRole.Merchant)));
+            if (!isMerchantOwner)
+                return Result<DashboardResponse>.Failure(new UnAuthorized(errCode,
+                    "Unauthorized to access this merchant"));
+
             var today = DateTime.UtcNow.Date;
-            var sevenDaysAgo = today.AddDays(-7);
+            var daysAgo = today.AddDays(-request.StatsDurationInDay);
 
-            var ordersQuery = _db.Orders.AsNoTracking();
-            if (merchantId.HasValue)
-            {
-                ordersQuery = ordersQuery.Where(o => o.MerchantId == merchantId.Value);
-            }
-            var orders = await ordersQuery.ToListAsync();
+            var orderQuery = _db.Orders
+                .AsNoTracking()
+                .AsQueryable()
+                .Where(o => o.MerchantId == request.MerchantId);
 
-            var merchantsCountQuery = _db.Merchants.Where(m => m.DeletedAt == null);
-            if (merchantId.HasValue)
-            {
-                merchantsCountQuery = merchantsCountQuery.Where(m => m.Id == merchantId.Value);
-            }
-            var merchantsCount = await merchantsCountQuery.CountAsync();
+            var merchantsCount = await _db.Merchants
+                .Where(m => m.Users
+                    .Any(u => u.Id == request.ProcessedById && u.Role == nameof(UserRole.Merchant))).CountAsync();
 
-            var branchesCountQuery = _db.Branches.Where(b => b.DeletedAt == null);
-            if (merchantId.HasValue)
-            {
-                branchesCountQuery = branchesCountQuery.Where(b => b.MerchantId == merchantId.Value);
-            }
-            var branchesCount = await branchesCountQuery.CountAsync();
-
-            var revenue = orders.Sum(o => o.TotalAmount);
-            var transactions = orders.Count;
-
-            var recentOrders = orders
+            var branchesCount = await _db.Branches.CountAsync(b => b.MerchantId == request.MerchantId);
+            var revenue = await orderQuery.SumAsync(o => o.TotalAmount);
+            var transactions = await orderQuery.CountAsync();
+            var recentOrders = await orderQuery
                 .OrderByDescending(o => o.OrderDate)
-                .Take(5)
+                .Take(10)
                 .Select(o => new OrderListResponse
                 {
                     Id = o.Id,
                     OrderDate = o.OrderDate,
                     TotalAmount = o.TotalAmount
                 })
-                .ToList();
+                .ToListAsync();
 
             var dailySales = new List<DailySaleDto>();
-            for (int i = 6; i >= 0; i--)
+            for (var i = request.StatsDurationInDay; i > 0; i--)
             {
                 var date = today.AddDays(-i);
-                var dailyTotal = orders
+                var dailyTotal = await orderQuery
                     .Where(o => o.OrderDate.Date == date)
-                    .Sum(o => o.TotalAmount);
-                
-                dailySales.Add(new DailySaleDto 
-                { 
-                    Date = date, 
-                    TotalAmount = dailyTotal 
+                    .SumAsync(o => o.TotalAmount);
+
+                dailySales.Add(new DailySaleDto
+                {
+                    Date = date,
+                    TotalAmount = dailyTotal
                 });
             }
 
@@ -95,12 +92,20 @@ public class DashboardService : IDashboardService
     }
 }
 
+public class DashboardRequest
+{
+    public required int StatsDurationInDay;
+    public required Guid MerchantId;
+    public required Guid ProcessedById;
+}
+
 public class DashboardResponse
 {
     public decimal TotalRevenue { get; set; }
     public int TotalTransactions { get; set; }
     public int TotalMerchants { get; set; }
     public int TotalBranches { get; set; }
+    public int TotalEmployees { get; set; }
     public List<OrderListResponse> RecentOrders { get; set; } = new();
     public List<DailySaleDto> DailySales { get; set; } = new();
 }

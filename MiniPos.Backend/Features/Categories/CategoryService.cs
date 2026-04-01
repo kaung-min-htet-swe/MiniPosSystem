@@ -1,6 +1,7 @@
 using Common;
 using Database.EfAppDbContextModels;
 using Microsoft.EntityFrameworkCore;
+using MiniPos.Backend.Features.Users;
 
 namespace MiniPos.Backend.Features.Categories;
 
@@ -26,12 +27,15 @@ public class CategoryService : ICategoryService
     {
         try
         {
-            var query = _db.Categories.AsNoTracking().AsQueryable();
-
-            if (request.MerchantId.HasValue)
-            {
-                query = query.Where(c => c.MerchantId == request.MerchantId.Value);
-            }
+            var isOwner = await _db.Users.AnyAsync(u =>
+                u.MerchantId == request.MerchantId && u.Role == nameof(UserRole.Merchant));
+            if(!isOwner)
+                return Result<PagedResult<CategoryListResponse>>.Failure(new UnAuthorized("Category.GetList", "User is not authorized to access categories for this merchant"));
+            
+            var query = _db.Categories
+                .Where(c => c.MerchantId == request.MerchantId)
+                .AsNoTracking()
+                .AsQueryable();
 
             var skip = (request.PageNumber - 1) * request.PageSize;
             var take = request.PageSize;
@@ -197,7 +201,8 @@ public class CategoryService : ICategoryService
 
 public class CategoryListRequest : PaginationFilter
 {
-    public Guid? MerchantId { get; set; }
+    public Guid ProcessedById { get; set; }
+    public Guid MerchantId { get; set; }
 }
 
 public class MerchantDto

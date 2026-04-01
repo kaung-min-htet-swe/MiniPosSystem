@@ -26,23 +26,19 @@ public class OrderService : IOrderService
     {
         try
         {
-            if (request.MerchantId == Guid.Empty && request.MerchantAdminId != Guid.Empty)
-            {
-                var user = await _db.Users
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(u => u.Id == request.MerchantAdminId);
-                if (user != null && user.MerchantId.HasValue)
-                {
-                    request.MerchantId = user.MerchantId.Value;
-                }
-            }
+            var isOwner = await _db.Users.AnyAsync(u =>
+                u.MerchantId == request.MerchantId &&
+                u.Id == request.MerchantAdminId &&
+                u.Role == nameof(UserRole.Merchant));
+
+            if (!isOwner)
+                return Result<PagedResult<OrderListResponse>>.Failure(new UnAuthorized("Orders.GetList",
+                    "This user can not be accessible the orders of this merchant."));
 
             var query = _db.Orders
+                .Where(o => o.MerchantId == request.MerchantId)
                 .AsNoTracking()
                 .AsQueryable();
-
-            if (request.MerchantId != Guid.Empty)
-                query = query.Where(o => o.MerchantId == request.MerchantId);
 
             if (request.BranchId.HasValue)
                 query = query.Where(o => o.BranchId == request.BranchId.Value);
@@ -57,13 +53,12 @@ public class OrderService : IOrderService
                 query = query.Where(o => o.OrderDate <= request.EndDate.Value);
 
             if (!string.IsNullOrWhiteSpace(request.SearchTerm))
-            {
                 query = query.Where(o => o.OrderItems.Any(oi => oi.Product.Name.Contains(request.SearchTerm)));
-            }
 
             var skip = (request.PageNumber - 1) * request.PageSize;
             var take = request.PageSize;
             var totalCount = await query.CountAsync();
+            Console.WriteLine($"total orders count: {totalCount} skip: {skip} take: {take}");
             var items = await query
                 .OrderByDescending(order => order.OrderDate)
                 .Skip(skip)
@@ -158,7 +153,8 @@ public class OrderService : IOrderService
             var userExist = await _db.Users.AnyAsync(u => u.Id == request.ProcessedById);
             if (!userExist) return Result.Failure(new NotFoundError(errCode, "User does not exist"));
 
-            var branchExist = await _db.Branches.AnyAsync(b => b.Id == request.BranchId && b.MerchantId == request.MerchantId);
+            var branchExist =
+                await _db.Branches.AnyAsync(b => b.Id == request.BranchId && b.MerchantId == request.MerchantId);
             if (!branchExist) return Result.Failure(new NotFoundError(errCode, "Branch does not exist"));
 
             var productIds = request.OrderedItems.Select(item => item.ProductId).Distinct().ToList();

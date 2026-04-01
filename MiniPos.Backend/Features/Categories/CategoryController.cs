@@ -1,6 +1,7 @@
 using Mapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using MiniPos.Backend.Extensions;
 
 namespace MiniPos.Backend.Features.Categories;
 
@@ -19,6 +20,7 @@ public class CategoryController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetList([FromQuery] CategoryListRequest filter)
     {
+        filter.ProcessedById = User.GetUserId();
         var result = await _categoryService.GetList(filter);
         if (result.IsSuccess)
             return Ok(result.Data);

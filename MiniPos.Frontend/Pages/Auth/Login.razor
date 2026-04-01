@@ -1,0 +1,220 @@
+@page "/login"
+@using MiniPos.Frontend.Shared.Services
+@layout EmptyLayout
+
+<PageTitle>Login - MiniPOS</PageTitle>
+
+<div class="fixed inset-0 z-[-1] overflow-hidden bg-slate-950">
+    <!-- Sophisticated Mesh Gradient Backdrop -->
+    <div class="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(17,24,39,1)_0%,rgba(0,0,0,1)_100%)]"></div>
+    <div
+        class="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-600/20 blur-[120px] rounded-full animate-pulse mix-blend-screen"></div>
+    <div
+        class="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-indigo-600/20 blur-[120px] rounded-full animate-pulse delay-700 mix-blend-screen"></div>
+    <div
+        class="absolute top-[20%] right-[10%] w-[30%] h-[30%] bg-purple-600/10 blur-[100px] rounded-full mix-blend-screen"></div>
+
+    <!-- Grid Overlay -->
+    <div class="absolute inset-0 opacity-[0.03]"
+         style="background-image: linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px); background-size: 50px 50px;"></div>
+</div>
+
+<div class="min-h-screen flex items-center justify-center p-6 animate-fade-in">
+    <div class="w-full max-w-md relative">
+        <!-- Decorative Glow Behind Card -->
+        <div
+            class="absolute -inset-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-[2.5rem] blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+
+        <div
+            class="relative bg-white/[0.03] backdrop-blur-2xl border border-white/10 rounded-[2rem] p-10 shadow-2xl flex flex-col gap-8 overflow-hidden group">
+
+            <!-- Branding -->
+            <div class="text-center space-y-2 relative z-10">
+                <div
+                    class="w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl mx-auto flex items-center justify-center shadow-lg shadow-blue-500/20 rotate-3 group-hover:rotate-6 transition-transform duration-500 border border-white/20">
+                    <i data-lucide="zap" class="w-10 h-10 text-white fill-white/20"></i>
+                </div>
+                <h1 class="text-3xl font-black tracking-tighter text-white font-outfit mt-4">MiniPOS <span
+                        class="text-blue-500">Pro</span></h1>
+                <p class="text-slate-400 text-sm font-medium">Secure merchant & cashier login</p>
+            </div>
+
+            <!-- Login Form -->
+            <div class="space-y-6 relative z-10">
+                @if (!string.IsNullOrEmpty(_errorMessage))
+                {
+                    <div
+                        class="bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-xl text-xs font-bold flex items-center gap-3 animate-shake">
+                        <i data-lucide="alert-circle" class="w-4 h-4"></i>
+                        <span>@_errorMessage</span>
+                    </div>
+                }
+
+                <div class="space-y-4">
+                    <div class="space-y-2 group/input">
+                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Email
+                            Address</label>
+                        <div class="relative">
+                            <div
+                                class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-slate-500 group-focus-within/input:text-blue-500 transition-colors">
+                                <i data-lucide="mail" class="w-4 h-4"></i>
+                            </div>
+                            <input type="email" @bind="_email" placeholder="name@company.com"
+                                   class="w-full bg-white/[0.05] border border-white/10 rounded-2xl py-3.5 pl-11 pr-4 text-white placeholder:text-slate-600 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none transition-all font-medium"/>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2 group/input">
+                        <div class="flex justify-between items-center px-1">
+                            <label
+                                class="text-[10px] font-black uppercase tracking-widest text-slate-500">Password</label>
+                            <a href="#"
+                               class="text-[10px] font-black uppercase tracking-widest text-blue-500 hover:text-blue-400 transition-colors">Forgot?</a>
+                        </div>
+                        <div class="relative">
+                            <div
+                                class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-slate-500 group-focus-within/input:text-blue-500 transition-colors">
+                                <i data-lucide="lock" class="w-4 h-4"></i>
+                            </div>
+                            <input type="password" @bind="_password" placeholder="••••••••"
+                                   class="w-full bg-white/[0.05] border border-white/10 rounded-2xl py-3.5 pl-11 pr-4 text-white placeholder:text-slate-600 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none transition-all font-medium"/>
+                        </div>
+                    </div>
+                </div>
+
+                <button @onclick="HandleLogin" disabled="@_isSubmitting"
+                        class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-black py-4 rounded-2xl shadow-xl shadow-blue-500/20 hover:shadow-blue-500/40 transition-all hover:-translate-y-1 active:scale-95 disabled:opacity-50 disabled:translate-y-0 flex items-center justify-center gap-3">
+                    @if (_isSubmitting)
+                    {
+                        <div class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                        <span>Verifying...</span>
+                    }
+                    else
+                    {
+                        <span>Sign In to Dashboard</span>
+                        <i data-lucide="arrow-right" class="w-4 h-4 mt-0.5"></i>
+                    }
+                </button>
+            </div>
+
+            <!-- Footer Stats Mock -->
+            <div class="pt-6 border-t border-white/5 flex justify-between items-center opacity-50 relative z-10">
+                <div class="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-tighter text-slate-400">
+                    <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
+                    Server Online
+                </div>
+                <div class="text-[10px] font-black uppercase tracking-tighter text-slate-400">v2.4.0-stable</div>
+            </div>
+
+            <!-- Decorative Mesh Bottom -->
+            <div
+                class="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-500/10 rounded-full blur-[100px] pointer-events-none"></div>
+        </div>
+    </div>
+</div>
+
+<style>
+    @@keyframes shake {
+        0%, 100% {
+            transform: translateX(0);
+        }
+        25% {
+            transform: translateX(-4px);
+        }
+        75% {
+            transform: translateX(4px);
+        }
+    }
+
+    .animate-shake {
+        animation: shake 0.2s ease-in-out 0s 2;
+    }
+
+    .animate-fade-in {
+        animation: fadeIn 0.8s ease-out;
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+
+@code {
+    [Inject] private HttpClient Http { get; set; } = default!;
+    [Inject] private NavigationManager Nav { get; set; } = default!;
+    [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
+    [Inject] private CookieService Cookies { get; set; } = default!;
+
+    private string _email = "";
+    private string _password = "";
+    private string? _errorMessage;
+    private bool _isSubmitting;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userId = await Cookies.GetUserId();
+        if (userId.HasValue)
+        {
+            Nav.NavigateTo("/");
+        }
+    }
+
+    private async Task HandleLogin()
+    {
+        if (string.IsNullOrWhiteSpace(_email) || string.IsNullOrWhiteSpace(_password))
+        {
+            _errorMessage = "Please enter both email and password.";
+            return;
+        }
+
+        _isSubmitting = true;
+        _errorMessage = null;
+
+        try
+        {
+            Console.WriteLine($"[DEBUG] HttpClient BaseAddress: {Http.BaseAddress}");
+            var request = new HttpRequestMessage(HttpMethod.Post, "api/auth/signin");
+            request.Content = JsonContent.Create(new SigninRequest
+            {
+                Email = _email,
+                Password = _password
+            });
+            request.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
+
+            var response = await Http.SendAsync(request);
+            if (response.IsSuccessStatusCode)
+            {
+                Nav.NavigateTo("/");
+            }
+            else
+            {
+                _errorMessage = "Invalid email or password. Please try again.";
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = "A connection error occurred. Check your network.";
+            Console.WriteLine(ex.Message);
+        }
+        finally
+        {
+            _isSubmitting = false;
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JSRuntime.InvokeVoidAsync("initIcons");
+        }
+    }
+
+}
