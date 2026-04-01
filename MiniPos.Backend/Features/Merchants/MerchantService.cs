@@ -70,7 +70,7 @@ public class MerchantService : IMerchantService
         {
             var merchant = await _db.Merchants
                 .AsNoTracking()
-                .Where(m => m.Id == id && m.DeletedAt == null)
+                .Where(m => m.Id == id)
                 .Select(m => new MerchantGetByIdResponse
                 {
                     Id = m.Id,
@@ -78,7 +78,9 @@ public class MerchantService : IMerchantService
                     ContactEmail = m.ContactEmail,
                     IsActive = m.IsActive,
                     CreatedAt = m.CreatedAt,
-                    UpdatedAt = m.UpdatedAt
+                    BranchCount = m.Branches.Count,
+                    EmployeeCount = m.Users.Count(u => u.Role == nameof(UserRole.Cashier)),
+                    ProductCount = m.Products.Count,
                 })
                 .FirstOrDefaultAsync();
 
@@ -180,7 +182,9 @@ public class MerchantGetByIdResponse
     public string? ContactEmail { get; set; }
     public bool IsActive { get; set; }
     public DateTime CreatedAt { get; set; }
-    public DateTime? UpdatedAt { get; set; }
+    public int BranchCount { get; set; }
+    public int ProductCount { get; set; }
+    public int EmployeeCount { get; set; }
 }
 
 public class MerchantCreateRequest

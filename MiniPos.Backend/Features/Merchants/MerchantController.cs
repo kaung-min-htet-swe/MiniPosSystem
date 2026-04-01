@@ -40,6 +40,7 @@ public class MerchantController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(Guid id)
     {
+        Console.WriteLine($"Merchant id: {id}");
         var result = await _merchantService.GetById(id);
         if (result.IsSuccess)
             return Ok(result.Data);
