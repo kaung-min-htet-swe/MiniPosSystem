@@ -15,25 +15,6 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto">
-            <!-- Search Command -->
-            <div class="relative flex-1 sm:w-64 group/search">
-                <i data-lucide="search"
-                   class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within/search:text-primary transition-colors"></i>
-                <input type="text" 
-                       value="@SearchTerm" 
-                       @oninput="HandleSearchInput"
-                       @onkeyup="HandleKeyUp"
-                       placeholder="@SearchPlaceholder"
-                       class="w-full pl-10 pr-10 py-2.5 bg-white border border-border/60 rounded-2xl text-sm focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary/40 focus:bg-white transition-all shadow-sm"/>
-                @if (!string.IsNullOrEmpty(SearchTerm))
-                {
-                    <button
-                        class="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center rounded-lg hover:bg-red-50 text-muted-foreground/40 hover:text-red-500 transition-all active:scale-95"
-                        @onclick="ClearSearch">
-                        <i data-lucide="x" class="w-3.5 h-3.5"></i>
-                    </button>
-                }
-            </div>
 
             <!-- View Mode Toggle -->
             @if (ShowViewToggle)
@@ -53,6 +34,26 @@
                     </button>
                 </div>
             }
+
+            <!-- Search Command -->
+            <div class="relative flex-1 sm:w-64 group/search">
+                <i data-lucide="search"
+                   class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within/search:text-primary transition-colors"></i>
+                <input type="text"
+                       value="@SearchTerm"
+                       @oninput="HandleSearchInput"
+                       @onkeyup="HandleKeyUp"
+                       placeholder="@SearchPlaceholder"
+                       class="w-full pl-10 pr-10 py-2.5 bg-white border border-border/60 rounded-2xl text-sm focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary/40 focus:bg-white transition-all shadow-sm"/>
+                @if (!string.IsNullOrEmpty(SearchTerm))
+                {
+                    <button
+                        class="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center rounded-lg hover:bg-red-50 text-muted-foreground/40 hover:text-red-500 transition-all active:scale-95"
+                        @onclick="ClearSearch">
+                        <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                    </button>
+                }
+            </div>
 
             <!-- Filters Slot -->
             @if (Filters != null)

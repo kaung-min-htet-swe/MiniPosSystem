@@ -162,66 +162,64 @@ else
     {
         <!-- Ultra-Concise List View -->
         <div class="pos-card p-0 bg-white/60 shadow-xl border-border/40 overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
-                    <thead class="bg-muted/30 border-b border-border/30">
-                    <tr>
-                        <th class="pl-6 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground w-12"></th>
-                        <th class="px-4 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                            Product Detail
-                        </th>
-                        <th class="px-4 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                            Category
-                        </th>
-                        <th class="px-4 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground text-right">
-                            Retail Price
-                        </th>
-                        <th class="pr-6 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground text-right">
-                            Actions
-                        </th>
-                    </tr>
-                    </thead>
-                    <tbody class="divide-y divide-border/20">
-                    @foreach (var product in _pagedProducts.Data)
-                    {
-                        var ui = GetProductUI(product);
-                        <tr class="group hover:bg-primary/[0.03] backdrop-blur-sm transition-all duration-300 cursor-pointer border-l-2 border-transparent hover:border-primary hover:translate-x-1"
-                            @onclick="() => GoToProductDetail(product.Id)">
-                            <td class="pl-6 py-2.5">
-                                <div
-                                    class="w-9 h-9 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-border/60 group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 shadow-sm shadow-primary/5">
-                                    <i data-lucide="@ui.Icon" class="w-4.5 h-4.5 @ui.TextColor"></i>
-                                </div>
-                            </td>
-                            <td class="px-5 py-2.5">
-                                <div
-                                    class="font-bold text-[14px] text-foreground font-outfit group-hover:text-primary transition-colors">@product.Name</div>
-                                <div
-                                    class="text-[10px] font-black text-muted-foreground/50 uppercase tracking-widest leading-none mt-0.5">@product.Sku</div>
-                            </td>
-                            <td class="px-5 py-2.5">
+            <table class="w-full text-left border-collapse">
+                <thead class="bg-muted/30 border-b border-border/30">
+                <tr>
+                    <th class="pl-6 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground w-12"></th>
+                    <th class="px-4 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                        Product Detail
+                    </th>
+                    <th class="px-4 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                        Category
+                    </th>
+                    <th class="px-4 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground text-right">
+                        Retail Price
+                    </th>
+                    <th class="pr-6 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground text-right">
+                        Actions
+                    </th>
+                </tr>
+                </thead>
+                <tbody class="divide-y divide-border/20">
+                @foreach (var product in _pagedProducts.Data)
+                {
+                    var ui = GetProductUI(product);
+                    <tr class="group hover:bg-primary/[0.03] backdrop-blur-sm transition-all duration-300 cursor-pointer border-l-2 border-transparent hover:border-primary hover:translate-x-1"
+                        @onclick="() => GoToProductDetail(product.Id)">
+                        <td class="pl-6 py-2.5">
+                            <div
+                                class="w-9 h-9 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-border/60 group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 shadow-sm shadow-primary/5">
+                                <i data-lucide="@ui.Icon" class="w-4.5 h-4.5 @ui.TextColor"></i>
+                            </div>
+                        </td>
+                        <td class="px-5 py-2.5">
+                            <div
+                                class="font-bold text-[14px] text-foreground font-outfit group-hover:text-primary transition-colors">@product.Name</div>
+                            <div
+                                class="text-[10px] font-black text-muted-foreground/50 uppercase tracking-widest leading-none mt-0.5">@product.Sku</div>
+                        </td>
+                        <td class="px-5 py-2.5">
                                         <span
                                             class="badge @ui.BgIcon @ui.TextColor text-[9px] font-black uppercase tracking-widest border-transparent py-1 px-2.5 rounded-lg shadow-sm shadow-black/5">
                                             @(GetCategoryName(product.Category.Id))
                                         </span>
-                            </td>
-                            <td class="px-5 py-2.5 text-right">
-                                <div class="text-base font-black font-outfit text-primary">
+                        </td>
+                        <td class="px-5 py-2.5 text-right">
+                            <div class="text-base font-black font-outfit text-primary">
                                         <span
                                             class="text-[10px] mr-0.5 opacity-50">$</span>@product.Price.ToString("F2")
-                                </div>
-                            </td>
-                            <td class="pr-6 py-2.5 text-right">
-                                <button
-                                    class="w-8 h-8 rounded-xl hover:bg-primary/10 text-muted-foreground hover:text-primary flex items-center justify-center transition-all ml-auto hover:rotate-90">
-                                    <i data-lucide="chevron-right" class="w-4 h-4"></i>
-                                </button>
-                            </td>
-                        </tr>
-                    }
-                    </tbody>
-                </table>
-            </div>
+                            </div>
+                        </td>
+                        <td class="pr-6 py-2.5 text-right">
+                            <button
+                                class="w-8 h-8 rounded-xl hover:bg-primary/10 text-muted-foreground hover:text-primary flex items-center justify-center transition-all ml-auto hover:rotate-90">
+                                <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                            </button>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
         </div>
         <Pagination CurrentPage="_currentPage"
                     TotalPages="@(_pagedProducts?.TotalPages ?? 1)"
