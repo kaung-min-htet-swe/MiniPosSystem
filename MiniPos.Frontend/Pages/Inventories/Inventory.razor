@@ -297,6 +297,11 @@
 
     private async Task LoadData()
     {
+        if(_selectedMerchantId == null ) {
+        {
+            Clear();
+            return;
+        }}
         _isLoading = true;
         StateHasChanged();
 
@@ -353,6 +358,15 @@
     private void GoToInventoryDetail(Guid id) => Navigation.NavigateTo($"/inventory/{id}");
     private void GoToAddInventory() => Navigation.NavigateTo("/inventory/add");
 
+    private void Clear()
+    {
+        _categories = new();
+        _branches = new();
+        _selectedBranchId = null;
+        _selectedCategoryId = null;
+        _pagedInventories = null;
+    }
+    
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)

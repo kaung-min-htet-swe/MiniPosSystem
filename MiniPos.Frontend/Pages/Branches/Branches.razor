@@ -195,6 +195,11 @@
 
     private async Task LoadBranches()
     {
+        if (_selectedMerchantId == null)
+        {
+            Clear();
+            return;
+        }
         _isLoading = true;
         StateHasChanged();
         try
@@ -225,6 +230,12 @@
 
     private void GoToAddBranch() => Navigation.NavigateTo("/branches/add");
 
+    private void Clear()
+    {
+        _isLoading = false;
+        _pagedBranches = null;
+    }
+    
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)

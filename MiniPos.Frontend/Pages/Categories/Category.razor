@@ -266,6 +266,12 @@ else
 
     private async Task LoadData()
     {
+        if (_selectedMerchantId == null)
+        {
+             Clear();
+            return;
+        }
+        
         _pagedCategories = null;
         StateHasChanged();
 
@@ -387,6 +393,11 @@ else
         StateHasChanged();
     }
 
+    private void Clear()
+    {
+        _pagedCategories = null;
+    }
+    
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)

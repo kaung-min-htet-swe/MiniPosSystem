@@ -340,6 +340,7 @@
     {
         if (_selectedMerchantId == null)
         {
+            Clear();
             return;
         }
       
@@ -398,6 +399,12 @@
         return $"ORD-{idStr}";
     }
 
+    private void Clear()
+    {
+        _stats = null;
+        _isLoading = false;
+    }
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
@@ -405,4 +412,5 @@
             await JSRuntime.InvokeVoidAsync("initIcons");
         }
     }
+
 }
