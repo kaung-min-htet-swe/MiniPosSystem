@@ -327,7 +327,8 @@ else
 
     private async Task LoadCategories()
     {
-        var response = await Http.GetAsync($"api/categories");
+        var url = $"api/categories?page={_currentPage}&pageSize={_pageSize}&merchantId={_selectedMerchantId.Value}";
+        var response = await Http.GetAsync(url);
         if (response.IsSuccessStatusCode)
         {
             var result = await response.Content.ReadFromJsonAsync<PagedResult<Category>>();

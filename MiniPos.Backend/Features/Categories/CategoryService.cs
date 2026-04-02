@@ -27,11 +27,11 @@ public class CategoryService : ICategoryService
     {
         try
         {
-            var isOwner = await _db.Users.AnyAsync(u =>
-                u.MerchantId == request.MerchantId && u.Role == nameof(UserRole.Merchant));
-            if(!isOwner)
-                return Result<PagedResult<CategoryListResponse>>.Failure(new UnAuthorized("Category.GetList", "User is not authorized to access categories for this merchant"));
-            
+            var isOwner = await _db.Users.AnyAsync(u => u.Id == request.ProcessedById && u.MerchantId == request.MerchantId);
+            if (!isOwner)
+                return Result<PagedResult<CategoryListResponse>>.Failure(new UnAuthorized("Category.GetList",
+                    "User is not authorized to access categories for this merchant"));
+
             var query = _db.Categories
                 .Where(c => c.MerchantId == request.MerchantId)
                 .AsNoTracking()
@@ -84,7 +84,7 @@ public class CategoryService : ICategoryService
                     CreatedAt = c.CreatedAt,
                     Merchant = new MerchantDto
                     {
-                        Id = c.MerchantId, 
+                        Id = c.MerchantId,
                         Name = c.Merchant.Name
                     },
                     Products = c.Products.Select(p => new ProductDto
@@ -224,7 +224,7 @@ public class CategoryListResponse
     public string? Description { get; set; }
     public Guid MerchantId { get; set; }
     public string? MerchantName { get; set; }
-    public int ProductCount { get; set; } 
+    public int ProductCount { get; set; }
 }
 
 public class CategoryGetByIdResponse

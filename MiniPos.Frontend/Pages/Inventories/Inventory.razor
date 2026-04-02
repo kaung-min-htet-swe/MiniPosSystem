@@ -285,7 +285,8 @@
             var branchesResp = await Http.GetFromJsonAsync<PagedResult<Branch>>(branchUrl);
             _branches = branchesResp?.Data ?? new();
 
-            var categoryUrl = "api/categories?pageSize=100";
+            
+            var categoryUrl = $"api/categories?page={_currentPage}&pageSize={_pageSize}&merchantId={_selectedMerchantId.Value}";
             var categoriesResp = await Http.GetFromJsonAsync<PagedResult<Category>>(categoryUrl);
             _categories = categoriesResp?.Data ?? new();
         }
