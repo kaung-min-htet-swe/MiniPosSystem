@@ -31,12 +31,36 @@
                 @*         <span class="text-[10px] text-muted-foreground truncate block">Active Session</span> *@
                 @*     </div> *@
                 @* </div> *@
-                <button @onclick="HandleLogout" class="w-full mt-3 btn btn-outline border-border/50 bg-white hover:bg-red-50 hover:text-red-600 hover:border-red-200 text-xs justify-between group py-2">
-                    Logout
+                <button @onclick="() => _showSignoutPrompt = true" class="w-full mt-3 btn btn-outline border-border/50 bg-white hover:bg-red-50 hover:text-red-600 hover:border-red-200 text-xs justify-between group py-2">
+                    Signout
                     <i data-lucide="log-out" class="w-3 h-3 text-muted-foreground group-hover:text-red-600 transition-colors"></i>
                 </button>
             </div>
         </aside>
+
+        @if (_showSignoutPrompt)
+        {
+            <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/40 backdrop-blur-sm animate-fade-in">
+                <div class="w-full max-w-sm bg-white/90 backdrop-blur-xl border border-white/20 rounded-2xl shadow-2xl overflow-hidden animate-scale-in">
+                    <div class="p-6 text-center">
+                        <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i data-lucide="log-out" class="w-8 h-8 text-red-600"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-900 mb-2">Confirm Signout</h3>
+                        <p class="text-slate-500 mb-6">Are you sure you want to sign out of your session?</p>
+                        
+                        <div class="flex gap-3">
+                            <button @onclick="() => _showSignoutPrompt = false" class="flex-1 btn btn-outline border-slate-200 text-slate-600 hover:bg-slate-50">
+                                Cancel
+                            </button>
+                            <button @onclick="HandleSignout" class="flex-1 btn bg-red-600 hover:bg-red-700 text-white shadow-lg shadow-red-200 border-none font-bold">
+                                Yes, Signout
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
 
         <!-- Main Content Area -->
         <div class="dashboard-main">
@@ -73,6 +97,7 @@
 
 @code {
     private bool _isAuthenticated = false;
+    private bool _showSignoutPrompt = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -90,7 +115,7 @@
             _isAuthenticated = true;
     }
 
-    private async Task HandleLogout()
+    private async Task HandleSignout()
     {
         try 
         {
@@ -109,9 +134,6 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender)
-        {
-            await JSRuntime.InvokeVoidAsync("initIcons");
-        }
+        await JSRuntime.InvokeVoidAsync("initIcons");
     }
 }
