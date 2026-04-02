@@ -1,6 +1,9 @@
-﻿namespace Database.EfAppDbContextModels;
+﻿using System;
+using System.Collections.Generic;
 
-public class User
+namespace Database.EfAppDbContextModels;
+
+public partial class User
 {
     public Guid Id { get; set; }
 
@@ -8,11 +11,11 @@ public class User
 
     public Guid? BranchId { get; set; }
 
-    public string? Username { get; set; } = null!;
+    public string Username { get; set; } = null!;
 
     public string PasswordHash { get; set; } = null!;
 
-    public string? Email { get; set; } = null!;
+    public string Email { get; set; } = null!;
 
     public string Role { get; set; } = null!;
 
@@ -27,4 +30,6 @@ public class User
     public virtual Merchant? Merchant { get; set; }
 
     public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
+
+    public virtual ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
 }

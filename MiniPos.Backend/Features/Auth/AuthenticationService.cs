@@ -10,7 +10,8 @@ public interface IAuthenticationService
 {
     Task<Result<SignupResponse>> Signup(SignupRequest request);
     Task<Result<SigninResponse>> Signin(SigninRequest request);
-    Task<Result<SignoutResponse>> Signout();
+    Task<Result<RefreshResponse>> Refresh(RefreshRequest request);
+    Task<Result> Signout(Guid userId);
 }
 
 public class AuthenticationService : IAuthenticationService
@@ -54,11 +55,17 @@ public class AuthenticationService : IAuthenticationService
         if (result is { IsSuccess: false, Data: not null }) return Result<SignupResponse>.Failure(result.Error!);
 
         var user = result.Data;
-        var token = await _tokenService.IssueTokenAsync(user.Id, user.UserName, user.Role);
+        var token = await _tokenService.IssueTokenAsync(new IssueTokenRequest
+        {
+            Role = user.Role,
+            UserId = user.Id,
+        });
+       
         var response = new SignupResponse
         {
-            Id = user.Id,
-            Token = token
+            UserId = user.Id,
+            Role = user.Role,
+            Token = token.Data
         };
 
         return Result<SignupResponse>.Success(response);
@@ -69,6 +76,7 @@ public class AuthenticationService : IAuthenticationService
         var errCode = "AuthenticationService.Signin";
         try
         {
+            Console.WriteLine($"Signin attempt for email: {request.Email}");
             var user = await _db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Email == request.Email);
             if (user is null) return Result<SigninResponse>.Failure(new UnAuthorized(errCode, "Invalid credentials"));
 
@@ -76,11 +84,16 @@ public class AuthenticationService : IAuthenticationService
             if (result == PasswordVerificationResult.Failed)
                 return Result<SigninResponse>.Failure(new UnAuthorized(errCode, "Invalid credentials"));
 
-            var token = await _tokenService.IssueTokenAsync(user.Id, user.Username, user.Role);
+            var token = await _tokenService.IssueTokenAsync(new IssueTokenRequest
+            {
+                Role = user.Role,
+                UserId = user.Id,
+            });
             return Result<SigninResponse>.Success(new SigninResponse
             {
-                Id = user.Id,
-                Token = token
+                UserId = user.Id,
+                Role = user.Role,
+                Token = token.Data
             });
         }
         catch (Exception e)
@@ -89,11 +102,33 @@ public class AuthenticationService : IAuthenticationService
         }
     }
 
-    public async Task<Result<SignoutResponse>> Signout()
+    public async Task<Result<RefreshResponse>> Refresh(RefreshRequest request)
     {
-        // _httpContextAccessor.HttpContext?.Response.Cookies.Delete("token");
-        // return Result<SignoutResponse>.Success(new SignoutResponse { Message = "Logged out successfully" });
-        return null;
+        return await _tokenService.RefreshAsync(request.RefreshToken);
+    }
+
+    public async Task<Result> Signout(Guid userid)
+    {
+        try
+        {
+            var refreshToken = await _db.RefreshTokens.FirstOrDefaultAsync(t => t.UserId == userid);
+            if (refreshToken == null)
+                return Result.Failure(new NotFoundError("AuthenticationService.Signout", "Refresh token not found."));
+
+            refreshToken.Token = "";
+            refreshToken.IsRevoked = true;
+            refreshToken.UpdatedAt = DateTime.UtcNow;
+            refreshToken.RevokedAt = DateTime.UtcNow;
+            refreshToken.ReplacedByTokenHash = null;
+            refreshToken.ExpiresAt = null;
+            
+            await _db.SaveChangesAsync();
+            return Result.Success();
+        }
+        catch (Exception e)
+        {
+            return Result.Failure(new InternalError("AuthenticationService.Signout", e.Message));
+        }
     }
 }
 
@@ -112,7 +147,8 @@ public class SignupRequest
 
 public class SignupResponse
 {
-    public Guid Id { get; set; }
+    public Guid UserId { get; set; }
+    public string? Role { get; set; }
     public TokenResponse? Token { get; set; }
 }
 
@@ -124,11 +160,24 @@ public class SigninRequest
 
 public class SigninResponse
 {
-    public Guid Id { get; set; }
+    public Guid UserId { get; set; }
+    public string? Role { get; set; }
     public TokenResponse? Token { get; set; }
 }
 
 public class SignoutResponse
 {
     public string Message { get; set; } = string.Empty;
+}
+
+public class RefreshResponse
+{
+    public Guid UserId { get; set; }
+    public string? Role { get; set; }
+    public TokenResponse? Token { get; set; }
+}
+
+public class RefreshRequest
+{
+    public string RefreshToken { get; set; } = "";
 }

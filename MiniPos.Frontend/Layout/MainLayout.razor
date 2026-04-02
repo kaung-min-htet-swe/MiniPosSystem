@@ -1,9 +1,6 @@
 @inherits LayoutComponentBase
-@using MiniPos.Frontend.Shared.Services
-@using MiniPos.Frontend.Shared.Services
 @inject IJSRuntime JSRuntime
 @inject NavigationManager Navigation
-@inject CookieService Cookies
 @inject HttpClient Http
 
 <div class="dashboard-layout animate-fade-in">
@@ -84,34 +81,28 @@
 
     private async Task CheckAuthentication()
     {
-        var userId = await Cookies.GetUserId();
-        if (userId == null)
-        {
             _isAuthenticated = false;
-            // Short delay to avoid race on initial load
-            await Task.Delay(100);
-            if (!Navigation.Uri.Contains("/login"))
-            {
-                Navigation.NavigateTo("/login");
+            var request = await Http.GetAsync("api/auth/check");
+            if (!request.IsSuccessStatusCode)            {
+                 Navigation.NavigateTo("/login");
+                 return;
             }
-        }
-        else
-        {
             _isAuthenticated = true;
-        }
     }
 
     private async Task HandleLogout()
     {
         try 
         {
-            await Http.PostAsync("api/auth/signout", null);
-            await Cookies.DeleteCookie("X-User-Id");
-            Navigation.NavigateTo("/login");
+            var response = await Http.GetAsync("api/auth/signout");
+            if (!response.IsSuccessStatusCode)
+            {
+                return;
+            }
+                Navigation.NavigateTo("/login");
         }
         catch 
         {
-            await Cookies.DeleteCookie("X-User-Id");
             Navigation.NavigateTo("/login");
         }
     }

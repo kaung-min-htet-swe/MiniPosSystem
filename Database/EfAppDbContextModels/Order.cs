@@ -9,10 +9,8 @@ public partial class Order
 
     public Guid BranchId { get; set; }
 
-    public Guid MerchantId { get; set; }
-    
     public Guid? CustomerId { get; set; }
-    
+
     public Guid? ProcessedById { get; set; }
 
     public DateTime OrderDate { get; set; }
@@ -25,13 +23,15 @@ public partial class Order
 
     public DateTime? DeletedAt { get; set; }
 
+    public Guid MerchantId { get; set; }
+
     public virtual Branch Branch { get; set; } = null!;
 
     public virtual Customer? Customer { get; set; }
 
+    public virtual Merchant Merchant { get; set; } = null!;
+
     public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
 
     public virtual User? ProcessedBy { get; set; }
-    
-    public virtual Merchant Merchant { get; set; }
 }

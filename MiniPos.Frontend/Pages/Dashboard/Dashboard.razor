@@ -297,7 +297,6 @@
     [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
     [Inject] private HttpClient Http { get; set; } = default!;
     [Inject] private NavigationManager Nav { get; set; } = default!;
-    [Inject] private CookieService Cookies { get; set; } = default!;
 
     private DashboardResponse? _stats;
     private List<Merchant> _merchants = new();
@@ -306,13 +305,6 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var userId = await Cookies.GetUserId();
-        if (!userId.HasValue)
-        {
-            Nav.NavigateTo("/login");
-            return;
-        }
-
         await LoadMerchants();
     }
 

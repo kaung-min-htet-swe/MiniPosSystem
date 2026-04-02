@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Components.WebAssembly.Http;
 
 namespace MiniPos.Frontend.Shared.Services;
 
-public class CredentialsHandler : DelegatingHandler
+public class CookiesHandler : DelegatingHandler
 {
     protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
