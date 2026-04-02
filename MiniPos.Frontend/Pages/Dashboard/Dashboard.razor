@@ -319,6 +319,8 @@
                 if (result != null)
                 {
                     _merchants = result.Data;
+                    _selectedMerchantId = _merchants[0].Id;
+                    await LoadDashboardData();
                 }
             }
         }
@@ -354,10 +356,6 @@
             if (response.IsSuccessStatusCode)
             {
                 _stats = await response.Content.ReadFromJsonAsync<DashboardResponse>();
-            }
-            else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
-            {
-                Nav.NavigateTo("/login");
             }
         }
         catch (Exception ex)
