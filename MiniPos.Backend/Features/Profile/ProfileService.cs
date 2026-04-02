@@ -1,12 +1,13 @@
 using Common;
 using Database.EfAppDbContextModels;
 using Microsoft.EntityFrameworkCore;
+using MiniPos.Backend.Features.Users;
 
 namespace MiniPos.Backend.Features.Profile;
 
 public interface IProfileService
 {
-    Task<Result<ProfileResponseDto>> GetProfile(Guid userId);
+    Task<Result<ProfileResponse>> GetProfile(Guid userId);
 }
 
 public class ProfileService : IProfileService
@@ -18,14 +19,15 @@ public class ProfileService : IProfileService
         _db = db;
     }
 
-    public async Task<Result<ProfileResponseDto>> GetProfile(Guid userId)
+    public async Task<Result<ProfileResponse>> GetProfile(Guid userId)
     {
+        Console.WriteLine($"userid is {userId}");
         try
         {
             var profile = await _db.Users
                 .AsNoTracking()
                 .Where(u => u.Id == userId)
-                .Select(u => new ProfileResponseDto
+                .Select(u => new ProfileResponse
                 {
                     Id = u.Id,
                     UserName = u.Username,
@@ -49,18 +51,18 @@ public class ProfileService : IProfileService
                 .FirstOrDefaultAsync();
 
             if (profile == null)
-                return Result<ProfileResponseDto>.Failure(new NotFoundError("Profile.Get", "User profile not found."));
+                return Result<ProfileResponse>.Failure(new NotFoundError("Profile.Get", "User profile not found."));
 
-            return Result<ProfileResponseDto>.Success(profile);
+            return Result<ProfileResponse>.Success(profile);
         }
         catch (Exception ex)
         {
-            return Result<ProfileResponseDto>.Failure(new InternalError("Profile.Get", ex.Message));
+            return Result<ProfileResponse>.Failure(new InternalError("Profile.Get", ex.Message));
         }
     }
 }
 
-public class ProfileResponseDto
+public class ProfileResponse
 {
     public Guid Id { get; set; }
     public string? UserName { get; set; }
@@ -84,4 +86,19 @@ public class ProfileBranchDto
     public Guid Id { get; set; }
     public string Name { get; set; } = null!;
     public string? Address { get; set; }
+}
+
+public class UpdateProfileRequest
+{
+    public string? Name { get; set; }
+    public string? Email { get; set; }
+    public Guid ProcessedById { get; set; }
+}
+
+public class UpdateProfilePasswordRequest
+{
+    public string? OldPassword { get; set; }
+    public string? NewPassword { get; set; }
+    public string? ConfirmPassword { get; set; }
+    public Guid ProcessedById { get; set; }
 }

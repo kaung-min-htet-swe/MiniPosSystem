@@ -54,7 +54,7 @@ public class UserService : IUserService
                 if (!string.IsNullOrWhiteSpace(request.SearchTerm))
                 {
                     var searchTerm = request.SearchTerm.Trim().ToLower();
-                    query = query.Where(u => (u.Username != null && u.Username.ToLower().Contains(searchTerm)) || 
+                    query = query.Where(u => (u.Username != null && u.Username.ToLower().Contains(searchTerm)) ||
                                              (u.Email != null && u.Email.ToLower().Contains(searchTerm)));
                 }
 
@@ -137,9 +137,10 @@ public class UserService : IUserService
                         .ToString()
                 })
                 .FirstOrDefaultAsync(u => u.Id == request.UserId);
-            
-            if (user == null) return Result<UserGetByIdResponse>.Failure(new NotFoundError(errCode, "User does not exist"));
-            
+
+            if (user == null)
+                return Result<UserGetByIdResponse>.Failure(new NotFoundError(errCode, "User does not exist"));
+
             return Result<UserGetByIdResponse>.Success(user);
         }
         catch (Exception e)
@@ -196,13 +197,17 @@ public class UserService : IUserService
     {
         try
         {
+            if (request.NewPassword != request.ConfirmPassword)
+                return Result.Failure(new BadRequestError("User.UpdatePassword",
+                    "New password and confirm password do not match"));
+
             var user = await _db.Users.FirstOrDefaultAsync(user => user.Id == request.UserId);
             if (user == null)
                 return Result.Failure(new NotFoundError("User.UpdatePassword", "User does not exist"));
 
-            if (request.NewPassword != request.ConfirmPassword)
-                return Result.Failure(new BadRequestError("User.UpdatePassword",
-                    "New password and confirm password do not match"));
+            var isValidPassword = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, request.OldPassword!);
+            if (isValidPassword == PasswordVerificationResult.Failed)
+                return Result.Failure(new BadRequestError("User.UpdatePassword", "Old password is incorrect"));
 
             var hashedPassword = _passwordHasher.HashPassword(user, request.NewPassword!);
             user.PasswordHash = hashedPassword;
@@ -467,6 +472,7 @@ public class UserUpdateRequest
 
 public class UserResetPasswordRequest
 {
+    public string? OldPassword { get; set; }
     public string? NewPassword { get; set; }
     public string? ConfirmPassword { get; set; }
     public Guid UserId { get; set; }

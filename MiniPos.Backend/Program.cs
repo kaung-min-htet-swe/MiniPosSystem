@@ -13,6 +13,7 @@ using MiniPos.Backend.Features.Dashboard;
 using MiniPos.Backend.Features.Merchants;
 using MiniPos.Backend.Features.Orders;
 using MiniPos.Backend.Features.Products;
+using MiniPos.Backend.Features.Profile;
 using MiniPos.Backend.Features.Users;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -84,6 +85,7 @@ builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IMerchantService, MerchantService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
+builder.Services.AddScoped<IProfileService, ProfileService>();
 // builder.Services.AddScoped<IHttpContextAccessor, HttpContextAccessor > ();
 
 var app = builder.Build();
