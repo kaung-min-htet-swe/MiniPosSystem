@@ -40,8 +40,12 @@ public class MerchantController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(Guid id)
     {
-        Console.WriteLine($"Merchant id: {id}");
-        var result = await _merchantService.GetById(id);
+        var request = new MerchantGetByIdRequest
+        {
+            MerchantAdminId = User.GetUserId(),
+            MerchantId = id
+        };
+        var result = await _merchantService.GetById(request);
         if (result.IsSuccess)
             return Ok(result.Data);
 
@@ -52,6 +56,7 @@ public class MerchantController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] MerchantCreateRequest request)
     {
+        request.MerchantAdminId = User.GetUserId();
         var result = await _merchantService.Create(request);
         if (result.IsSuccess)
         {
@@ -65,6 +70,7 @@ public class MerchantController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(Guid id, [FromBody] MerchantUpdateRequest request)
     {
+        request.MerchantAdminId = User.GetUserId();
         var result = await _merchantService.Update(id, request);
         if (result.IsSuccess)
             return Ok();
@@ -76,7 +82,12 @@ public class MerchantController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(Guid id)
     {
-        var result = await _merchantService.Delete(id);
+        var request = new MerchantDeleteRequest
+        {
+            MerchantAdminId = User.GetUserId(),
+            MerchantId = id
+        };
+        var result = await _merchantService.Delete(request);
         if (result.IsSuccess)
             return NoContent();
 

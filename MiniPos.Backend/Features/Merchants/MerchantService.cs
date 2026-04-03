@@ -8,10 +8,10 @@ namespace MiniPos.Backend.Features.Merchants;
 public interface IMerchantService
 {
     Task<Result<PagedResult<MerchantListResponse>>> GetList(MerchantListRequest request);
-    Task<Result<MerchantGetByIdResponse>> GetById(Guid id);
+    Task<Result<MerchantGetByIdResponse>> GetById(MerchantGetByIdRequest request);
     Task<Result<MerchantCreateResponse>> Create(MerchantCreateRequest request);
     Task<Result> Update(Guid id, MerchantUpdateRequest request);
-    Task<Result> Delete(Guid id);
+    Task<Result> Delete(MerchantDeleteRequest request);
 }
 
 public class MerchantService : IMerchantService
@@ -28,24 +28,21 @@ public class MerchantService : IMerchantService
         try
         {
             var query = _db.Merchants
+                .Where(m => m.Users.Any(u => u.Id == request.MerchantAdminId))
                 .AsNoTracking()
                 .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(request.SearchTerm))
             {
-                query = query.Where(m => m.Name != null && m.Name.Contains(request.SearchTerm));
+                query = query.Where(m => m.Name.Contains(request.SearchTerm));
             }
 
             var skip = (request.PageNumber - 1) * request.PageSize;
             var take = request.PageSize;
             var totalCount = await query.CountAsync();
-            var merchantAdminId = request.MerchantAdminId;
             var merchants = await _db.Merchants
-                .AsNoTracking()
                 .Skip(skip)
                 .Take(take)
-                .Where(m => 
-                    m.Users.Any(mu => mu.Id == merchantAdminId && mu.Role == "Merchant"))
                 .Select(m => new MerchantListResponse
                 {
                     Id = m.Id,
@@ -54,8 +51,9 @@ public class MerchantService : IMerchantService
                     BranchCount = m.Branches.Count,
                 })
                 .ToListAsync();
-            
-            var result = new PagedResult<MerchantListResponse>(merchants, totalCount, request.PageNumber, request.PageSize);
+
+            var result =
+                new PagedResult<MerchantListResponse>(merchants, totalCount, request.PageNumber, request.PageSize);
             return Result<PagedResult<MerchantListResponse>>.Success(result);
         }
         catch (Exception e)
@@ -64,13 +62,13 @@ public class MerchantService : IMerchantService
         }
     }
 
-    public async Task<Result<MerchantGetByIdResponse>> GetById(Guid id)
+    public async Task<Result<MerchantGetByIdResponse>> GetById(MerchantGetByIdRequest request)
     {
         try
         {
             var merchant = await _db.Merchants
                 .AsNoTracking()
-                .Where(m => m.Id == id)
+                .Where(m => m.Id == request.MerchantId && m.Users.Any(u => u.Id == request.MerchantAdminId))
                 .Select(m => new MerchantGetByIdResponse
                 {
                     Id = m.Id,
@@ -85,7 +83,8 @@ public class MerchantService : IMerchantService
                 .FirstOrDefaultAsync();
 
             if (merchant == null)
-                return Result<MerchantGetByIdResponse>.Failure(new NotFoundError("Merchant.GetById", "Merchant not found"));
+                return Result<MerchantGetByIdResponse>.Failure(new NotFoundError("Merchant.GetById",
+                    "Merchant not found"));
 
             return Result<MerchantGetByIdResponse>.Success(merchant);
         }
@@ -141,11 +140,13 @@ public class MerchantService : IMerchantService
         }
     }
 
-    public async Task<Result> Delete(Guid id)
+    public async Task<Result> Delete(MerchantDeleteRequest request)
     {
         try
         {
-            var merchant = await _db.Merchants.FirstOrDefaultAsync(m => m.Id == id && m.DeletedAt == null);
+            var merchant = await _db.Merchants
+                .FirstOrDefaultAsync(m => m.Id == request.MerchantId &&
+                                          m.Users.Any(u => u.Id == request.MerchantAdminId));
             if (merchant == null)
                 return Result.Failure(new NotFoundError("Merchant.Delete", "Merchant not found"));
 
@@ -175,6 +176,12 @@ public class MerchantListResponse
     public int BranchCount { get; set; }
 }
 
+public class MerchantGetByIdRequest
+{
+    public Guid MerchantAdminId { get; set; }
+    public Guid MerchantId { get; set; }
+}
+
 public class MerchantGetByIdResponse
 {
     public Guid Id { get; set; }
@@ -191,6 +198,7 @@ public class MerchantCreateRequest
 {
     public string Name { get; set; } = string.Empty;
     public string? ContactEmail { get; set; }
+    public Guid MerchantAdminId { get; set; }
 }
 
 public class MerchantCreateResponse
@@ -203,4 +211,11 @@ public class MerchantUpdateRequest
     public string Name { get; set; } = string.Empty;
     public string? ContactEmail { get; set; }
     public bool IsActive { get; set; }
+    public Guid MerchantAdminId { get; set; }
+}
+
+public class MerchantDeleteRequest
+{
+    public Guid MerchantAdminId { get; set; }
+    public Guid MerchantId { get; set; }
 }
