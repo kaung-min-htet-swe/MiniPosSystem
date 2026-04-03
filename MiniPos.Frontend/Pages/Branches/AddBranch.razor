@@ -7,9 +7,11 @@
 <div class="animate-slide-down max-w-2xl mx-auto pb-12">
     <!-- Header with Back Navigation -->
     <div class="mb-8">
-        <button class="flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors mb-4 group" @onclick="GoBack">
+        <button
+            class="btn btn-outline border-border/50 bg-white hover:bg-slate-50 px-5 flex items-center gap-2 group transition-all"
+            @onclick="GoBack">
             <i data-lucide="arrow-left" class="w-4 h-4 group-hover:-translate-x-1 transition-transform"></i>
-            Back to Branches
+            <span class="font-bold text-xs uppercase tracking-tight">Back to Branches</span>
         </button>
         <h1 class="text-3xl font-black tracking-tight text-foreground">Add New Branch</h1>
         <p class="text-muted-foreground mt-1 text-sm">Create a new physical location and link it to a merchant.</p>

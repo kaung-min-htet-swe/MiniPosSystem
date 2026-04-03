@@ -7,9 +7,11 @@
 <div class="animate-slide-down max-w-4xl mx-auto pb-12">
     <!-- Header with Back Navigation -->
     <div class="mb-8 flex justify-between items-center">
-        <button class="flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors group" @onclick="GoBack">
+        <button
+            class="btn btn-outline border-border/50 bg-white hover:bg-slate-50 px-5 flex items-center gap-2 group transition-all"
+            @onclick="GoBack">
             <i data-lucide="arrow-left" class="w-4 h-4 group-hover:-translate-x-1 transition-transform"></i>
-            Back to Categories
+            <span class="font-bold text-xs uppercase tracking-tight">Back to Categories</span>
         </button>
         <div class="flex items-center gap-2">
             <button class="btn btn-primary btn-sm rounded-lg flex items-center gap-1.5" @onclick="() => _showEditModal = true">
