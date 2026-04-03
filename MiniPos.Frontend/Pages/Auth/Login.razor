@@ -52,7 +52,9 @@
                                @bind="_email"
                                @bind:event="oninput"
                                autocomplete="email"
-                               disabled="@_isSubmitting"/>
+                               disabled="@_isSubmitting"
+                               class="field-input"
+                               />
                     </div>
                 </div>
 
@@ -71,7 +73,9 @@
                                @bind="_password"
                                @bind:event="oninput"
                                autocomplete="current-password"
-                               disabled="@_isSubmitting"/>
+                               disabled="@_isSubmitting"
+                               class="field-input"
+                               />
                         <button type="button"
                                 class="input-toggle"
                                 @onclick="TogglePasswordVisibility"
@@ -314,7 +318,7 @@
         background: rgba(255, 255, 255, 0.05);
         border: 1px solid rgba(255, 255, 255, 0.10);
         border-radius: 0.75rem;
-        color: #e2e8f0; /* slate-200 */
+        color: #dce7ff; /* slate-200 */
         font-family: 'Inter', sans-serif;
         font-size: 0.9rem;
         outline: none;

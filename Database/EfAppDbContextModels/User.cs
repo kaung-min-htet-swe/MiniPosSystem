@@ -29,6 +29,8 @@ public partial class User
 
     public virtual Merchant? Merchant { get; set; }
 
+    public virtual ICollection<MerchantAdmin> MerchantAdmins { get; set; } = new List<MerchantAdmin>();
+
     public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
 
     public virtual ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();

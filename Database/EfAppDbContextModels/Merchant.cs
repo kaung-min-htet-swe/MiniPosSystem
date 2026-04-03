@@ -25,6 +25,8 @@ public partial class Merchant
 
     public virtual ICollection<Customer> Customers { get; set; } = new List<Customer>();
 
+    public virtual ICollection<MerchantAdmin> MerchantAdmins { get; set; } = new List<MerchantAdmin>();
+
     public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
 
     public virtual ICollection<Product> Products { get; set; } = new List<Product>();

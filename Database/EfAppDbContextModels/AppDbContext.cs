@@ -25,6 +25,8 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<Merchant> Merchants { get; set; }
 
+    public virtual DbSet<MerchantAdmin> MerchantAdmins { get; set; }
+
     public virtual DbSet<Order> Orders { get; set; }
 
     public virtual DbSet<OrderItem> OrderItems { get; set; }
@@ -36,10 +38,6 @@ public partial class AppDbContext : DbContext
     public virtual DbSet<RefreshToken> RefreshTokens { get; set; }
 
     public virtual DbSet<User> Users { get; set; }
-
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Server=localhost;Database=minipos;User ID=sa;Password=DataC0Ntr0ll3r;Encrypt=True;TrustServerCertificate=True;");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -134,6 +132,21 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(sysutcdatetime())");
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.Name).HasMaxLength(100);
+        });
+
+        modelBuilder.Entity<MerchantAdmin>(entity =>
+        {
+            entity.HasKey(e => new { e.UserId, e.MerchantId });
+
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(sysutcdatetime())");
+
+            entity.HasOne(d => d.Merchant).WithMany(p => p.MerchantAdmins)
+                .HasForeignKey(d => d.MerchantId)
+                .HasConstraintName("FK_MerchantAdmins_Merchants");
+
+            entity.HasOne(d => d.User).WithMany(p => p.MerchantAdmins)
+                .HasForeignKey(d => d.UserId)
+                .HasConstraintName("FK_MerchantAdmins_Users");
         });
 
         modelBuilder.Entity<Order>(entity =>
