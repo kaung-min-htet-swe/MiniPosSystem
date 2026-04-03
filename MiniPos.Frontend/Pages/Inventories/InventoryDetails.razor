@@ -1,4 +1,6 @@
 @page "/inventory/{InventoryId}"
+@using MiniPos.Frontend.Shared.Types
+@inject NotificationService Notification
 
 <PageTitle>Inventory Details - MiniPOS</PageTitle>
 
@@ -264,12 +266,12 @@
             }
             else
             {
-                await ShowAlert("Failed to load inventory parameters.", "error");
+                await Notification.ShowError("Failed to load inventory parameters.", "error");
             }
         }
         catch (Exception ex)
         {
-            await ShowAlert($"Network error: {ex.Message}", "error");
+            await Notification.ShowError($"Network error: {ex.Message}", "error");
         }
     }
 
@@ -320,18 +322,18 @@
                     _inventory.StockQuantity = _editQuantity;
                     _ui = GetInventoryUI(_inventory);
                 }
-                await ShowAlert("Inventory updated successfully!");
+                await Notification.ShowSuccess("Inventory updated successfully!");
                 _showEditModal = false;
             }
             else
             {
                 var error = await response.Content.ReadAsStringAsync();
-                await ShowAlert($"Update failed: {error}", "error");
+                await Notification.ShowError($"Update failed: {error}", "error");
             }
         }
         catch (Exception ex)
         {
-            await ShowAlert($"Network error: {ex.Message}", "error");
+            await Notification.ShowError($"Network error: {ex.Message}", "error");
         }
         finally
         {
@@ -349,20 +351,19 @@
             var response = await Http.DeleteAsync($"api/inventories/{InventoryId}");
             if (response.IsSuccessStatusCode)
             {
-                await ShowAlert("Listing withdrawn successfully!");
-                await Task.Delay(1500);
+                await Notification.ShowSuccess("Listing withdrawn successfully!");
                 Navigation.NavigateTo("/inventory");
             }
             else
             {
-                var error = await response.Content.ReadAsStringAsync();
-                await ShowAlert($"Withdrawal failed: {error}", "error");
+                var error = await response.Content.ReadFromJsonAsync<ErrMessageResponse>();
+                await Notification.ShowError($"Withdrawal failed: {error}", "error");
                 _showDeleteModal = false;
             }
         }
         catch (Exception ex)
         {
-            await ShowAlert($"Network error: {ex.Message}", "error");
+            await Notification.ShowError($"Network error: {ex.Message}", "error");
             _showDeleteModal = false;
         }
         finally
@@ -370,23 +371,7 @@
             _isSubmitting = false;
         }
     }
-
-    private async Task ShowAlert(string message, string type = "success")
-    {
-        _alertMessage = message;
-        _alertType = type;
-        StateHasChanged();
-        await JSRuntime.InvokeVoidAsync("initIcons");
-        
-        // Auto-dismiss if success
-        if (type == "success")
-        {
-            await Task.Delay(3000);
-            _alertMessage = "";
-            StateHasChanged();
-        }
-    }
-
+    
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender) { await JSRuntime.InvokeVoidAsync("initIcons"); }

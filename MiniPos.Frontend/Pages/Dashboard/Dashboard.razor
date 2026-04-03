@@ -1,11 +1,12 @@
 @page "/"
-@using MiniPos.Frontend.Shared.Services
+@inject NotificationService Notification
 @using MiniPos.Frontend.Shared.Types
 
 <PageTitle>Dashboard - MiniPOS</PageTitle>
 
 <PageHeader Title="Dashboard" 
             Subtitle="Real-time performance overview for your business"
+            ShowSearch="false"
             ShowViewToggle="false">
     <Filters>
         <div class="relative group">
@@ -29,12 +30,12 @@
             <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-muted-foreground group-hover:translate-y-0.5 transition-transform"></i>
         </div>
     </Filters>
-    <Actions>
-        <button class="btn btn-primary px-6 h-12 shadow-xl shadow-primary/20 flex items-center gap-3 transition-all">
-            <i data-lucide="plus-circle" class="w-5 h-5 font-black"></i>
-            <span class="font-black uppercase tracking-tight text-sm">Add Record</span>
-        </button>
-    </Actions>
+    @* <Actions> *@
+    @*     <button class="btn btn-primary px-6 h-12 shadow-xl shadow-primary/20 flex items-center gap-3 transition-all"> *@
+    @*         <i data-lucide="plus-circle" class="w-5 h-5 font-black"></i> *@
+    @*         <span class="font-black uppercase tracking-tight text-sm">Add Record</span> *@
+    @*     </button> *@
+    @* </Actions> *@
 </PageHeader>
 
 <div class="animate-slide-down">
@@ -323,6 +324,10 @@
                     await LoadDashboardData();
                 }
             }
+            else
+            {
+                await Notification.ShowError("Failed to load merchants.");
+            }
         }
         catch (Exception ex)
         {
@@ -356,6 +361,10 @@
             if (response.IsSuccessStatusCode)
             {
                 _stats = await response.Content.ReadFromJsonAsync<DashboardResponse>();
+            }
+            else
+            {
+                await Notification.ShowError("Failed to load dashboard data.");
             }
         }
         catch (Exception ex)

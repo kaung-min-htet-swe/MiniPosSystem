@@ -1,4 +1,5 @@
 @page "/inventory"
+@inject NotificationService Notification
 @using MiniPos.Frontend.Shared.Types
 
 <PageTitle>Master Inventory - MiniPOS</PageTitle>
@@ -79,7 +80,8 @@
             <h3 class="text-xl font-black text-foreground">Out of sync</h3>
             <p class="text-muted-foreground max-w-xs mx-auto mt-2">Adjust your search or active merchant filters.</p>
         </div>
-    } else if (_pagedInventories == null || !_pagedInventories.Data.Any())
+    }
+    else if (_pagedInventories == null || !_pagedInventories.Data.Any())
     {
         <div class="flex-1 flex flex-col items-center justify-center p-24 text-center">
             <div class="w-20 h-20 bg-muted/20 rounded-3xl flex items-center justify-center mb-6">
@@ -261,10 +263,12 @@
             var response = await Http.GetAsync("api/merchants?pageSize=100");
             if (!response.IsSuccessStatusCode)
             {
+                await Notification.ShowError("Failed to load merchants.");
                 return;
             }
+
             var result = await response.Content.ReadFromJsonAsync<PagedResult<Merchant>>();
-            if (result is {Data: not null})
+            if (result is { Data: not null })
             {
                 _merchants = result.Data;
                 _selectedMerchantId = _merchants[0].Id;
@@ -273,57 +277,66 @@
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error loading merchants: {ex.Message}");
+            await Notification.ShowError(ex.Message);
         }
     }
-    
+
     private async Task LoadFilters()
     {
         try
         {
             var branchUrl = $"api/branches?MerchantId={_selectedMerchantId}&pageSize=100";
             var branchesResp = await Http.GetFromJsonAsync<PagedResult<Branch>>(branchUrl);
-            _branches = branchesResp?.Data ?? new();
-
+            _branches = branchesResp?.Data;
+            Console.WriteLine(_branches[0].Id);
             
             var categoryUrl = $"api/categories?page={_currentPage}&pageSize={_pageSize}&merchantId={_selectedMerchantId.Value}";
             var categoriesResp = await Http.GetFromJsonAsync<PagedResult<Category>>(categoryUrl);
-            _categories = categoriesResp?.Data ?? new();
+            _categories = categoriesResp?.Data;
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error loading filters: {ex.Message}");
+            await Notification.ShowError(ex.Message);
         }
     }
 
     private async Task LoadData()
     {
-        if(_selectedMerchantId == null ) {
+        if (_selectedMerchantId == null)
         {
-            Clear();
-            return;
-        }}
+            {
+                Clear();
+                return;
+            }
+        }
+
         _isLoading = true;
         StateHasChanged();
 
         try
         {
             var url = $"api/inventories?page={_currentPage}&pageSize={_pageSize}&merchantId={_selectedMerchantId.Value}";
-            
+
             if (!string.IsNullOrEmpty(_searchTerm)) url += $"&searchTerm={Uri.EscapeDataString(_searchTerm)}";
             if (_selectedBranchId.HasValue && _selectedBranchId != Guid.Empty) url += $"&branchId={_selectedBranchId.Value}";
             if (_selectedCategoryId.HasValue) url += $"&categoryId={_selectedCategoryId.Value}";
 
-            _pagedInventories = await Http.GetFromJsonAsync<PagedResult<BranchInventoryListResponse>>(url);
+            var response = await Http.GetAsync(url);
+            if (!response.IsSuccessStatusCode)
+            {
+                await Notification.ShowError("Failed to load inventories.");
+                return;
+            }
+
+            _pagedInventories = await response.Content.ReadFromJsonAsync<PagedResult<BranchInventoryListResponse>>();
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error loading inventory: {ex.Message}");
+            await Notification.ShowError(ex.Message);
         }
         finally
         {
             _isLoading = false;
-            _branches = new();
             StateHasChanged();
             await JSRuntime.InvokeVoidAsync("initIcons");
         }
@@ -367,7 +380,7 @@
         _selectedCategoryId = null;
         _pagedInventories = null;
     }
-    
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)

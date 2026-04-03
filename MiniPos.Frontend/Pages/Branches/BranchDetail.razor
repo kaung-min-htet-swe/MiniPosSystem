@@ -1,5 +1,6 @@
 @page "/branches/{BranchId}"
 @using MiniPos.Frontend.Shared.Types
+@inject NotificationService Notification
 
 <PageTitle>Branch Details - MiniPOS</PageTitle>
 
@@ -14,23 +15,6 @@
         </button>
     </div>
 
-    <!-- Floating Alert Box -->
-    @if (!string.IsNullOrEmpty(_alertMessage))
-    {
-        <div class="fixed top-6 left-1/2 -translate-x-1/2 z-[100] animate-slide-down">
-            <div class="flex items-center gap-3 px-6 py-4 rounded-2xl shadow-2xl border backdrop-blur-md
-                @(_alertType == "success" ? "bg-emerald-50/90 border-emerald-200 text-emerald-800" : "bg-rose-50/90 border-rose-200 text-rose-800")">
-                <div class="shrink-0 w-10 h-10 rounded-full flex items-center justify-center
-                    @(_alertType == "success" ? "bg-emerald-100" : "bg-rose-100")">
-                    <i data-lucide="@(_alertType == "success" ? "check-circle" : "alert-circle")" class="w-6 h-6"></i>
-                </div>
-                <div>
-                    <p class="text-xs font-black uppercase tracking-widest opacity-60">@(_alertType == "success" ? "Success" : "Error")</p>
-                    <p class="text-sm font-bold">@_alertMessage</p>
-                </div>
-            </div>
-        </div>
-    }
 
     @if (_branch == null)
     {
@@ -405,10 +389,6 @@
     private List<User> _staff = new();
     private List<User>? _availableUsers;
 
-    // Alert state
-    private string _alertMessage = "";
-    private string _alertType = "success";
-
     // Modal controls
     private bool _showEditModal = false;
     private bool _showAssignStaffModal = false;
@@ -432,7 +412,7 @@
         }
         catch (Exception ex)
         {
-            await ShowAlert($"Error during initialization: {ex.Message}", "error");
+            await Notification.ShowError($"Error during initialization: {ex.Message}");
         }
     }
 
@@ -449,6 +429,10 @@
                 _branch.Merchant = _branch.Merchant;
             }
         }
+        else
+        {
+            await Notification.ShowError("Failed to load branch.");
+        }
     }
 
     private async Task LoadStaffData()
@@ -461,6 +445,9 @@
             {
                 _availableUsers = pagedUsers.Data;
                 _staff = _availableUsers.Where(u => u.Branch != null && u.Branch.Id.ToString() == BranchId).ToList();
+            }else
+            {
+                await Notification.ShowError("Failed to load staff data.");
             }
         }
     }
@@ -489,18 +476,18 @@
             {
                     _branch.Name = _editName;
                     _branch.Address = _editAddress;
-                await ShowAlert("Branch updated successfully!");
+                await Notification.ShowSuccess("Branch updated successfully!");
                 _showEditModal = false;
             }
             else
             {
                 var error = await response.Content.ReadAsStringAsync();
-                await ShowAlert($"Update failed: {error}", "error");
+                await Notification.ShowError($"Update failed: {error}");
             }
         }
         catch (Exception ex)
         {
-            await ShowAlert($"Network error: {ex.Message}", "error");
+            await Notification.ShowError($"Network error: {ex.Message}");
         }
         finally
         {
@@ -521,7 +508,7 @@
 
             if (response.IsSuccessStatusCode)
             {
-                await ShowAlert("Staff assigned successfully!");
+                await Notification.ShowSuccess("Staff assigned successfully!");
                 await LoadStaffData(); // Refresh list
                 _showAssignStaffModal = false;
                 _selectedStaffId = "";
@@ -529,12 +516,12 @@
             else
             {
                 var error = await response.Content.ReadAsStringAsync();
-                await ShowAlert($"Assignment failed: {error}", "error");
+                await Notification.ShowError($"Assignment failed: {error}");
             }
         }
         catch (Exception ex)
         {
-            await ShowAlert($"Network error: {ex.Message}", "error");
+            await Notification.ShowError($"Network error: {ex.Message}");
         }
         finally
         {
@@ -552,19 +539,18 @@
             var response = await Http.DeleteAsync($"api/branches/{BranchId}");
             if (response.IsSuccessStatusCode)
             {
-                await ShowAlert("Branch deleted successfully!");
-                await Task.Delay(1500);
+                await Notification.ShowSuccess("Branch deleted successfully!");
                 Navigation.NavigateTo("/branches");
             }
             else
             {
                 var error = await response.Content.ReadAsStringAsync();
-                await ShowAlert($"Delete failed: {error}", "error");
+                await Notification.ShowError($"Delete failed: {error}");
             }
         }
         catch (Exception ex)
         {
-            await ShowAlert($"Network error: {ex.Message}", "error");
+            await Notification.ShowError($"Network error: {ex.Message}");
         }
         finally
         {
@@ -575,20 +561,7 @@
 
     private void PromptRemoveStaff(User user)
     {
-        // For now, removing staff from branch is also a reassignment (to empty? not supported yet probably)
-        // User could be reassigned to a "Default" or "Null" branch if supported by backend.
-        // But for UI response:
-        ShowAlert("Staff removal is not directly supported via this API. Please reassign the user to another branch or delete them.", "warning");
-    }
-
-    private async Task ShowAlert(string message, string type = "success")
-    {
-        _alertMessage = message;
-        _alertType = type;
-        StateHasChanged();
-        await JSRuntime.InvokeVoidAsync("initIcons");
-        _alertMessage = "";
-        StateHasChanged();
+        _ = Notification.ShowWarning("Staff removal is not directly supported via this API. Please reassign the user to another branch.");
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)

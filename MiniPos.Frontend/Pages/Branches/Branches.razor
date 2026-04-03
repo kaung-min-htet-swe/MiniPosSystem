@@ -1,4 +1,5 @@
 @page "/branches"
+@inject NotificationService NotificationService
 @using MiniPos.Frontend.Shared.Types
 
 <PageTitle>Store Branches - MiniPOS</PageTitle>
@@ -175,6 +176,7 @@
             var response = await Http.GetAsync("api/merchants?pageSize=100");
             if (!response.IsSuccessStatusCode)
             {
+                await NotificationService.ShowError("Failed to load merchants.");
                 return;
             }
 

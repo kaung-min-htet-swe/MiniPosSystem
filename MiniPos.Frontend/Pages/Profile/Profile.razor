@@ -1,5 +1,7 @@
 @page "/profile"
+@inject NotificationService Notification
 @using MiniPos.Frontend.Components
+@using MiniPos.Frontend.Pages.Profile
 
 <PageTitle>@_profile?.UserName's Profile - MiniPOS</PageTitle>
 
@@ -360,7 +362,6 @@
         try
         {
             _profile = await Http.GetFromJsonAsync<ProfileModel>("api/profile");
-
             if (_profile != null)
             {
                 _ui = _profile.Role switch
@@ -395,7 +396,7 @@
         }
         catch (Exception e)
         {
-            Console.WriteLine($"Error loading profile: {e.Message}");
+            await Notification.ShowError($"Error loading profile: {e.Message}");
         }
         finally
         {
@@ -438,10 +439,12 @@
                 });
             if (!response.IsSuccessStatusCode)
             {
-                            var result = await response.Content.ReadFromJsonAsync<UpdateProfileResponse>();
-                Console.WriteLine(result.Message);
+                var result = await response.Content.ReadFromJsonAsync<UpdateProfileResponse>();
+                await Notification.ShowError(result?.Message ?? "Failed to update profile.");
                 return;
             }
+
+            await Notification.ShowSuccess("Profile updated successfully!");
 
             if (_profile != null)
             {
@@ -451,7 +454,7 @@
         }
         catch (Exception e)
         {
-            Console.WriteLine(e.Message);
+            await Notification.ShowError($"Update failed: {e.Message}");
         }
         finally
         {
@@ -466,7 +469,7 @@
     {
         if (string.IsNullOrWhiteSpace(_oldPassword) || string.IsNullOrWhiteSpace(_newPassword) || _newPassword != _confirmPassword)
         {
-            // Simple client-side validation simulation
+             await Notification.ShowWarning("Please check your password entries. Ensure all fields are filled and new passwords match.");
             return;
         }
 
@@ -483,15 +486,17 @@
                 });
             if (!response.IsSuccessStatusCode)
             {
-            var result = await response.Content.ReadFromJsonAsync<UpdateProfileResponse>();
-                Console.WriteLine(result.Message);
+                var result = await response.Content.ReadFromJsonAsync<UpdateProfileResponse>();
+                await Notification.ShowError(result?.Message ?? "Failed to reset password.");
                 return;
             }
-        _showPasswordModal = false;
+            
+            await Notification.ShowSuccess("Password updated successfully!");
+            _showPasswordModal = false;
         }
         catch (Exception e)
         {
-            Console.WriteLine(e.Message);
+            await Notification.ShowError($"Security update failed: {e.Message}");
         }
         finally
         {

@@ -999,3 +999,200 @@ a {
 .mb-12 {
     margin-bottom: 3rem;
 }
+
+/* =============================================
+   Toast Notification System
+   ============================================= */
+
+@keyframes toastSlideIn {
+    from {
+        opacity: 0;
+        transform: translateX(calc(100% + 1.5rem));
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes toastProgress {
+    from { width: 100%; }
+    to   { width: 0%; }
+}
+
+.animate-toast-in {
+    animation: toastSlideIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.toast-container {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    pointer-events: none;
+    max-width: 22rem;
+    width: 100%;
+}
+
+.toast {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.875rem;
+    padding: 1rem 1rem 1rem 1rem;
+    padding-right: 2.5rem;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid hsl(var(--border) / 0.6);
+    border-radius: 1.25rem;
+    box-shadow:
+        0 20px 40px -8px rgb(0 0 0 / 0.12),
+        0 8px 16px -4px rgb(0 0 0 / 0.06),
+        0 0 0 1px rgb(255 255 255 / 0.8) inset;
+    overflow: hidden;
+    pointer-events: all;
+    min-width: 18rem;
+}
+
+/* Colored left accent bar */
+.toast::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    border-radius: 1.25rem 0 0 1.25rem;
+}
+
+.toast-icon-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 0.75rem;
+    flex-shrink: 0;
+    margin-top: 0.05rem;
+}
+
+.toast-body {
+    flex: 1;
+    min-width: 0;
+}
+
+.toast-title {
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin: 0 0 0.15rem 0;
+    line-height: 1;
+}
+
+.toast-message {
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin: 0;
+    line-height: 1.4;
+    color: hsl(var(--foreground) / 0.85);
+}
+
+.toast-close {
+    position: absolute;
+    top: 0.6rem;
+    right: 0.6rem;
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: hsl(var(--muted-foreground) / 0.5);
+    transition: all 0.15s ease;
+    padding: 0;
+}
+
+.toast-close:hover {
+    background: hsl(var(--muted));
+    color: hsl(var(--foreground));
+}
+
+/* Progress bar */
+.toast-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    width: 100%;
+    animation: toastProgress 4s linear forwards;
+    border-radius: 0 0 1.25rem 1.25rem;
+}
+
+/* === SUCCESS === */
+.toast-success::before {
+    background: linear-gradient(to bottom, hsl(142 71% 45%), hsl(160 60% 50%));
+}
+.toast-success .toast-icon-wrap {
+    background: hsl(142 71% 95%);
+    color: hsl(142 71% 35%);
+}
+.toast-success .toast-title {
+    color: hsl(142 60% 30%);
+}
+.toast-success .toast-progress {
+    background: linear-gradient(to right, hsl(142 71% 45%), hsl(160 60% 50%));
+}
+
+/* === ERROR === */
+.toast-error::before {
+    background: linear-gradient(to bottom, hsl(0 84% 60%), hsl(15 80% 58%));
+}
+.toast-error .toast-icon-wrap {
+    background: hsl(0 84% 96%);
+    color: hsl(0 84% 45%);
+}
+.toast-error .toast-title {
+    color: hsl(0 70% 40%);
+}
+.toast-error .toast-progress {
+    background: linear-gradient(to right, hsl(0 84% 60%), hsl(15 80% 58%));
+}
+
+/* === WARNING === */
+.toast-warning::before {
+    background: linear-gradient(to bottom, hsl(38 92% 50%), hsl(48 90% 55%));
+}
+.toast-warning .toast-icon-wrap {
+    background: hsl(38 92% 95%);
+    color: hsl(38 80% 35%);
+}
+.toast-warning .toast-title {
+    color: hsl(38 75% 30%);
+}
+.toast-warning .toast-progress {
+    background: linear-gradient(to right, hsl(38 92% 50%), hsl(48 90% 55%));
+}
+
+/* === INFO === */
+.toast-info::before {
+    background: linear-gradient(to bottom, hsl(var(--primary)), hsl(280 84% 54%));
+}
+.toast-info .toast-icon-wrap {
+    background: hsl(var(--primary) / 0.1);
+    color: hsl(var(--primary));
+}
+.toast-info .toast-title {
+    color: hsl(var(--primary));
+}
+.toast-info .toast-progress {
+    background: linear-gradient(to right, hsl(var(--primary)), hsl(280 84% 54%));
+}
+

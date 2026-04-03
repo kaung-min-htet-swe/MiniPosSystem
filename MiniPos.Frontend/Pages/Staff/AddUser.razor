@@ -1,4 +1,5 @@
 @page "/users/add"
+@inject NotificationService Notification
 @using MiniPos.Frontend.Shared.Types
 
 <PageTitle>Add Staff - MiniPOS</PageTitle>
@@ -25,23 +26,8 @@
         </div>
     </div>
 
-    @if (!string.IsNullOrEmpty(_alertMessage))
-    {
-        <div class="fixed top-6 left-1/2 -translate-x-1/2 z-[100] animate-slide-down">
-            <div class="px-6 py-4 rounded-2xl shadow-2xl backdrop-blur-md flex items-center gap-4 border
-                @(_alertType == "success" ? "bg-success border-success/30 text-white" : "bg-destructive border-destructive/30 text-white")">
-                <i data-lucide="@(_alertType == "success" ? "check-circle-2" : "alert-circle")" class="w-6 h-6 shrink-0"></i>
-                <span class="font-bold tracking-wide">@_alertMessage</span>
-                <button @onclick='() => _alertMessage = ""' class="ml-4 hover:opacity-70 transition-opacity">
-                    <i data-lucide="x" class="w-4 h-4 text-white/80"></i>
-                </button>
-            </div>
-        </div>
-    }
 
-    @if (string.IsNullOrEmpty(_successMessage))
-    {
-        <!-- Main Form Card -->
+    <!-- Main Form Card -->
         <div class="pos-card p-0 overflow-hidden bg-white/60 shadow-lg border-border/40 animate-slide-up">
             <!-- Form Fields -->
             <div class="p-8 space-y-8">
@@ -177,8 +163,8 @@
                 </div>
             </div>
         </div>
-    }
-    else
+
+    @if (!_showSuccessView)
     {
         <!-- Success Card View -->
         <div class="max-w-lg mx-auto animate-scale-in py-8">
@@ -258,12 +244,7 @@
 
     // UI state
     private bool _isSubmitting;
-    private string _successMessage = "";
-    private string _errorMessage = "";
-    
-    // Alert state
-    private string _alertMessage = "";
-    private string _alertType = "success";
+    private bool _showSuccessView = false;
 
     // Last created info for success view
     private string? _lastCreatedUserName;
@@ -277,7 +258,7 @@
             var response = await Http.GetAsync($"api/merchants");
             if (!response.IsSuccessStatusCode)
             {
-                _errorMessage = "Failed to load merchants.";
+                await Notification.ShowError("Failed to load merchants.");
                 return;
             }
 
@@ -286,16 +267,13 @@
         }
         catch (Exception ex)
         {
-            _errorMessage = $"An error occurred during initialization: {ex.Message}";
-            await ShowAlert("Initialization failed.", "error");
+            await Notification.ShowError($"An error occurred during initialization: {ex.Message}");
         }
     }
     
     private void SelectRole(string role)
     {
         _selectedRole = role;
-        _errorMessage = "";
-        _successMessage = "";
     }
 
     private void TogglePassword()
@@ -319,12 +297,10 @@
 
     private async Task HandleSubmit()
     {
-        _errorMessage = "";
-        _successMessage = "";
 
         if (!IsFormValid())
         {
-            _errorMessage = "Please fill in all required fields.";
+            await Notification.ShowWarning("Please fill in all required fields.");
             return;
         }
 
@@ -345,7 +321,8 @@
 
             if (response.IsSuccessStatusCode)
             {
-                _successMessage = $"{_selectedRole} account for \"{_userName}\" created successfully!";
+                await Notification.ShowSuccess($"{_selectedRole} account for \"{_userName}\" created successfully!");
+                _showSuccessView = true;
                 
                 // Store last created info
                 _lastCreatedUserName = _userName;
@@ -363,14 +340,12 @@
             else
             {
                 var error = await response.Content.ReadAsStringAsync();
-                _errorMessage = $"{_selectedRole} account creation failed: {error}";
-                await ShowAlert("Account creation failed.", "error");
+                await Notification.ShowError($"{_selectedRole} account creation failed: {error}");
             }
         }
         catch (Exception ex)
         {
-            _errorMessage = $"A network error occurred: {ex.Message}";
-            await ShowAlert("Network error.", "error");
+            await Notification.ShowError($"A network error occurred: {ex.Message}");
         }
         finally
         {
@@ -382,8 +357,7 @@
 
     private void ResetForm()
     {
-        _successMessage = "";
-        _errorMessage = "";
+        _showSuccessView = false;
         _userName = "";
         _email = "";
         _password = "";
@@ -397,17 +371,6 @@
     private void GoBack()
     {
         Navigation.NavigateTo("/users");
-    }
-
-    private async Task ShowAlert(string message, string type = "success")
-    {
-        _alertMessage = message;
-        _alertType = type;
-        StateHasChanged();
-        await JSRuntime.InvokeVoidAsync("initIcons");
-        await Task.Delay(5000);
-        _alertMessage = "";
-        StateHasChanged();
     }
 
     private async Task ReinitIcons()
@@ -437,12 +400,12 @@
                 }
                 else
                 {
-                    _errorMessage = "Failed to load branches for the selected merchant.";
+                    await Notification.ShowError("Failed to load branches for the selected merchant.");
                 }
             }
             catch (Exception ex)
             {
-                _errorMessage = $"Error loading branches: {ex.Message}";
+                await Notification.ShowError($"Error loading branches: {ex.Message}");
             }
         }
         else

@@ -1,4 +1,5 @@
 @page "/products"
+@inject NotificationService Notification
 @using MiniPos.Frontend.Shared.Types
 
 <PageTitle>Products - MiniPOS</PageTitle>
@@ -301,7 +302,7 @@ else
         }
         catch (Exception ex)
         {
-            await ShowAlert($"Error during initialization: {ex.Message}", "error");
+            await Notification.ShowError($"Error during initialization: {ex.Message}", "error");
         }
     }
 
@@ -321,7 +322,7 @@ else
         }
         else
         {
-            await ShowAlert("Failed to load products.", "error");
+            await Notification.ShowError("Failed to load products.");
         }
     }
 
@@ -337,6 +338,9 @@ else
                 _categories = result.Data;
                 _categoryNames = result.Data.ToDictionary(c => c.Id, c => c.Name ?? "Unknown");
             }
+        }    else
+        {
+            await Notification.ShowError("Failed to load categories.");
         }
     }
 
@@ -345,6 +349,7 @@ else
         var response = await Http.GetAsync($"api/merchants");
         if (!response.IsSuccessStatusCode)
         {
+            await Notification.ShowError("Failed to load merchants.");
             return;
         }
 
@@ -362,17 +367,7 @@ else
         _currentPage = page;
         await LoadData();
     }
-
-    private async Task ShowAlert(string message, string type = "success")
-    {
-        _alertMessage = message;
-        _alertType = type;
-        StateHasChanged();
-        await JSRuntime.InvokeVoidAsync("initIcons");
-        _alertMessage = "";
-        StateHasChanged();
-    }
-
+    
     private void GoToProductDetail(Guid id)
     {
         Navigation.NavigateTo($"/products/{id}");

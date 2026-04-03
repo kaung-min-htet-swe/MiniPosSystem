@@ -1,21 +1,9 @@
 @page "/categories/add"
 @using MiniPos.Frontend.Shared.Types
+@inject NotificationService Notification
 
 <PageTitle>Add Category - MiniPOS</PageTitle>
 
-@if (!string.IsNullOrEmpty(_alertMessage))
-{
-    <div class="fixed top-6 left-1/2 -translate-x-1/2 z-[100] animate-slide-down">
-        <div class="px-6 py-4 rounded-2xl shadow-2xl backdrop-blur-md flex items-center gap-4 border
-            @(_alertType == "success" ? "bg-success border-success/30 text-white" : "bg-destructive border-destructive/30 text-white")">
-            <i data-lucide="@(_alertType == "success" ? "check-circle-2" : "alert-circle")" class="w-6 h-6 shrink-0"></i>
-            <span class="font-bold tracking-wide">@_alertMessage</span>
-            <button @onclick='() => _alertMessage = ""' class="ml-4 hover:opacity-70 transition-opacity">
-                <i data-lucide="x" class="w-4 h-4 text-white/80"></i>
-            </button>
-        </div>
-    </div>
-}
 
 <div class="animate-slide-down max-w-2xl mx-auto pb-12">
     <!-- Header with Back Navigation -->
@@ -34,14 +22,6 @@
 
         <EditForm Model="@_categoryRequest" OnValidSubmit="HandleSubmit" class="space-y-6 relative z-10">
             <DataAnnotationsValidator />
-
-            <!-- Success / Error Banner -->
-            @if (!string.IsNullOrEmpty(_successMessage))
-            {
-                <div class="bg-success/10 border border-success/20 text-success rounded-xl p-4 text-sm font-bold flex items-center gap-2 animate-fade-in mb-4">
-                    <i data-lucide="check-circle" class="w-4 h-4"></i> @_successMessage
-                </div>
-            }
 
             <div class="grid grid-cols-1 gap-5">
                 <!-- Associated Merchant -->
@@ -118,11 +98,6 @@
     
     private bool _isSubmitting = false;
     private bool _hasSubmittedAttempt = false;
-    private string _successMessage = "";
-    
-    // Alert state
-    private string _alertMessage = "";
-    private string _alertType = "success";
 
     public class CategoryFormModel
     {
@@ -147,12 +122,12 @@
             }
             else
             {
-                await ShowAlert("Failed to load merchants.", "error");
+                await Notification.ShowError("Failed to load merchants.");
             }
         }
         catch (Exception ex)
         {
-            await ShowAlert($"Error loading merchants: {ex.Message}", "error");
+            await Notification.ShowError($"Error loading merchants: {ex.Message}");
         }
     }
 
@@ -164,7 +139,6 @@
         if (string.IsNullOrEmpty(_categoryRequest.MerchantId)) return;
 
         _isSubmitting = true;
-        _successMessage = "";
 
         try
         {
@@ -178,39 +152,24 @@
 
             if (response.IsSuccessStatusCode)
             {
-                _successMessage = "Category created successfully!";
-                await ShowAlert(_successMessage);
-                
-                // Redirect after brief delay
-                await Task.Delay(1500);
+                await Notification.ShowSuccess("Category created successfully!");
                 Navigation.NavigateTo("/categories");
             }
             else
             {
                 var error = await response.Content.ReadAsStringAsync();
-                await ShowAlert($"Creation failed: {error}", "error");
+                await Notification.ShowError($"Creation failed: {error}");
             }
         }
         catch (Exception ex)
         {
-            await ShowAlert($"Network error: {ex.Message}", "error");
+            await Notification.ShowError($"Network error: {ex.Message}");
         }
         finally
         {
             _isSubmitting = false;
             StateHasChanged();
         }
-    }
-
-    private async Task ShowAlert(string message, string type = "success")
-    {
-        _alertMessage = message;
-        _alertType = type;
-        StateHasChanged();
-        await JSRuntime.InvokeVoidAsync("initIcons");
-        await Task.Delay(5000);
-        _alertMessage = "";
-        StateHasChanged();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)

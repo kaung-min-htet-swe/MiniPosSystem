@@ -2,6 +2,8 @@
 @inject IJSRuntime JSRuntime
 @inject NavigationManager Navigation
 @inject HttpClient Http
+@using MiniPos.Frontend.Shared.Services
+@inject NotificationService NotificationService
 
 <div class="dashboard-layout animate-fade-in">
     @if (@_isAuthenticated)
@@ -94,6 +96,9 @@
         </div>
     }
 </div>
+
+<!-- Global Toast Notifications -->
+<Toast />
 
 @code {
     private bool _isAuthenticated = false;

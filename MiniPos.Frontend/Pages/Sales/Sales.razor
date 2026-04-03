@@ -1,6 +1,6 @@
 @page "/sales"
 @using System.Web
-@using MiniPos.Frontend.Shared.Services
+@inject NotificationService Notification
 @using MiniPos.Frontend.Shared.Types
 
 <PageTitle>Sales - MiniPOS</PageTitle>
@@ -265,7 +265,7 @@
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error loading merchants: {ex.Message}");
+            await Notification.ShowError(ex.Message);
         }
     }
 
@@ -315,7 +315,7 @@
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error loading orders: {ex.Message}");
+            await Notification.ShowError(ex.Message);
             _orders = new List<Order>();
         }
         finally
