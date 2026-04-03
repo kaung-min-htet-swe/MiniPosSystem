@@ -21,7 +21,7 @@ public class UserController : ControllerBase
     public async Task<IActionResult> GetList([FromQuery] UserListRequest filter)
     {
         var userId = User.GetUserId();
-        filter.ProcessedBy = userId;
+        filter.ProcessedById = userId;
 
         var result = await _userService.GetList(filter);
         if (!result.IsSuccess)

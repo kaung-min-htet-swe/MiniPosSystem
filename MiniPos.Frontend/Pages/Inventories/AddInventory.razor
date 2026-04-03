@@ -192,7 +192,11 @@
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadFromJsonAsync<PagedResult<Merchant>>();
-                _merchants = result?.Data;
+                if (result is { Data: not null })
+                {
+                _merchants = result.Data;
+                _inventoryRequest.MerchantId = _merchants[0].Id.ToString();
+                }
             }
             else
             {

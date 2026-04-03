@@ -36,26 +36,28 @@ public class UserService : IUserService
 
     public async Task<Result<PagedResult<UserListResponse>>> GetList(UserListRequest request)
     {
+        Console.WriteLine($"{request.MerchantId} {request.ProcessedById}");
+        var errCode = "User.List";
         try
         {
             if (request.IncludeCashiers)
             {
+                var isOwner = await _db.Merchants
+                    .AnyAsync(m => 
+                        m.Users.Any(u => u.Id == request.ProcessedById && u.Role == nameof(UserRole.Merchant)));
+                if (!isOwner)
+                    return Result<PagedResult<UserListResponse>>.Failure(new UnAuthorized(errCode, "UnAuthorized."));
+
                 var query = _db.Users
-                    .Where(u => u.Role == nameof(UserRole.Cashier))
-                    .Where(cashier =>
-                        cashier.MerchantId == _db.Users
-                            .Where(admin => admin.Id == request.ProcessedBy && admin.Role == nameof(UserRole.Merchant))
-                            .Select(admin => admin.MerchantId)
-                            .FirstOrDefault()
-                    )
+                    .Where(u => u.MerchantId == request.MerchantId && u.Role == nameof(UserRole.Cashier))
                     .AsNoTracking()
                     .AsQueryable();
 
                 if (!string.IsNullOrWhiteSpace(request.SearchTerm))
                 {
                     var searchTerm = request.SearchTerm.Trim().ToLower();
-                    query = query.Where(u => (u.Username != null && u.Username.ToLower().Contains(searchTerm)) ||
-                                             (u.Email != null && u.Email.ToLower().Contains(searchTerm)));
+                    query = query.Where(u => (u.Username.ToLower().Contains(searchTerm) ||
+                                              u.Email.ToLower().Contains(searchTerm)));
                 }
 
                 var totalCount = await query.CountAsync();
@@ -96,7 +98,7 @@ public class UserService : IUserService
                 return Result<PagedResult<UserListResponse>>.Success(result);
             }
 
-            return Result<PagedResult<UserListResponse>>.Failure(new UnAuthorized("User.List", "UnAuthorized."));
+            return Result<PagedResult<UserListResponse>>.Failure(new NotFoundError(errCode, "Users not found."));
         }
         catch (Exception e)
         {
@@ -410,7 +412,8 @@ public class UserListRequest : PaginationFilter
     public string? SearchTerm { get; set; }
     public bool IncludeCashiers { get; set; } = false;
     public bool IncludeMerchants { get; set; } = false;
-    public Guid ProcessedBy { get; set; }
+    public Guid ProcessedById { get; set; }
+    public Guid MerchantId { get; set; }
 }
 
 public class UserListResponse

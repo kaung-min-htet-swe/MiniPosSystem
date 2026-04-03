@@ -119,7 +119,7 @@
     [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
     [Inject] private HttpClient Http { get; set; } = default!;
     [Inject] private NavigationManager Navigation { get; set; } = default!;
-
+    
     public class UserUI
     {
         public string BadgeClass { get; set; } = "";
@@ -143,12 +143,22 @@
     {
         try
         {
-            var result = await Http.GetFromJsonAsync<PagedResult<Merchant>>("api/merchants");
-            _merchants = result?.Data ?? new();
+            var response = await Http.GetAsync("api/merchants");
+            if (!response.IsSuccessStatusCode)
+            {
+                await Notification.ShowError("Failed to load merchants.");
+                return;
+            }
+            var result = await response.Content.ReadFromJsonAsync<PagedResult<Merchant>>();
+            if (result is { Data: not null })
+            {
+            _merchants = result.Data;
+            _selectedMerchantId = _merchants[0].Id;
+            }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error loading merchants: {ex.Message}");
+        await Notification.ShowError("Error loading merchants.");
         }
     }
 
@@ -159,9 +169,7 @@
         
         try
         {
-            var url = $"/api/users?includeCashiers=true&pageNumber={_currentPage}&pageSize=10&searchTerm={Uri.EscapeDataString(_searchTerm)}";
-            if (_selectedMerchantId.HasValue) url += $"&merchantId={_selectedMerchantId.Value}";
-            
+            var url = $"/api/users?merchantId={_selectedMerchantId}&includeCashiers=true&pageNumber={_currentPage}&pageSize=10&searchTerm={Uri.EscapeDataString(_searchTerm)}";
             var response = await  Http.GetAsync(url);
             if (!response.IsSuccessStatusCode)
             {

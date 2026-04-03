@@ -41,7 +41,7 @@
                         </select>
                         <i data-lucide="chevron-down" class="absolute right-4 w-4 h-4 text-muted-foreground pointer-events-none"></i>
                     </div>
-                    @if (string.IsNullOrEmpty(_categoryRequest.MerchantId) && _hasSubmittedAttempt)
+                    @if (string.IsNullOrEmpty(_categoryRequest.MerchantId.ToString()) && _hasSubmittedAttempt)
                     {
                         <div class="text-xs text-destructive font-semibold mt-1">Merchant is required.</div>
                     }
@@ -107,7 +107,7 @@
 
         public string? Description { get; set; }
 
-        public string MerchantId { get; set; } = "";
+        public Guid MerchantId { get; set; }
     }
 
     protected override async Task OnInitializedAsync()
@@ -117,8 +117,12 @@
             var response = await Http.GetAsync($"api/merchants");
             if (response.IsSuccessStatusCode)
             {
-                var merchantData = await response.Content.ReadFromJsonAsync<PagedResult<Merchant>>();
-                _merchants = merchantData?.Data;
+                var result = await response.Content.ReadFromJsonAsync<PagedResult<Merchant>>();
+                if (result is { Data: not null })
+                {
+                _merchants = result.Data;
+                _categoryRequest.MerchantId = _merchants[0].Id;
+                }
             }
             else
             {
@@ -136,8 +140,6 @@
     private async Task HandleSubmit()
     {
         _hasSubmittedAttempt = true;
-        if (string.IsNullOrEmpty(_categoryRequest.MerchantId)) return;
-
         _isSubmitting = true;
 
         try
@@ -145,7 +147,7 @@
             var response = await Http.PostAsync("api/categories",
                 JsonContent.Create(new
                 {
-                    MerchantId = Guid.Parse(_categoryRequest.MerchantId),
+                    MerchantId = _categoryRequest.MerchantId,
                     Name = _categoryRequest.Name,
                     Description = _categoryRequest.Description
                 }));

@@ -2,9 +2,9 @@
 @inject NotificationService Notification
 @using MiniPos.Frontend.Shared.Types
 
-<PageTitle>Merchant Partners - MiniPOS</PageTitle>
+<PageTitle>Merchants - MiniPOS</PageTitle>
 
-<PageHeader Title="Merchant Partners" 
+<PageHeader Title="Merchants" 
             Subtitle="Onboard and manage merchant business accounts"
             SearchPlaceholder="Search merchants..."
             @bind-SearchTerm="_searchTerm"
@@ -23,7 +23,7 @@
     {
         <div class="flex-1 flex flex-col items-center justify-center p-24">
             <div class="animate-spin rounded-full h-12 w-12 border-4 border-t-primary border-primary/20"></div>
-            <p class="mt-6 text-sm font-bold text-muted-foreground tracking-widest uppercase">Fetching partners...</p>
+            <p class="mt-6 text-sm font-bold text-muted-foreground tracking-widest uppercase">Fetching merchants...</p>
         </div>
     }
     else if (_pagedMerchants == null || !_pagedMerchants.Data.Any())
@@ -33,7 +33,7 @@
                 <i data-lucide="building-2" class="w-10 h-10 text-muted-foreground/30"></i>
             </div>
             <h3 class="text-xl font-black text-foreground">No merchants enrolled</h3>
-            <p class="text-muted-foreground max-w-xs mx-auto mt-2">Enlist your first merchant partner to get started.</p>
+            <p class="text-muted-foreground max-w-xs mx-auto mt-2">Enlist your first merchants to get started.</p>
         </div>
     }
     else
@@ -51,7 +51,7 @@
                             </div>
                             <div class="flex flex-col items-end gap-2">
                                 <span class="px-3 py-1 bg-emerald-50 text-emerald-600 text-[10px] font-black uppercase tracking-widest rounded-full border border-emerald-100 shadow-sm">Verified</span>
-                                <span class="text-[9px] font-black text-muted-foreground/40 uppercase tracking-widest leading-none">Partner ID: @merchant.Id.ToString().Substring(0, 8)</span>
+                                <span class="text-[9px] font-black text-muted-foreground/40 uppercase tracking-widest leading-none">Merchant ID: @merchant.Id.ToString().Substring(0, 8)</span>
                             </div>
                         </div>
 

@@ -437,17 +437,22 @@
 
     private async Task LoadStaffData()
     {
-        var response = await Http.GetAsync("api/users?IncludeCashierRole=true&page=1&pageSize=100");
-        if (response.IsSuccessStatusCode)
+        if (_branch is {Merchant: not null})
         {
-            var pagedUsers = await response.Content.ReadFromJsonAsync<PagedResult<User>>();
-            if (pagedUsers != null)
+        var url = $"/api/users?merchantId={_branch.Merchant.Id}&includeCashiers=true&pageNumber=1&pageSize=10";
+            var response = await Http.GetAsync(url);
+            if (response.IsSuccessStatusCode)
             {
-                _availableUsers = pagedUsers.Data;
-                _staff = _availableUsers.Where(u => u.Branch != null && u.Branch.Id.ToString() == BranchId).ToList();
-            }else
-            {
-                await Notification.ShowError("Failed to load staff data.");
+                var pagedUsers = await response.Content.ReadFromJsonAsync<PagedResult<User>>();
+                if (pagedUsers != null)
+                {
+                    _availableUsers = pagedUsers.Data;
+                    _staff = _availableUsers.Where(u => u.Branch != null && u.Branch.Id.ToString() == BranchId).ToList();
+                }
+                else
+                {
+                    await Notification.ShowError("Failed to load staff data.");
+                }
             }
         }
     }
@@ -474,8 +479,8 @@
             var response = await Http.PutAsJsonAsync($"api/branches/{BranchId}", request);
             if (response.IsSuccessStatusCode)
             {
-                    _branch.Name = _editName;
-                    _branch.Address = _editAddress;
+                _branch.Name = _editName;
+                _branch.Address = _editAddress;
                 await Notification.ShowSuccess("Branch updated successfully!");
                 _showEditModal = false;
             }
