@@ -292,16 +292,22 @@
 
     private async Task LoadData()
     {
+        if (_selectedMerchantId == null) return;
+        
         _isLoading = true;
         StateHasChanged();
 
         try
         {
-            var query = new List<string> { $"page={_currentPage}", $"pageSize={_pageSize}" };
+            var query = new List<string>
+            {
+                $"page={_currentPage}",
+                $"pageSize={_pageSize}",
+                $"merchantId={_selectedMerchantId.Value}",
+            };
             if (_startDate.HasValue) query.Add($"startDate={_startDate.Value:yyyy-MM-dd}");
             if (_endDate.HasValue) query.Add($"endDate={_endDate.Value:yyyy-MM-dd}T23:59:59");
             if (!string.IsNullOrWhiteSpace(_searchTerm)) query.Add($"searchTerm={HttpUtility.UrlEncode(_searchTerm)}");
-            if (_selectedMerchantId.HasValue) query.Add($"merchantId={_selectedMerchantId.Value}");
 
             var queryString = "?" + string.Join("&", query);
             var result = await Http.GetFromJsonAsync<PagedResult<Order>>($"api/orders{queryString}");

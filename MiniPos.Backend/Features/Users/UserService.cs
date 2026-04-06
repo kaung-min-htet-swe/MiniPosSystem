@@ -46,7 +46,7 @@ public class UserService : IUserService
                     .AnyAsync(m => 
                         m.Users.Any(u => u.Id == request.ProcessedById && u.Role == nameof(UserRole.Merchant)));
                 if (!isOwner)
-                    return Result<PagedResult<UserListResponse>>.Failure(new UnAuthorized(errCode, "UnAuthorized."));
+                    return Result<PagedResult<UserListResponse>>.Failure(new UnAuthorizedError(errCode, "UnAuthorized."));
 
                 var query = _db.Users
                     .Where(u => u.MerchantId == request.MerchantId && u.Role == nameof(UserRole.Cashier))

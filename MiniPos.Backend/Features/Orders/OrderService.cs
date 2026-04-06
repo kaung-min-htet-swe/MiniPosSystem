@@ -1,7 +1,6 @@
 using Common;
 using Database.EfAppDbContextModels;
 using Microsoft.EntityFrameworkCore;
-using MiniPos.Backend.Features.Users;
 
 namespace MiniPos.Backend.Features.Orders;
 
@@ -22,17 +21,18 @@ public class OrderService : IOrderService
         _db = db;
     }
 
+    private async Task<bool> IsMerchantOwner(Guid merchantId, Guid merchantAdminId)
+    {
+        return await _db.MerchantAdmins.AnyAsync(ma =>
+            ma.MerchantId == merchantId && ma.UserId == merchantAdminId);
+    }
+    
     public async Task<Result<PagedResult<OrderListResponse>>> GetList(OrderListRequest request)
     {
         try
         {
-            var isOwner = await _db.Users.AnyAsync(u =>
-                u.MerchantId == request.MerchantId &&
-                u.Id == request.MerchantAdminId &&
-                u.Role == nameof(UserRole.Merchant));
-
-            if (!isOwner)
-                return Result<PagedResult<OrderListResponse>>.Failure(new UnAuthorized("Orders.GetList",
+            if (! await IsMerchantOwner(request.MerchantId, request.MerchantAdminId))
+                return Result<PagedResult<OrderListResponse>>.Failure(new UnAuthorizedError("Orders.GetList",
                     "This user can not be accessible the orders of this merchant."));
 
             var query = _db.Orders

@@ -1,7 +1,6 @@
 using Common;
 using Database.EfAppDbContextModels;
 using Microsoft.EntityFrameworkCore;
-using MiniPos.Backend.Features.Users;
 
 namespace MiniPos.Backend.Features.Categories;
 
@@ -27,9 +26,8 @@ public class CategoryService : ICategoryService
     {
         try
         {
-            var isOwner = await _db.Users.AnyAsync(u => u.Id == request.ProcessedById && u.MerchantId == request.MerchantId);
-            if (!isOwner)
-                return Result<PagedResult<CategoryListResponse>>.Failure(new UnAuthorized("Category.GetList",
+            if (!await IsMerchantOwner(request.MerchantId, request.ProcessedById))
+                return Result<PagedResult<CategoryListResponse>>.Failure(new UnAuthorizedError("Category.GetList",
                     "User is not authorized to access categories for this merchant"));
 
             var query = _db.Categories
@@ -53,7 +51,7 @@ public class CategoryService : ICategoryService
                     Description = c.Description,
                     MerchantId = c.Merchant.Id,
                     MerchantName = c.Merchant.Name,
-                    ProductCount = c.Products.Count(),
+                    ProductCount = c.Products.Count()
                 })
                 .ToListAsync();
 
@@ -96,10 +94,8 @@ public class CategoryService : ICategoryService
                 .FirstOrDefaultAsync();
 
             if (categoryDto == null)
-            {
                 return Result<CategoryGetByIdResponse>.Failure(
                     new NotFoundError(errCode, "Category does not exist"));
-            }
 
             return Result<CategoryGetByIdResponse>.Success(categoryDto);
         }
@@ -118,9 +114,9 @@ public class CategoryService : ICategoryService
             if (!merchantExists)
                 return Result.Failure(new NotFoundError(errCode, "Merchant does not exist"));
 
-            var isExist =
+            var isCategoryAlreadyExist =
                 await _db.Categories.AnyAsync(c => c.Name == request.Name && c.MerchantId == request.MerchantId);
-            if (isExist)
+            if (isCategoryAlreadyExist)
                 return Result.Failure(new ConflictError(errCode,
                     "Category with the same name already exists for this merchant"));
 
@@ -197,6 +193,11 @@ public class CategoryService : ICategoryService
             return Result.Failure(new InternalError(errCode, e.Message));
         }
     }
+
+    public async Task<bool> IsMerchantOwner(Guid merchantId, Guid merchantAdminId)
+    {
+        return await _db.MerchantAdmins.AnyAsync(ma => ma.MerchantId == merchantId && ma.UserId == merchantAdminId);
+    }
 }
 
 public class CategoryListRequest : PaginationFilter
@@ -233,7 +234,7 @@ public class CategoryGetByIdResponse
     public string? Name { get; set; }
     public string? Description { get; set; }
     public MerchantDto? Merchant { get; set; }
-    public List<ProductDto> Products { get; set; } = new List<ProductDto>();
+    public List<ProductDto> Products { get; set; } = new();
     public DateTime CreatedAt { get; set; }
 }
 

@@ -12,7 +12,7 @@ public static class ErrorMappingExtensions
         ErrorHttpMapper.Register<InternalError>(StatusCodes.Status500InternalServerError);
         ErrorHttpMapper.Register<ValidationError>(StatusCodes.Status400BadRequest);
         ErrorHttpMapper.Register<BadRequestError>(StatusCodes.Status400BadRequest);
-        ErrorHttpMapper.Register<UnAuthorized>(StatusCodes.Status401Unauthorized);
+        ErrorHttpMapper.Register<UnAuthorizedError>(StatusCodes.Status401Unauthorized);
         
         return services;
     }

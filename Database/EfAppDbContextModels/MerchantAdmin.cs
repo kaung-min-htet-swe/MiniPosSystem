@@ -11,6 +11,10 @@ public partial class MerchantAdmin
 
     public DateTime CreatedAt { get; set; }
 
+    public DateTimeOffset? UpdatedAt { get; set; }
+
+    public DateTimeOffset? DeletedAt { get; set; }
+
     public virtual Merchant Merchant { get; set; } = null!;
 
     public virtual User User { get; set; } = null!;

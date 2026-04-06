@@ -1,6 +1,6 @@
 @page "/users/add"
-@inject NotificationService Notification
 @using MiniPos.Frontend.Shared.Types
+@inject NotificationService Notification
 
 <PageTitle>Add Staff - MiniPOS</PageTitle>
 
@@ -36,149 +36,160 @@
 
 
     <!-- Main Form Card -->
-        <div class="pos-card p-0 overflow-hidden bg-white/60 shadow-lg border-border/40 animate-slide-up">
-            <!-- Form Fields -->
-            <div class="p-8 space-y-8">
-                <!-- Account Information Section -->
-                <div class="space-y-6">
+    <div class="pos-card p-0 overflow-hidden bg-white/60 shadow-lg border-border/40 animate-slide-up">
+        <!-- Form Fields -->
+        <div class="p-8 space-y-8">
+            <!-- Account Information Section -->
+            <div class="space-y-6">
+                <h3 class="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60 flex items-center gap-2">
+                    Account Information
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80 ml-1">Full
+                            Name</label>
+                        <input type="text" @bind="_userName" placeholder="e.g. John Doe"
+                               class="w-full px-4 py-2.5 bg-muted/20 border border-border/40 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all font-medium placeholder:text-muted-foreground/30"/>
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80 ml-1">Email
+                            Address</label>
+                        <input type="email" @bind="_email" placeholder="e.g. john@example.com"
+                               class="w-full px-4 py-2.5 bg-muted/20 border border-border/40 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all font-medium placeholder:text-muted-foreground/30"/>
+                    </div>
+                    <div class="space-y-1.5 md:col-span-2">
+                        <label class="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80 ml-1">Password</label>
+                        <div class="relative">
+                            <input type="@(_showPassword ? "text" : "password")" @bind="_password"
+                                   placeholder="Min 8 characters"
+                                   class="w-full px-4 py-2.5 bg-muted/20 border border-border/40 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all font-medium placeholder:text-muted-foreground/30 pr-12"/>
+                            <button type="button"
+                                    class="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/40 hover:text-primary transition-colors p-1"
+                                    @onclick="TogglePassword">
+                                <i data-lucide="@(_showPassword ? "eye-off" : "eye")" class="w-3.5 h-3.5"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Merchant Details Section (shown for Merchant role) -->
+            @if (_selectedRole == "Merchant")
+            {
+                <div class="animate-fade-in pt-4 border-t border-border/30 space-y-6">
                     <h3 class="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60 flex items-center gap-2">
-                         Account Information
+                        Merchant Details
                     </h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <div class="space-y-1.5">
-                            <label class="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80 ml-1">Full Name</label>
-                            <input type="text" @bind="_userName" placeholder="e.g. John Doe"
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80 ml-1">Business
+                                Name</label>
+                            <input type="text" @bind="_merchantName" placeholder="e.g. Super Mart LLC"
                                    class="w-full px-4 py-2.5 bg-muted/20 border border-border/40 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all font-medium placeholder:text-muted-foreground/30"/>
                         </div>
                         <div class="space-y-1.5">
-                            <label class="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80 ml-1">Email Address</label>
-                            <input type="email" @bind="_email" placeholder="e.g. john@example.com"
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80 ml-1">Business
+                                Email</label>
+                            <input type="email" @bind="_merchantContactEmail" placeholder="(Optional)"
                                    class="w-full px-4 py-2.5 bg-muted/20 border border-border/40 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all font-medium placeholder:text-muted-foreground/30"/>
                         </div>
-                        <div class="space-y-1.5 md:col-span-2">
-                            <label class="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80 ml-1">Password</label>
+                    </div>
+                </div>
+            }
+
+            <!-- Branch Assignment Section (shown for Cashier role) -->
+            @if (_selectedRole == "Cashier")
+            {
+                <div class="animate-fade-in pt-4 border-t border-border/30 space-y-6">
+                    <h3 class="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60 flex items-center gap-2">
+                        Branch Assignment
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80 ml-1">Select
+                                Merchant</label>
                             <div class="relative">
-                                <input type="@(_showPassword ? "text" : "password")" @bind="_password"
-                                       placeholder="Min 8 characters"
-                                       class="w-full px-4 py-2.5 bg-muted/20 border border-border/40 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all font-medium placeholder:text-muted-foreground/30 pr-12"/>
-                                <button type="button"
-                                        class="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/40 hover:text-primary transition-colors p-1"
-                                        @onclick="TogglePassword">
-                                    <i data-lucide="@(_showPassword ? "eye-off" : "eye")" class="w-3.5 h-3.5"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Merchant Details Section (shown for Merchant role) -->
-                @if (_selectedRole == "Merchant")
-                {
-                    <div class="animate-fade-in pt-4 border-t border-border/30 space-y-6">
-                        <h3 class="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60 flex items-center gap-2">
-                             Merchant Details
-                        </h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                            <div class="space-y-1.5">
-                                <label class="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80 ml-1">Business Name</label>
-                                <input type="text" @bind="_merchantName" placeholder="e.g. Super Mart LLC"
-                                       class="w-full px-4 py-2.5 bg-muted/20 border border-border/40 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all font-medium placeholder:text-muted-foreground/30"/>
-                            </div>
-                            <div class="space-y-1.5">
-                                <label class="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80 ml-1">Business Email</label>
-                                <input type="email" @bind="_merchantContactEmail" placeholder="(Optional)"
-                                       class="w-full px-4 py-2.5 bg-muted/20 border border-border/40 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all font-medium placeholder:text-muted-foreground/30"/>
-                            </div>
-                        </div>
-                    </div>
-                }
-
-                <!-- Branch Assignment Section (shown for Cashier role) -->
-                @if (_selectedRole == "Cashier")
-                {
-                    <div class="animate-fade-in pt-4 border-t border-border/30 space-y-6">
-                        <h3 class="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60 flex items-center gap-2">
-                             Branch Assignment
-                        </h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                            <div class="space-y-1.5">
-                                <label class="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80 ml-1">Select Merchant</label>
-                                <div class="relative">
-                                    <select @bind="_merchantId" @bind:after="OnMerchantChanged"
-                                            class="w-full px-4 py-2.5 bg-muted/20 border border-border/40 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all font-medium appearance-none cursor-pointer">
-                                        <option value="">Choose a merchant...</option>
-                                        @if (_merchants != null)
+                                <select @bind="_merchantId" @bind:after="OnMerchantChanged"
+                                        class="w-full px-4 py-2.5 bg-muted/20 border border-border/40 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all font-medium appearance-none cursor-pointer">
+                                    <option value="">Choose a merchant...</option>
+                                    @if (_merchants != null)
+                                    {
+                                        @foreach (var merchant in _merchants)
                                         {
-                                            @foreach (var merchant in _merchants)
-                                            {
-                                                <option value="@merchant.Id">@merchant.Name</option>
-                                            }
+                                            <option value="@merchant.Id">@merchant.Name</option>
                                         }
-                                    </select>
-                                    <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground/30">
-                                        <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
-                                    </div>
+                                    }
+                                </select>
+                                <div
+                                    class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground/30">
+                                    <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
                                 </div>
                             </div>
-                            <div class="space-y-1.5">
-                                <label class="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80 ml-1">Assign to Branch</label>
-                                <div class="relative">
-                                    <select @bind="_branchId"
-                                            class="w-full px-4 py-2.5 bg-muted/20 border border-border/40 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all font-medium appearance-none cursor-pointer">
-                                        <option value="">Choose a branch...</option>
-                                        @if (_branches != null)
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80 ml-1">Assign
+                                to Branch</label>
+                            <div class="relative">
+                                <select @bind="_branchId"
+                                        class="w-full px-4 py-2.5 bg-muted/20 border border-border/40 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all font-medium appearance-none cursor-pointer">
+                                    <option value="">Choose a branch...</option>
+                                    @if (_branches != null)
+                                    {
+                                        @foreach (var branch in _branches)
                                         {
-                                            @foreach (var branch in _branches)
-                                            {
-                                                <option value="@branch.Id">@branch.Name</option>
-                                            }
+                                            <option value="@branch.Id">@branch.Name</option>
                                         }
-                                    </select>
-                                    <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground/30">
-                                        <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
-                                    </div>
+                                    }
+                                </select>
+                                <div
+                                    class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground/30">
+                                    <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
                                 </div>
                             </div>
                         </div>
                     </div>
-                }
-            </div>
-
-            <!-- Footer Actions -->
-            <div class="px-8 py-6 bg-muted/10 border-t border-border/20 flex flex-col sm:flex-row justify-between items-center gap-4">
-                <p class="text-[10px] text-muted-foreground/50 font-medium italic">
-                    All fields are required unless marked as optional.
-                </p>
-                <div class="flex gap-3 w-full sm:w-auto">
-                    <button class="btn btn-outline border-border/50 bg-white hover:bg-slate-50 px-6 flex items-center gap-2 transition-all font-bold text-xs uppercase tracking-tight"
-                            @onclick="GoBack" disabled="@_isSubmitting">
-                        Cancel
-                    </button>
-                    <button
-                        class="btn btn-primary px-8 h-10 shadow-xl shadow-primary/30 flex items-center gap-3 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-                        @onclick="HandleSubmit" disabled="@(!IsFormValid() || _isSubmitting)">
-                        @if (_isSubmitting)
-                        {
-                            <div class="animate-spin rounded-full h-4 w-4 border-4 border-t-white border-white/20"></div>
-                            <span class="font-black uppercase tracking-tight text-xs">Creating...</span>
-                        }
-                        else
-                        {
-                            <i data-lucide="user-plus" class="w-4 h-4 font-black"></i>
-                            <span class="font-black uppercase tracking-tight text-xs">Create Staff Account</span>
-                        }
-                    </button>
                 </div>
-            </div>
+            }
         </div>
 
-    @if (!_showSuccessView)
+        <!-- Footer Actions -->
+        <div
+            class="px-8 py-6 bg-muted/10 border-t border-border/20 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <p class="text-[10px] text-muted-foreground/50 font-medium italic">
+                All fields are required unless marked as optional.
+            </p>
+            <div class="flex gap-3 w-full sm:w-auto">
+                <button
+                    class="btn btn-outline border-border/50 bg-white hover:bg-slate-50 px-6 flex items-center gap-2 transition-all font-bold text-xs uppercase tracking-tight"
+                    @onclick="GoBack" disabled="@_isSubmitting">
+                    Cancel
+                </button>
+                <button
+                    class="btn btn-primary px-8 h-10 shadow-xl shadow-primary/30 flex items-center gap-3 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                    @onclick="HandleSubmit" disabled="@(!IsFormValid() || _isSubmitting)">
+                    @if (_isSubmitting)
+                    {
+                        <div class="animate-spin rounded-full h-4 w-4 border-4 border-t-white border-white/20"></div>
+                        <span class="font-black uppercase tracking-tight text-xs">Creating...</span>
+                    }
+                    else
+                    {
+                        <i data-lucide="user-plus" class="w-4 h-4 font-black"></i>
+                        <span class="font-black uppercase tracking-tight text-xs">Create Staff Account</span>
+                    }
+                </button>
+            </div>
+        </div>
+    </div>
+
+    @if (_showSuccessView)
     {
         <!-- Success Card View -->
         <div class="max-w-lg mx-auto animate-scale-in py-8">
             <div class="pos-card overflow-hidden bg-white shadow-2xl border-border/20 relative">
                 <div class="p-10 flex flex-col items-center text-center">
-                    <div class="w-20 h-20 rounded-full bg-success/10 flex items-center justify-center mb-6 text-success animate-bounce-subtle">
+                    <div
+                        class="w-20 h-20 rounded-full bg-success/10 flex items-center justify-center mb-6 text-success animate-bounce-subtle">
                         <i data-lucide="check" class="w-10 h-10"></i>
                     </div>
 
@@ -188,19 +199,22 @@
                     <!-- Compact Summary -->
                     <div class="w-full bg-muted/20 rounded-2xl p-6 mb-8 text-left space-y-4">
                         <div class="flex justify-between items-center border-b border-border/20 pb-4">
-                            <span class="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Details</span>
+                            <span
+                                class="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Details</span>
                             <span class="text-[10px] font-black text-success uppercase">@_lastCreatedRole</span>
                         </div>
-                        
+
                         <div class="space-y-3">
                             <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 rounded-lg bg-white flex items-center justify-center text-primary shadow-sm border border-border/20">
+                                <div
+                                    class="w-8 h-8 rounded-lg bg-white flex items-center justify-center text-primary shadow-sm border border-border/20">
                                     <i data-lucide="user" class="w-4 h-4"></i>
                                 </div>
                                 <span class="text-sm font-bold text-foreground">@_lastCreatedUserName</span>
                             </div>
                             <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 rounded-lg bg-white flex items-center justify-center text-muted-foreground shadow-sm border border-border/20">
+                                <div
+                                    class="w-8 h-8 rounded-lg bg-white flex items-center justify-center text-muted-foreground shadow-sm border border-border/20">
                                     <i data-lucide="mail" class="w-4 h-4"></i>
                                 </div>
                                 <span class="text-sm font-medium text-muted-foreground">@_lastCreatedEmail</span>
@@ -209,14 +223,17 @@
                     </div>
 
                     <div class="flex flex-col gap-3 w-full">
-                        <button class="w-full bg-primary text-white rounded-xl py-3.5 font-bold shadow-lg shadow-primary/10 flex items-center justify-center gap-2 hover:-translate-y-0.5 transition-all"
-                                @onclick="ResetForm">
+                        <button
+                            class="w-full bg-primary text-white rounded-xl py-3.5 font-bold shadow-lg shadow-primary/10 flex items-center justify-center gap-2 hover:-translate-y-0.5 transition-all"
+                            @onclick="ResetForm">
                             <i data-lucide="plus" class="w-4 h-4"></i>
                             Add Another Staff
                         </button>
-                        <button class="btn btn-outline border-border/50 bg-white hover:bg-slate-50 w-full py-3.5 flex items-center justify-center gap-2 group transition-all"
-                                @onclick="GoBack">
-                            <i data-lucide="arrow-left" class="w-4 h-4 group-hover:-translate-x-1 transition-transform"></i>
+                        <button
+                            class="btn btn-outline border-border/50 bg-white hover:bg-slate-50 w-full py-3.5 flex items-center justify-center gap-2 group transition-all"
+                            @onclick="GoBack">
+                            <i data-lucide="arrow-left"
+                               class="w-4 h-4 group-hover:-translate-x-1 transition-transform"></i>
                             <span class="font-bold text-xs uppercase tracking-tight">Return to Directory</span>
                         </button>
                     </div>
@@ -252,7 +269,7 @@
 
     // UI state
     private bool _isSubmitting;
-    private bool _showSuccessView = false;
+    private bool _showSuccessView;
 
     // Last created info for success view
     private string? _lastCreatedUserName;
@@ -263,7 +280,7 @@
     {
         try
         {
-            var response = await Http.GetAsync($"api/merchants");
+            var response = await Http.GetAsync("api/merchants");
             if (!response.IsSuccessStatusCode)
             {
                 await Notification.ShowError("Failed to load merchants.");
@@ -278,7 +295,7 @@
             await Notification.ShowError($"An error occurred during initialization: {ex.Message}");
         }
     }
-    
+
     private void SelectRole(string role)
     {
         _selectedRole = role;
@@ -305,7 +322,6 @@
 
     private async Task HandleSubmit()
     {
-
         if (!IsFormValid())
         {
             await Notification.ShowWarning("Please fill in all required fields.");
@@ -331,7 +347,7 @@
             {
                 await Notification.ShowSuccess($"{_selectedRole} account for \"{_userName}\" created successfully!");
                 _showSuccessView = true;
-                
+
                 // Store last created info
                 _lastCreatedUserName = _userName;
                 _lastCreatedEmail = _email;
@@ -398,7 +414,7 @@
             try
             {
                 var request = new HttpRequestMessage(HttpMethod.Get, $"api/branches?merchantId={_merchantId}");
-                request.SetBrowserRequestCredentials(Microsoft.AspNetCore.Components.WebAssembly.Http.BrowserRequestCredentials.Include);
+                request.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
 
                 var response = await Http.SendAsync(request);
                 if (response.IsSuccessStatusCode)

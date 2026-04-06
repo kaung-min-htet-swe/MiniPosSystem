@@ -1,6 +1,6 @@
 @page "/categories"
-@inject NotificationService Notification
 @using MiniPos.Frontend.Shared.Types
+@inject NotificationService Notification
 
 <PageTitle>Categories - MiniPOS</PageTitle>
 
@@ -230,7 +230,7 @@ else
     private Guid? _selectedMerchantId;
 
     private int _currentPage = 1;
-    private int _pageSize = 15;
+    private readonly int _pageSize = 15;
 
     // Alert state
     private string _alertMessage = "";
@@ -262,7 +262,7 @@ else
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error loading merchants: {ex.Message}");
+            await Notification.ShowError(ex.Message);
         }
     }
 
@@ -279,7 +279,7 @@ else
 
         try
         {
-            var url = $"api/categories?page={_currentPage}&pageSize={_pageSize}&merchantId={_selectedMerchantId.Value}";
+            var url = $"api/categories?page={_currentPage}&pageSize={_pageSize}&merchantId={_selectedMerchantId}";
             if (!string.IsNullOrEmpty(_searchTerm)) url += $"&searchTerm={Uri.EscapeDataString(_searchTerm)}";
 
             var response = await Http.GetAsync(url);
@@ -316,7 +316,7 @@ else
         var lowerName = name.ToLower();
 
         // Keyword matching for Icons
-        string icon = lowerName switch
+        var icon = lowerName switch
         {
             var n when n.Contains("coffee") || n.Contains("espresso") || n.Contains("latte") => "coffee",
             var n when n.Contains("bakery") || n.Contains("bread") || n.Contains("pastry") || n.Contains("croissant") => "croissant",
@@ -332,7 +332,7 @@ else
         };
 
         // Keyword matching for Colors
-        string color = lowerName switch
+        var color = lowerName switch
         {
             var n when n.Contains("coffee") || n.Contains("espresso") => "orange",
             var n when n.Contains("bakery") || n.Contains("pastry") => "amber",
@@ -359,10 +359,10 @@ else
             color = colors[Math.Abs(name.GetHashCode() + 3) % colors.Length];
         }
 
-        string bgGlow = color == "primary" ? "bg-primary/20" : $"bg-{color}-500/20";
-        string bgIcon = color == "primary" ? "bg-primary/10" : $"bg-{color}-500/10";
-        string textColor = color == "primary" ? "text-primary" : $"text-{color}-600";
-        string gradient = color == "primary" ? "from-primary/20 to-primary/5" : $"from-{color}-500/20 to-{color}-500/5";
+        var bgGlow = color == "primary" ? "bg-primary/20" : $"bg-{color}-500/20";
+        var bgIcon = color == "primary" ? "bg-primary/10" : $"bg-{color}-500/10";
+        var textColor = color == "primary" ? "text-primary" : $"text-{color}-600";
+        var gradient = color == "primary" ? "from-primary/20 to-primary/5" : $"from-{color}-500/20 to-{color}-500/5";
 
         return new CategoryUI
         {

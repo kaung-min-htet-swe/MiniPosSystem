@@ -78,7 +78,7 @@ public class TokenService
                 refreshToken.ExpiresAt < DateTime.UtcNow ||
                 refreshToken.IsRevoked ||
                 refreshToken.ReplacedByTokenHash != null)
-                return Result<RefreshResponse>.Failure(new UnAuthorized("TokenService.RefreshAsync", "Refresh is expired."));
+                return Result<RefreshResponse>.Failure(new UnAuthorizedError("TokenService.RefreshAsync", "Refresh is expired."));
 
             var accessMinutes = int.Parse(_configuration["Jwt:AccessTokenMinutes"]!);
             var refreshDays = int.Parse(_configuration["Jwt:RefreshTokenDays"]!);

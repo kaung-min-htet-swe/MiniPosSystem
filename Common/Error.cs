@@ -47,9 +47,9 @@ public class BadRequestError : Error
     }
 }
 
-public class UnAuthorized: Error
+public class UnAuthorizedError: Error
 {
-    public UnAuthorized(string code, string message) : base(code, message)
+    public UnAuthorizedError(string code, string message) : base(code, message)
     {
     }
 }

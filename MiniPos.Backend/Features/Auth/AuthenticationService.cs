@@ -78,11 +78,11 @@ public class AuthenticationService : IAuthenticationService
         {
             Console.WriteLine($"Signin attempt for email: {request.Email}");
             var user = await _db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Email == request.Email);
-            if (user is null) return Result<SigninResponse>.Failure(new UnAuthorized(errCode, "Invalid credentials"));
+            if (user is null) return Result<SigninResponse>.Failure(new UnAuthorizedError(errCode, "Invalid credentials"));
 
             var result = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, request.Password);
             if (result == PasswordVerificationResult.Failed)
-                return Result<SigninResponse>.Failure(new UnAuthorized(errCode, "Invalid credentials"));
+                return Result<SigninResponse>.Failure(new UnAuthorizedError(errCode, "Invalid credentials"));
 
             var token = await _tokenService.IssueTokenAsync(new IssueTokenRequest
             {

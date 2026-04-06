@@ -29,7 +29,7 @@ public class DashboardService : IDashboardService
                 .AnyAsync(m => m.Users
                     .Any(u => u.Id == request.ProcessedById && u.Role == nameof(UserRole.Merchant)));
             if (!isMerchantOwner)
-                return Result<DashboardResponse>.Failure(new UnAuthorized(errCode,
+                return Result<DashboardResponse>.Failure(new UnAuthorizedError(errCode,
                     "Unauthorized to access this merchant"));
 
             var today = DateTime.UtcNow.Date;

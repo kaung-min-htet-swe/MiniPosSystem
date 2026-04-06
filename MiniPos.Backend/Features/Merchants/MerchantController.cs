@@ -29,10 +29,7 @@ public class MerchantController : ControllerBase
         }
 
         var pagedResult = result.Data!;
-        if (pagedResult.TotalCount == 0)
-        {
-            return NotFound(pagedResult);
-        }
+        if (pagedResult.TotalCount == 0) return NotFound(pagedResult);
 
         return Ok(result.Data);
     }
@@ -58,10 +55,7 @@ public class MerchantController : ControllerBase
     {
         request.MerchantAdminId = User.GetUserId();
         var result = await _merchantService.Create(request);
-        if (result.IsSuccess)
-        {
-            return CreatedAtAction(nameof(GetById), new { id = result.Data!.Id }, result.Data);
-        }
+        if (result.IsSuccess) return CreatedAtAction(nameof(GetById), new { id = result.Data!.Id }, result.Data);
 
         var statusCode = ErrorHttpMapper.GetStatusCode(result.Error!);
         return StatusCode(statusCode, new { message = result.Error!.Message });
@@ -71,7 +65,8 @@ public class MerchantController : ControllerBase
     public async Task<IActionResult> Update(Guid id, [FromBody] MerchantUpdateRequest request)
     {
         request.MerchantAdminId = User.GetUserId();
-        var result = await _merchantService.Update(id, request);
+        request.MerchantId = id;
+        var result = await _merchantService.Update(request);
         if (result.IsSuccess)
             return Ok();
 
