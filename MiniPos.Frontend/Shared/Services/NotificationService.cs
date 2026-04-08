@@ -39,7 +39,7 @@ public class NotificationService
     public async Task ShowInfo(string message, string? title = null)
         => await Show(message, ToastType.Info, title);
 
-    private async Task Show(string message, ToastType type, string? title, int durationMs = 1000)
+    private async Task Show(string message, ToastType type, string? title, int durationMs = 2000)
     {
         var toast = new ToastMessage(Guid.NewGuid(), message, type, title);
         _toasts.Add(toast);

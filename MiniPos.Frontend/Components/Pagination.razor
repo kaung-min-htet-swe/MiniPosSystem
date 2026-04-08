@@ -1,10 +1,11 @@
-@using Microsoft.AspNetCore.Components.Web
+@using System.ComponentModel.DataAnnotations
 
-<div class="px-6 py-4 border-t border-border/10 bg-white/20 backdrop-blur-md flex flex-col sm:flex-row justify-between items-center gap-4 shrink-0 mt-6 rounded-[1.25rem] shadow-sm">
+<div
+    class="px-6 py-4 border-t border-border/10 bg-white/20 backdrop-blur-md flex flex-col sm:flex-row justify-between items-center gap-4 shrink-0 mt-6 rounded-[1.25rem] shadow-sm">
     <div class="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-60">
         @if (TotalCount > 0)
         {
-            <span>Showing @(((CurrentPage - 1) * PageSize) + 1) - @(Math.Min(CurrentPage * PageSize, TotalCount)) of @TotalCount Items</span>
+            <span>Showing @((CurrentPage - 1) * PageSize + 1) - @(Math.Min(CurrentPage * PageSize, TotalCount)) of @TotalCount Items</span>
         }
         else
         {
@@ -15,9 +16,10 @@
     @if (TotalPages > 1)
     {
         <div class="flex items-center gap-1.5">
-            <button class="w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-border/10 text-muted-foreground hover:bg-primary hover:text-white transition-all disabled:opacity-30 shadow-sm active:scale-95"
-                    disabled="@(CurrentPage <= 1)"
-                    @onclick="() => ChangePage(CurrentPage - 1)">
+            <button
+                class="w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-border/10 text-muted-foreground hover:bg-primary hover:text-white transition-all disabled:opacity-30 shadow-sm active:scale-95"
+                disabled="@(CurrentPage <= 1)"
+                @onclick="OnPrevious">
                 <i data-lucide="chevron-left" class="w-4 h-4"></i>
             </button>
 
@@ -38,9 +40,10 @@
                 }
             }
 
-            <button class="w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-border/10 text-muted-foreground hover:bg-primary hover:text-white transition-all disabled:opacity-30 shadow-sm active:scale-95"
-                    disabled="@(CurrentPage >= TotalPages)"
-                    @onclick="() => ChangePage(CurrentPage + 1)">
+            <button
+                class="w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-border/10 text-muted-foreground hover:bg-primary hover:text-white transition-all disabled:opacity-30 shadow-sm active:scale-95"
+                disabled="@(CurrentPage >= TotalPages)"
+                @onclick="OnNext">
                 <i data-lucide="chevron-right" class="w-4 h-4"></i>
             </button>
         </div>
@@ -48,17 +51,25 @@
 </div>
 
 @code {
-    [Parameter] public int CurrentPage { get; set; } = 1;
-    [Parameter] public int TotalPages { get; set; } = 1;
-    [Parameter] public int TotalCount { get; set; } = 0;
-    [Parameter] public int PageSize { get; set; } = 10;
-    [Parameter] public EventCallback<int> PageChanged { get; set; }
+    [Parameter] [Required] public int CurrentPage { get; set; } = 1;
+    [Parameter] [Required] public int PageSize { get; set; } = 10;
+    [Parameter] [Required] public int TotalPages { get; set; } = 1;
+    [Parameter] [Required] public int TotalCount { get; set; } = 0;
+
+    [Parameter] [Required] public EventCallback<int> OnPageChanged { get; set; }
+    [Parameter] [Required] public EventCallback<int> OnPageSizeChanged { get; set; }
+    [Parameter] [Required] public EventCallback OnNext { get; set; }
+    [Parameter] [Required] public EventCallback OnPrevious { get; set; }
+    [Parameter] [Required] public EventCallback OnFirst { get; set; }
+    [Parameter] [Required] public EventCallback OnLast { get; set; }
+
+    private int LocalPageSize;
 
     private async Task ChangePage(int page)
     {
         if (page < 1 || page > TotalPages) return;
         CurrentPage = page;
-        await PageChanged.InvokeAsync(page);
+        await OnPageChanged.InvokeAsync(page);
     }
 
     private List<int> GetPageNumbers()
@@ -66,17 +77,17 @@
         var pages = new List<int>();
         if (TotalPages <= 7)
         {
-            for (int i = 1; i <= TotalPages; i++) pages.Add(i);
+            for (var i = 1; i <= TotalPages; i++) pages.Add(i);
         }
         else
         {
             pages.Add(1);
             if (CurrentPage > 3) pages.Add(-1);
 
-            int start = Math.Max(2, CurrentPage - 1);
-            int end = Math.Min(TotalPages - 1, CurrentPage + 1);
+            var start = Math.Max(2, CurrentPage - 1);
+            var end = Math.Min(TotalPages - 1, CurrentPage + 1);
 
-            for (int i = start; i <= end; i++)
+            for (var i = start; i <= end; i++)
             {
                 if (!pages.Contains(i)) pages.Add(i);
             }
@@ -84,6 +95,33 @@
             if (CurrentPage < TotalPages - 2) pages.Add(-1);
             if (!pages.Contains(TotalPages)) pages.Add(TotalPages);
         }
+
         return pages;
     }
+
+    private Task ApplyPageSize()
+    {
+        return OnPageSizeChanged.InvokeAsync(LocalPageSize);
+    }
+
+    private Task NextPage()
+    {
+        return OnNext.InvokeAsync();
+    }
+
+    private Task PreviousPage()
+    {
+        return OnPrevious.InvokeAsync();
+    }
+
+    private Task FirstPage()
+    {
+        return OnFirst.InvokeAsync();
+    }
+
+    private Task LastPage()
+    {
+        return OnLast.InvokeAsync();
+    }
+
 }

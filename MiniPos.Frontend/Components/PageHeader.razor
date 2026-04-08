@@ -83,12 +83,14 @@
     [Parameter] public string Subtitle { get; set; } = "";
     [Parameter] public string SearchPlaceholder { get; set; } = "Search...";
     [Parameter] public string SearchTerm { get; set; } = "";
+    
     [Parameter] public EventCallback<string> SearchTermChanged { get; set; }
     [Parameter] public EventCallback OnSearch { get; set; }
 
     [Parameter] public bool ShowViewToggle { get; set; } = true;
     [Parameter] public bool ShowSearch { get; set; } = true;
     [Parameter] public string ViewMode { get; set; } = "grid";
+    
     [Parameter] public EventCallback<string> ViewModeChanged { get; set; }
 
     [Parameter] public RenderFragment? Filters { get; set; }

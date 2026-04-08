@@ -1,4 +1,4 @@
-@page "/users/{UserId}"
+@page "/{MerchantId}/users/{UserId}"
 @inject NotificationService Notification
 @using MiniPos.Frontend.Shared.Types
 
@@ -374,7 +374,8 @@
 
 @code {
     [Parameter] public string UserId { get; set; } = "";
-
+    [Parameter] public string MerchantId { get; set; } = "";
+    
     [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
     [Inject] private HttpClient Http { get; set; } = default!;
     [Inject] private NavigationManager Navigation { get; set; } = default!;
@@ -651,7 +652,7 @@
             }
 
             await Notification.ShowSuccess("Account deactivated successfully.");
-            Navigation.NavigateTo("/users");
+            GoBack();
         }
         catch (Exception ex)
         {
@@ -672,7 +673,7 @@
 
     private void GoBack()
     {
-        Navigation.NavigateTo("/users");
+        Navigation.NavigateTo($"/users?merchantId={MerchantId}");
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)

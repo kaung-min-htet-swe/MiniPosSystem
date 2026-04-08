@@ -1,4 +1,4 @@
-namespace MiniPos.Frontend.Pages.Staff;
+namespace MiniPos.Frontend.Pages.Users;
 
 public class Merchant
 {
