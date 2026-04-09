@@ -204,14 +204,18 @@
 
     private async Task LoadUsers()
     {
-        if (_selectedMerchantId == null) return;
+        if (_selectedMerchantId == null)
+        {
+            _pagedUsers = null;
+            return;
+        }
 
         _isLoading = true;
         StateHasChanged();
 
         try
         {
-            var url = $"/api/users" +
+            var url = $"api/users" +
                       $"?searchTerm={SearchTerm}" +
                       $"&pageNumber={CurrentPage}" +
                       $"&pageSize={PageSize}" +

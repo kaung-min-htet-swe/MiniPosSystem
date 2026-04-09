@@ -1,14 +1,15 @@
 @page "/customers"
 @using MiniPos.Frontend.Shared.Types
+@inherits MiniPos.Frontend.Shared.Components.FilterablePageBase
 
 <PageTitle>Client Directory - MiniPOS</PageTitle>
 
 <PageHeader Title="Client Directory" 
             Subtitle="Maintain detailed customer profiles and loyalty"
             SearchPlaceholder="Search customers..."
-            @bind-SearchTerm="_searchTerm"
+            @bind-SearchTerm="SearchTerm"
             ShowViewToggle="false"
-            OnSearch="LoadData">
+            OnSearch="@HandleSearchTermChanged">
     <Filters>
         <div class="relative group">
             <i data-lucide="store"
@@ -105,11 +106,15 @@
             </table>
         </div>
 
-        <Pagination CurrentPage="_currentPage" 
+        <Pagination CurrentPage="@CurrentPage" 
                     TotalPages="@(_pagedCustomers?.TotalPages ?? 1)" 
                     TotalCount="@(_pagedCustomers?.TotalCount ?? 0)"
-                    PageSize="10"
-                    PageChanged="HandlePageChanged" />
+                    PageSize="@PageSize"
+                    OnPageChanged="@HandlePageChanged"
+                    OnFirst="@HandleFirstPage"
+                    OnPrevious="@HandlePreviousPage"
+                    OnNext="@HandleNextPage"
+                    OnLast="() => HandlePageChanged(_pagedCustomers?.TotalPages ?? 1)" />
     }
 </div>
 
@@ -121,9 +126,12 @@
     private PagedResult<Customer>? _pagedCustomers;
     private List<Merchant> _merchants = new();
     private Guid? _selectedMerchantId;
-    private string _searchTerm = "";
-    private int _currentPage = 1;
     private bool _isLoading = true;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await LoadData();
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -150,8 +158,8 @@
         StateHasChanged();
         try
         {
-            var url = $"api/customers?page={_currentPage}&pageSize=10";
-            if (!string.IsNullOrEmpty(_searchTerm)) url += $"&searchTerm={Uri.EscapeDataString(_searchTerm)}";
+            var url = $"api/customers?page={CurrentPage}&pageSize={PageSize}";
+            if (!string.IsNullOrEmpty(SearchTerm)) url += $"&searchTerm={Uri.EscapeDataString(SearchTerm)}";
             if (_selectedMerchantId.HasValue) url += $"&merchantId={_selectedMerchantId.Value}";
 
             _pagedCustomers = await Http.GetFromJsonAsync<PagedResult<Customer>>(url);
@@ -166,12 +174,6 @@
             StateHasChanged();
             await JSRuntime.InvokeVoidAsync("initIcons");
         }
-    }
-
-    private async Task HandlePageChanged(int page)
-    {
-        _currentPage = page;
-        await LoadData();
     }
 
     private void GoToAddCustomer() => Nav.NavigateTo("/customers/add");
