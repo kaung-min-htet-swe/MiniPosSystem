@@ -162,6 +162,11 @@
     private bool _isLoading;
     private int _totalPage;
 
+    protected override async Task OnParametersSetAsync()
+    {
+        await LoadUsers();
+    }
+
     protected override async Task OnInitializedAsync()
     {
         await LoadMerchants();
@@ -184,7 +189,7 @@
             var response = await Http.GetAsync("api/merchants");
             if (!response.IsSuccessStatusCode)
             {
-                await Notification.ShowError("Failed to load merchants.");
+                Notification.ShowError("Failed to load merchants.");
                 return;
             }
 
@@ -193,7 +198,7 @@
         }
         catch (Exception ex)
         {
-            await Notification.ShowError("Error loading merchants.");
+            Notification.ShowError("Error loading merchants.");
         }
     }
 
@@ -216,7 +221,7 @@
             var response = await Http.GetAsync(url);
             if (!response.IsSuccessStatusCode)
             {
-                await Notification.ShowError("Failed to load users.");
+                Notification.ShowError("Failed to load users.");
                 _pagedUsers = null;
                 return;
             }
@@ -227,7 +232,7 @@
         }
         catch (Exception ex)
         {
-            await Notification.ShowError(ex.Message);
+            Notification.ShowError(ex.Message);
         }
         finally
         {
