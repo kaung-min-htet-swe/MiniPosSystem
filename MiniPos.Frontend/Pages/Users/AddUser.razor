@@ -396,7 +396,7 @@
 
     private void GoBack()
     {
-        Navigation.NavigateTo($"/users?merchantId={MerchantId}");
+        Navigation.NavigateTo($"/users?merchantId={MerchantId}", replace: false);
     }
 
     private async Task ReinitIcons()

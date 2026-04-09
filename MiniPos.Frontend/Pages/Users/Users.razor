@@ -1,6 +1,6 @@
 @page "/users"
-@using MiniPos.Frontend.Shared.Types
 @inject NotificationService Notification
+@using MiniPos.Frontend.Shared.Types
 @inherits MiniPos.Frontend.Shared.Components.FilterablePageBase
 
 <PageTitle>Staff Members - MiniPOS</PageTitle>
@@ -11,7 +11,7 @@
     SearchPlaceholder="Search staff..."
     @bind-SearchTerm="SearchTerm"
     ShowViewToggle="false"
-    OnSearch="LoadUsers"
+    OnSearch="@HandleSearchTermChanged"
 >
 
     <Filters>
@@ -157,19 +157,19 @@
     }
 
     private PagedResult<User>? _pagedUsers;
-    private int _totalPage = 0;
     private List<Merchant> _merchants = new();
     private Guid? _selectedMerchantId;
-    private bool _isLoading = true;
-
-    protected override async Task OnParametersSetAsync()
-    {
-        await LoadUsers();
-    }
+    private bool _isLoading;
+    private int _totalPage;
 
     protected override async Task OnInitializedAsync()
     {
         await LoadMerchants();
+        if (MerchantId != Guid.Empty)
+        {
+            _selectedMerchantId = MerchantId;
+            await LoadUsers();
+        }
     }
 
     private async Task LoadMerchants()
@@ -184,15 +184,7 @@
             }
 
             var result = await response.Content.ReadFromJsonAsync<PagedResult<Merchant>>();
-            if (MerchantId != Guid.Empty)
-            {
-                _selectedMerchantId = MerchantId;
-            }
-
-            if (result is { Data: not null })
-            {
-                _merchants = result.Data;
-            }
+            _merchants = result.Data;
         }
         catch (Exception ex)
         {
@@ -202,15 +194,20 @@
 
     private async Task LoadUsers()
     {
+        if (MerchantId == Guid.Empty)
+        {
+            return;
+        }
+
         _isLoading = true;
         StateHasChanged();
 
         try
         {
             var url = $"/api/users" +
-                      $"?q={SearchTerm}" +
-                      $"&page={CurrentPage}" +
-                      $"&size={PageSize}" +
+                      $"?searchTerm={SearchTerm}" +
+                      $"&pageNumber={CurrentPage}" +
+                      $"&pageSize={PageSize}" +
                       $"&merchantId={_selectedMerchantId}" +
                       $"&includeCashiers=true";
 
@@ -218,11 +215,12 @@
             if (!response.IsSuccessStatusCode)
             {
                 await Notification.ShowError("Failed to load users.");
+                _pagedUsers = null;
                 return;
             }
 
             _pagedUsers = await response.Content.ReadFromJsonAsync<PagedResult<User>>();
-            if(_pagedUsers != null)
+            if (_pagedUsers != null)
                 _totalPage = _pagedUsers.TotalPages;
         }
         catch (Exception ex)
@@ -266,9 +264,15 @@
         return userName.Substring(0, Math.Min(2, userName.Length)).ToUpper();
     }
 
-    private void GoToUserDetail(Guid userId) => Navigation.NavigateTo($"/{_selectedMerchantId}/users/{userId}");
+    private void GoToUserDetail(Guid userId)
+    {
+        Navigation.NavigateTo($"/{_selectedMerchantId}/users/{userId}");
+    }
 
-    private void GoToAddStaff() => Navigation.NavigateTo($"/{_selectedMerchantId}/users/add");
+    private void GoToAddStaff()
+    {
+        Navigation.NavigateTo($"/{_selectedMerchantId}/users/add");
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -282,7 +286,7 @@
     {
         if (_selectedMerchantId.HasValue)
         {
-            AppendQuery("merchantId", _selectedMerchantId.Value.ToString());
+            AppendQuery("merchantId", _selectedMerchantId.Value);
         }
     }
 
