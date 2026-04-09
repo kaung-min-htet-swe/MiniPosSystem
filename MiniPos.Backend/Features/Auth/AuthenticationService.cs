@@ -76,7 +76,6 @@ public class AuthenticationService : IAuthenticationService
         var errCode = "AuthenticationService.Signin";
         try
         {
-            Console.WriteLine($"Signin attempt for email: {request.Email}");
             var user = await _db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Email == request.Email);
             if (user is null) return Result<SigninResponse>.Failure(new UnAuthorizedError(errCode, "Invalid credentials"));
 
@@ -89,6 +88,7 @@ public class AuthenticationService : IAuthenticationService
                 Role = user.Role,
                 UserId = user.Id,
             });
+            
             return Result<SigninResponse>.Success(new SigninResponse
             {
                 UserId = user.Id,
@@ -104,6 +104,7 @@ public class AuthenticationService : IAuthenticationService
 
     public async Task<Result<RefreshResponse>> Refresh(RefreshRequest request)
     {
+        Console.WriteLine($"Refresh token attempt with token: {request.RefreshToken}");
         return await _tokenService.RefreshAsync(request.RefreshToken);
     }
 
