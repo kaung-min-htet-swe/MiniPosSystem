@@ -1,4 +1,4 @@
-@page "/{MerchantId}/users/add"
+@page "/users/add"
 @using MiniPos.Frontend.Shared.Types
 @inject NotificationService Notification
 
@@ -234,7 +234,7 @@
                             @onclick="GoBack">
                             <i data-lucide="arrow-left"
                                class="w-4 h-4 group-hover:-translate-x-1 transition-transform"></i>
-                            <span class="font-bold text-xs uppercase tracking-tight">Return to Directory</span>
+                            <span class="font-bold text-xs uppercase tracking-tight">Back to Staff Members</span>
                         </button>
                     </div>
                 </div>
@@ -396,7 +396,7 @@
 
     private void GoBack()
     {
-        Navigation.NavigateTo($"/users?merchantId={MerchantId}", replace: false);
+        Navigation.NavigateTo($"/users", replace: false);
     }
 
     private async Task ReinitIcons()

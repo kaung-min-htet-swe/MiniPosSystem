@@ -168,8 +168,13 @@
         if (MerchantId != Guid.Empty)
         {
             _selectedMerchantId = MerchantId;
-            await LoadUsers();
         }
+        else
+        {
+            _selectedMerchantId = _merchants[0].Id;
+        }
+
+        await LoadUsers();
     }
 
     private async Task LoadMerchants()
@@ -194,10 +199,7 @@
 
     private async Task LoadUsers()
     {
-        if (MerchantId == Guid.Empty)
-        {
-            return;
-        }
+        if (_selectedMerchantId == null) return;
 
         _isLoading = true;
         StateHasChanged();
@@ -271,7 +273,7 @@
 
     private void GoToAddStaff()
     {
-        Navigation.NavigateTo($"/{_selectedMerchantId}/users/add");
+        Navigation.NavigateTo($"/users/add");
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)

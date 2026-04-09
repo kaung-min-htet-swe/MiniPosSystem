@@ -3,8 +3,8 @@ namespace Common;
 public class PaginationFilter
 {
     private const int MaxPageSize = 100;
-    private int _pageSize;
-    private int _pageNumber;
+    private int _pageSize = 10;
+    private int _pageNumber = 1;
 
     public int PageNumber
     {
